@@ -1,0 +1,24 @@
+input {
+  file {
+    type => "syslog"
+
+    # Wildcards work here :)
+    path => [ "/var/log/messages", "/var/log/syslog", "/var/log/*.log" ]
+  }
+
+  file {
+    type => "apache-access"
+    path => "/var/log/apache2/access.log"
+  }
+
+  file {
+    type => "apache-error"
+    path => "/var/log/apache2/error.log"
+  }
+}
+
+
+output {
+  stdout { debug => true debug_format => "json"}
+  redis { host => "198.61.185.201" data_type => "list" key => "logmind_webyclip" }
+}
