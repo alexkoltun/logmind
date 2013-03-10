@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>Kibana Login</title>
+  <title>Logmind Login</title>
 
   <script type="text/javascript" src="../../lib/js/lib/jquery.min.js"></script>
   <script type="text/javascript" src="../../lib/js/lib/jquery.history.js"></script>
@@ -36,8 +36,8 @@
   <div class="hugeotron masthead">
     <div class="container">
       <div class=row>
-        <h1><img src='../../images/kibana_text.png'></h1>
-        <p>Make sense of a mountain of logs</p>
+        <h1><img src='../../images/logmind_text.png'></h1>
+        <p>Unleash the power of logs</p>
         <% if locals[:login_message] %>
         <p><span class="label label-success"><%= locals[:login_message] %></span></p>
         <% end %>
@@ -51,20 +51,6 @@
 
   </div>
 
-
-<!--
-  <div id="login" class="well">
-    <img src='../../images/kibana_login.png'>
-    <form class="form-horizontal" action="/auth/login" method="POST">
-      <% if locals[:login_message] %>
-      <%= locals[:login_message] %><br>
-      <% end %>
-      <input type="text" placeholder="Username" id="username" name="username" /><br>
-      <input type="password" placeholder="Password" id="password" name="password" /><br>
-      <button class="btn btn-primary" type=submit>Login</button>
-    </form>
-  </div>
--->
 </body>
 
 </html>
