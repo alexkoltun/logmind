@@ -282,30 +282,32 @@ post '/auth/admin/save' do
     @@storage_module.set_permissions(username,usertags,is_admin)
     # Update the auth group info
     if username.start_with?("@") and @@users_module.respond_to?('add_group')
+      puts "username.start_with?(@)"
       members = params[:members]
       @@users_module.add_group(username, members)
-    elsif params[:pass1] != nil
+    elsif params[:pass1] != nil && params[:pass1] != ""
+      puts "Has password!!!"
       password = params[:pass1]
       @@users_module.set_password(username, password)
-      user_groups = params[:user_groups]
-      old_groups = @@users_module.membership(username)
-      if user_groups.nil?
-        del_groups = old_groups
-      elsif old_groups.nil?
-        add_groups=user_groups
-      else
-        add_groups = user_groups-old_groups
-        del_groups = old_groups-user_groups
+    end
+    user_groups = params[:user_groups]
+    old_groups = @@users_module.membership(username)
+    if user_groups.nil?
+      del_groups = old_groups
+    elsif old_groups.nil?
+      add_groups=user_groups
+    else
+      add_groups = user_groups-old_groups
+      del_groups = old_groups-user_groups
+    end
+    if not add_groups.nil?
+      add_groups.each do |group|
+        @@users_module.add_user_2group(username, group)
       end
-      if not add_groups.nil?
-        add_groups.each do |group|
-          @@users_module.add_user_2group(username, group)
-        end
-      end
-      if not del_groups.nil?
-        del_groups.each do |group|
-          @@users_module.rm_user_from_group(username, group)
-        end
+    end
+    if not del_groups.nil?
+      del_groups.each do |group|
+        @@users_module.rm_user_from_group(username, group)
       end
     end
   end
