@@ -24,7 +24,11 @@ configure do
   set :bind, defined?(KibanaConfig::KibanaHost) ? KibanaConfig::KibanaHost : '0.0.0.0'
   set :port, KibanaConfig::KibanaPort
   set :public_folder, Proc.new { File.join(root, "static") }
-  enable :sessions
+ # enable :sessions
+  use Rack::Session::Cookie, :key => 'rack.session',
+      :path => '/',
+      :secret => 'logmind_prime1!',
+      :httponly => false
 
   @@users_module = nil
   begin

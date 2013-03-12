@@ -15,12 +15,12 @@ $(document).ready(function () {
   $("div#logs").ajaxError(function (e, xhr, settings, exception) {
     $('#meta').text("");
     if(xhr.statusText != 'abort') {
-      showError("<strong>Oops!</strong> Something went terribly wrong.",
-        "I'm not totally sure what happened, but maybe refreshing, or "+
+      showError("<strong>Request canceled</strong>.",
+        "Refreshing, or "+
         "hitting Reset will help. If that doesn't work, you can try "+
         "restarting your browser. If all else fails, it is possible your"+
-        " configuation has something funky going on. <br><br>If it helps,"+
-        " I received a <strong>" + xhr.status + " " + xhr.statusText +
+        " configuation has errors in it. <br><br>Technical details,"+
+        " received a <strong>" + xhr.status + " " + xhr.statusText +
         "</strong> from: " + settings.url);
     }
   });
@@ -681,7 +681,7 @@ function enable_popovers() {
           "data-field="+field+"><i class='icon-bar-chart'></i> Stats</button>" +
         "</div>";
       return str;
-    },
+    }
   }).click(function(e) {
     if(popover_visible) {
       $('.popover').remove();
@@ -1237,7 +1237,7 @@ function tiny_bar(data,selector) {
     },
     xaxis: {show:false, max: window.resultjson.kibana.per_page},
     yaxis: {show:false},
-    grid: {show:false},  
+    grid: {show:false}
   });
 }
 
@@ -1354,7 +1354,7 @@ function logGraph(data, interval, metric) {
         mode: "time",
         timeformat: "%H:%M:%S<br>%m-%d",
         label: "Datetime",
-        color: "#000",
+        color: "#000"
       },
       yaxis: {
         min: 0,
