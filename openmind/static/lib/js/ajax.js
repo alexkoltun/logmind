@@ -1,9 +1,9 @@
 $(document).ready(function () {
-
+  $.datetimeEntry.setDefaults($.datetimeEntry.regional['']);
   // Bind all click/change/whatever handlers
-  bind_clicks()
+  bind_clicks();
   populate_selectboxes();
-  popover_setup()
+  popover_setup();
 
   // Common color profile.
   window.graph_colors = ["#edc240", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed"]

@@ -1,0 +1,101 @@
+#! /bin/bash
+### BEGIN INIT INFO
+# Provides:          logmind-redis
+# Required-Start:    $all
+# Required-Stop:     $all
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts logmind-redis
+# Description:       Starts logmind-redis using start-stop-daemon
+### END INIT INFO
+
+# You may need to change these
+USER=logmind          # the user you used to run the redis
+
+### BEGIN user-configurable settings
+NAME=logmind-redis
+DESC=Logmind redis
+REDIS_HOME=/usr/local/logmind/redis
+PID_FILE=$REDIS_HOME/$NAME.pid
+LOG_DIR=$REDIS_HOME/logs
+DATA_DIR=$REDIS_HOME/data
+CONFIG_FILE=$ES_HOME/config/redis.conf
+WORK_DIR=/tmp/$NAME
+DAEMON=$REDIS_HOME/bin/redis-server
+DAEMON_OPTS="$CONFIG_FILE"
+### END user-configurable settings
+
+
+# Pull in RHEL/CentOS-specific functionality (daemon, killproc) if available.
+if [ -x /etc/init.d/functions ]; then source /etc/init.d/functions; fi
+
+# Exit if the executable is missing.
+if [ ! -x $DAEMON ]; then
+  echo 'Could not find redis executable!'
+  exit 0
+fi
+
+# Exit if any command (outside a conditional) fails.
+set -e
+
+
+case "$1" in
+  start)
+    echo -n "Starting $DESC: "
+    mkdir -p $LOG_DIR $DATA_DIR $WORK_DIR
+    chown -R $USER:$USER $LOG_DIR $DATA_DIR $WORK_DIR
+    if type -p start-stop-daemon > /dev/null; then
+      start-stop-daemon --start --pidfile $PID_FILE --user $USER --chuid $USER --startas $DAEMON -- $DAEMON_OPTS
+    else
+      runuser -s /bin/bash $USER -c "$DAEMON $DAEMON_OPTS"
+    fi
+    if [ $? == 0 ]
+    then
+        echo "started."
+    else
+        echo "failed."
+    fi
+    ;;
+  stop)
+    if [ ! -e $PID_FILE ]; then
+      echo "$DESC not running (no PID file)"
+    else
+      echo -n "Stopping $DESC: "
+      if type -p start-stop-daemon > /dev/null; then
+        start-stop-daemon --stop --pidfile $PID_FILE
+      else
+        kill $(cat $PID_FILE)
+        rm $PID_FILE
+      fi
+      if [ $? == 0 ]
+      then
+          echo "stopped."
+      else
+          echo "failed."
+      fi
+    fi
+    ;;
+  restart|force-reload)
+    ${0} stop
+    sleep 0.5
+    ${0} start
+    ;;
+  status)
+    if [ ! -f $PID_FILE ]; then
+      echo "$DESC not running"
+    else
+      if ps auxw | grep $(cat $PID_FILE) | grep -v grep > /dev/null; then
+        echo "running on pid $(cat $PID_FILE)"
+      else
+        echo 'not running (but PID file exists)'
+      fi
+    fi
+    ;;
+  *)
+    N=/etc/init.d/$NAME
+    echo "Usage: $N {start|stop|restart|force-reload|status}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0
