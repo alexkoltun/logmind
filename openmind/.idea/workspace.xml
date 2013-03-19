@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4b6a1ead-5334-4763-a286-0a762f83928f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/static/lib/js/ajax.js" afterPath="$PROJECT_DIR$/static/lib/js/ajax.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/static/lib/js/lettering.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/views/header.erb" afterPath="$PROJECT_DIR$/views/header.erb" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="openmind.iws" />
@@ -16,6 +17,7 @@
     <file path="$PROJECT_DIR$/../../ruby-grok-master/examples/grok-web.rb" changelist="4b6a1ead-5334-4763-a286-0a762f83928f" time="1361184364176" ignored="false" />
     <file path="/kibana.rb" changelist="4b6a1ead-5334-4763-a286-0a762f83928f" time="1363109338133" ignored="false" />
     <file path="/ajax.js" changelist="4b6a1ead-5334-4763-a286-0a762f83928f" time="1363110630579" ignored="false" />
+    <file path="/header.erb" changelist="4b6a1ead-5334-4763-a286-0a762f83928f" time="1363258103381" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,15 +61,6 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Gemfile" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Gemfile">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="kibana.gemspec" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/kibana.gemspec">
           <provider selected="true" editor-type-id="text-editor">
@@ -89,7 +82,7 @@
       <file leaf-file-name="shared.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/static/lib/js/shared.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="-0.0">
+            <state line="408" column="44" selection-start="10481" selection-end="10481" vertical-scroll-proportion="-12.56">
               <folding />
             </state>
           </provider>
@@ -107,7 +100,7 @@
       <file leaf-file-name="header.erb" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/views/header.erb">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="21" column="78" selection-start="1304" selection-end="1304" vertical-scroll-proportion="-6.509804">
+            <state line="33" column="61" selection-start="2073" selection-end="2073" vertical-scroll-proportion="-6.3137255">
               <folding />
             </state>
           </provider>
@@ -116,7 +109,7 @@
       <file leaf-file-name="ajax.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/static/lib/js/ajax.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="6" column="57" selection-start="200" selection-end="200" vertical-scroll-proportion="0.2670157">
+            <state line="3" column="20" selection-start="154" selection-end="154" vertical-scroll-proportion="0.13350785">
               <folding>
                 <marker date="1363256668149" expanded="true" signature="18615:18621" placeholder="..." />
                 <marker date="1363256668149" expanded="true" signature="20167:20187" placeholder="..." />
@@ -125,6 +118,17 @@
                 <marker date="1363256668149" expanded="true" signature="28796:28834" placeholder="..." />
                 <marker date="1363256668149" expanded="true" signature="31001:31012" placeholder="..." />
                 <marker date="1363256668149" expanded="true" signature="33801:33839" placeholder="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="lettering.js" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/static/lib/js/lettering.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="65" column="11" selection-start="2033" selection-end="2033" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="n#!!doc" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -153,6 +157,8 @@
         <option value="$PROJECT_DIR$/kibana.gemspec" />
         <option value="$PROJECT_DIR$/kibana.rb" />
         <option value="$PROJECT_DIR$/static/lib/js/ajax.js" />
+        <option value="$PROJECT_DIR$/static/lib/js/lettering.js" />
+        <option value="$PROJECT_DIR$/views/header.erb" />
       </list>
     </option>
   </component>
@@ -647,14 +653,14 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32934782" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21515152" sideWeight="0.70983607" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.29016393" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.29016393" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32934782" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2590164" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -727,13 +733,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/spec/kelastic_spec.rb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="22" column="32" selection-start="528" selection-end="528" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/views/footer.erb">
       <provider selected="true" editor-type-id="text-editor">
         <state line="10" column="30" selection-start="406" selection-end="406" vertical-scroll-proportion="0.0">
@@ -793,13 +792,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/views/header.erb">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="21" column="78" selection-start="1304" selection-end="1304" vertical-scroll-proportion="-6.509804">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/static/lib/js/stream.js">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="1.0">
@@ -821,16 +813,32 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/static/lib/js/lettering.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="65" column="11" selection-start="2033" selection-end="2033" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/header.erb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="33" column="61" selection-start="2073" selection-end="2073" vertical-scroll-proportion="-6.3137255">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/static/lib/js/shared.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="-0.0">
+        <state line="408" column="44" selection-start="10481" selection-end="10481" vertical-scroll-proportion="-12.56">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/static/lib/js/ajax.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="6" column="57" selection-start="200" selection-end="200" vertical-scroll-proportion="0.2670157">
+        <state line="3" column="20" selection-start="154" selection-end="154" vertical-scroll-proportion="0.13350785">
           <folding>
             <marker date="1363256668149" expanded="true" signature="18615:18621" placeholder="..." />
             <marker date="1363256668149" expanded="true" signature="20167:20187" placeholder="..." />
