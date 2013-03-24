@@ -1,0 +1,10 @@
+#!/bin/bash
+HTTPD="/usr/local/logmind/rubystack/apache2/bin/httpd -f /usr/local/logmind/rubystack/apache2/conf/httpd.conf"
+STATUSURL="http://localhost/server-status"
+HTTPD_STATUS=""
+HTTPD_PID=""
+ERROR=0
+SERVER=both
+. /usr/local/logmind/rubystack/apache2/bin/envvars
+exec 2>&1
+exec $HTTPD -D FOREGROUND
