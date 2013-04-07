@@ -1,0 +1,7 @@
+C:\Users\shaike\Documents\Visual Studio 2010\Projects\ConsoleApplication4\EvWriter\bin\Debug\EvWriter.exe
+C:\Users\shaike\Documents\Visual Studio 2010\Projects\ConsoleApplication4\EvWriter\bin\Debug\EvWriter.pdb
+C:\Users\shaike\Documents\Visual Studio 2010\Projects\ConsoleApplication4\EvWriter\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\Users\shaike\Documents\Visual Studio 2010\Projects\ConsoleApplication4\EvWriter\obj\x86\Debug\EvWriter.exe
+C:\Users\shaike\Documents\Visual Studio 2010\Projects\ConsoleApplication4\EvWriter\obj\x86\Debug\EvWriter.pdb
+C:\Users\shaike\Dropbox\logmind\logMind\EvWriter\obj\x86\Debug\EvWriter.exe
+C:\Users\shaike\Dropbox\logmind\logMind\EvWriter\obj\x86\Debug\EvWriter.pdb
