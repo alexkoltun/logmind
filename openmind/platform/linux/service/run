@@ -7,4 +7,4 @@ ERROR=0
 SERVER=both
 . /usr/local/logmind/rubystack/apache2/bin/envvars
 exec 2>&1
-exec $HTTPD -D FOREGROUND
+exec $HTTPD -DNO_DETACH
