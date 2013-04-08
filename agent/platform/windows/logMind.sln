@@ -5,9 +5,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EvWriter", "EvWriter\EvWrit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "evLogReader", "evLogReader\evLogReader.csproj", "{CA7DB6F3-489E-4ADD-B519-D5270D99B5F8}"
 EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "SetupProject32", "Setup32\SetupProject32.wixproj", "{56E5FE89-0A71-4D49-ADC9-3896D1B84FC9}"
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "SetupProject32", "Setup\Setup32\SetupProject32.wixproj", "{56E5FE89-0A71-4D49-ADC9-3896D1B84FC9}"
 EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "SetupProject64", "Setup64\SetupProject64.wixproj", "{42F7B545-7DDB-49B3-8239-5EBDD8A80B2D}"
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "SetupProject64", "Setup\Setup64\SetupProject64.wixproj", "{42F7B545-7DDB-49B3-8239-5EBDD8A80B2D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
