@@ -1,0 +1,12 @@
+Setup/Setup32/bin
+Setup/Setup32/obj
+Setup/Setup64/bin
+Setup/Setup64/obj
+Target
+logMind.suo
+EvWriter/bin
+EvWriter/obj
+evLogReader/bin
+evLogReader/obj
+Setup/SetupFiles/Java
+Setup/SetupFiles/evLogReader
