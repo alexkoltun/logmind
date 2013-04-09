@@ -624,3 +624,84 @@ end
 get '/js/timezone.js' do
   erb :timezone
 end
+
+get '/lastevents' do
+  locals = {}
+  locals[:username] = session[:username]
+  locals[:is_admin] = @user_perms[:is_admin]
+  locals[:header_title] = "Last Events"
+  if @@auth_module
+    locals[:show_back] = true
+
+    query   = SortedQuery.new("*",@user_perms,nil,nil,nil)
+    result  = Kelastic.new(query,KibanaConfig::LastEvents_index)
+    #output  = JSON.generate(result.response)
+    #if result.response.has_key?('hits')
+    locals[:result] = result.response
+    #end
+
+  end
+  erb :lastevents, :locals => locals
+end
+
+delete '/lastevents' do
+  locals = {}
+  locals[:username] = session[:username]
+  locals[:is_admin] = @user_perms[:is_admin]
+  if @@auth_module
+    id = params[:id]
+    type = params[:type]
+
+    @esf = Elasticsearchmod.new(KibanaConfig::LastEvents_index,type)
+    result = @esf.del_by_id(id)
+    return JSON.generate( { :success => result, :message => ""} )
+  end
+end
+
+get '/indiceslist' do
+  locals = {}
+  locals[:username] = session[:username]
+  locals[:is_admin] = @user_perms[:is_admin]
+  locals[:header_title] = "Live Indices"
+  if @@auth_module
+    locals[:show_back] = true
+    result = Kelastic.just_logstash_indices()
+    locals[:result] = result
+  end
+  erb :indiceslist, :locals => locals
+end
+
+post '/indexController' do
+  locals = {}
+  locals[:username] = session[:username]
+  locals[:is_admin] = @user_perms[:is_admin]
+
+  if @@auth_module
+    requested_action = params[:action]
+    indexName = params[:indexName]
+
+    case requested_action
+      when "archive"
+        @@storage_module.index_archive(indexName)
+      when "restore"
+        @@storage_module.index_restore(indexName)
+      else
+        return JSON.generate( { :success => false, :message => "Operation not permitted" } )
+    end
+
+    return JSON.generate( { :success => "ok", :message => ""} )
+  end
+end
+
+get '/archivedlist' do
+  locals = {}
+  locals[:username] = session[:username]
+  locals[:is_admin] = @user_perms[:is_admin]
+  locals[:header_title] = "Archived Indices"
+  if @@auth_module
+    locals[:show_back] = true
+    result = @@storage_module.archived_list()
+    locals[:result] = result
+  end
+  erb :archivedlist, :locals => locals
+end
