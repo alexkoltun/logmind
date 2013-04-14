@@ -1773,5 +1773,4 @@ function bind_clicks() {
     });
     return false;
   });
- 
 }

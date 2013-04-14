@@ -39,9 +39,11 @@ class StorageElasticSearch
   def initialize(config)
     @config = config
     @index = 'kibana'
-    puts "Initializing elasticsearch module"
+    puts "Initializing elasticsearch modules"
     @esm = Elasticsearchmod.new(@index,'permission')
     @esf = Elasticsearchmod.new(@index,'favorite')
+    @esarchived = Elasticsearchmod.new(@index,'archived')
+
     puts "Initializing elasticsearch for kibana storage..."
     if ! get_permissions(config::Auth_Admin_User)
       puts "Default Kibana admin user does not exist ... creating"
@@ -126,6 +128,34 @@ class StorageElasticSearch
     end
   end
 
+  # put logstash index at archive pending state
+  def index_archive(indexName)
+    id = indexName
+    values = {"id" => id, "name" => id, "state" => "pending", "stateTs" => Time.now.getutc}
+    r = @esarchived.set_by_id(id, values)
+
+    # close the index
+    Kelastic.close_index(indexName)
+
+    # todo, do real archiving..
+    return r["ok"]
+  end
+
+  def index_restore(indexName)
+    id = indexName
+    r = @esarchived.del_by_id(id)
+
+    # todo, do real restore of the idx files..
+
+    # open the index
+    Kelastic.open_index(indexName)
+
+    return r["ok"]
+  end
+
+  def archived_list()
+    return @esarchived.get_all()
+  end
 end
 
 # Required function, returns the storage

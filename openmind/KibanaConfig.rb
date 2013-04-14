@@ -85,6 +85,8 @@ module KibanaConfig
   # Smart_index_pattern = ['logstash-web-%Y.%m.%d', 'logstash-mail-%Y.%m.%d'] 
   Smart_index_pattern = 'logstash-%Y.%m.%d'
 
+  Smart_index_reg = /logstash-[1-9][0-9][0-9][0-9].[0-2][0-9].[0-9][0-9]/
+
   # ElasticSearch has a default limit on URL size for REST calls,
   # so Kibana will fall back to _all if a search spans too many
   # indices. Use this to set that 'too many' number. By default this
@@ -111,6 +113,8 @@ module KibanaConfig
 
   # Default Elastic Search index to query
   Default_index = '_all'
+
+  LastEvents_index = 'logstash-last'
 
   # TODO: This isn't functional yet
   # Prevent wildcard search terms which result in extremely slow queries
