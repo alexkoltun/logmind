@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ -d .git ] ; then
+  export GEM_HOME=./vendor/bundle/jruby/1.9
+  export GEM_PATH=
+fi
+
+export RUBYLIB=./lib 
+ruby lib/logstash/runner.rb "$@"
