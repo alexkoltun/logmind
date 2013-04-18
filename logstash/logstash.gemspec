@@ -83,4 +83,14 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "shoulda"
   gem.add_runtime_dependency "rspec"
   gem.add_runtime_dependency "insist", "0.0.8"
+
+######################### LOGMIND AREA #########################
+
+  # Logmind Gem Dependencies #
+  gem.add_runtime_dependency "activerecord", "3.2.13"
+  gem.add_runtime_dependency "activerecord-mysql-adapter"
+  gem.add_runtime_dependency "ruby-odbc"
+  gem.add_runtime_dependency "activerecord-jdbc-adapter"
+  gem.add_runtime_dependency "activerecord-jdbcmssql-adapter"
+  gem.add_runtime_dependency "activerecord-sqlserver-adapter"
 end
