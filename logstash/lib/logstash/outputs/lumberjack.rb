@@ -10,7 +10,7 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
   config :port, :validate => :number, :required => true
 
   # ssl certificate to use
-  config :ssl_certificate, :validate => :string, :required => true
+  config :ssl_certificate, :validate => :path, :required => true
 
   # window size
   config :window_size, :validate => :number, :default => 5000
@@ -31,10 +31,10 @@ class LogStash::Outputs::Lumberjack < LogStash::Outputs::Base
           "host" => event.source_host, 
           "file" => event.source_path,
           "type" => event.type
-        }.merge(event.fields)
+        }.merge(event["@fields"])
       )
     rescue Exception => e
-      @logger.log("Client write error", :e => e, :backtrace => e.backtrace)
+      @logger.error("Client write error", :e => e, :backtrace => e.backtrace)
       connect
       retry
     end

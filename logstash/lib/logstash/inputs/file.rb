@@ -16,7 +16,7 @@ class LogStash::Inputs::File < LogStash::Inputs::Base
   plugin_status "beta"
 
   # The path to the file to use as an input.
-  # You can use globs here, such as "/var/log/*.log"
+  # You can use globs here, such as `/var/log/*.log`
   # Paths must be absolute and cannot be relative.
   config :path, :validate => :array, :required => true
 
@@ -39,8 +39,8 @@ class LogStash::Inputs::File < LogStash::Inputs::Base
   config :discover_interval, :validate => :number, :default => 15
 
   # Where to write the since database (keeps track of the current
-  # position of monitored log files). Defaults to the value of
-  # environment variable "$SINCEDB_PATH" or "$HOME/.sincedb".
+  # position of monitored log files). The default will write
+  # sincedb files to some path matching "$HOME/.sincedb*"
   config :sincedb_path, :validate => :string
 
   # How often to write a since database with the current position of

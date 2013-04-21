@@ -43,8 +43,8 @@ class LogStash::Filters::Date < LogStash::Filters::Base
   #
   # [joda.time.format.DateTimeFormat](http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html)
   #
-  # An array with field name first, and format patterns following, [ field,
-  # formats... ]
+  # An array with field name first, and format patterns following, `[ field,
+  # formats... ]`
   #
   # If your time field has multiple possible formats, you can do this:
   #
@@ -119,9 +119,10 @@ class LogStash::Filters::Date < LogStash::Filters::Base
     locale = parseLocale(@config["locale"][0]) if @config["locale"] != nil and @config["locale"][0] != nil
     missing = []
     @config.each do |field, value|
-      next if (RESERVED + ["locale"]).include?(field)
-      next if (RESERVED + ["match"]).include?(field)
+      next if (RESERVED + ["locale", "match"]).include?(field)
 
+      recommended_setting = value.map { |v| "\"#{v}\"" }.join(", ")
+      @logger.warn("#{self.class.config_name}: You used a deprecated setting '#{field} => #{value}'. You should use 'match => [ \"#{field}\", #{recommended_setting} ]'")
       # values here are an array of format strings for the given field.
       setupMatcher(field, locale, missing, value) # value.each
     end # @config.each
@@ -165,7 +166,8 @@ class LogStash::Filters::Date < LogStash::Filters::Base
                     :field => field, :format => format)
       @parsers[field] << {
           :parser => parser,
-          :missing => missing
+          :missing => missing,
+          :format => format
       }
     end
   end
@@ -174,17 +176,16 @@ class LogStash::Filters::Date < LogStash::Filters::Base
 
   public
   def filter(event)
-    @logger.debug("Date filter: received event", :type => event.type)
+    @logger.debug? && @logger.debug("Date filter: received event", :type => event.type)
     return unless filter?(event)
     now = Time.now
 
     @parsers.each do |field, fieldparsers|
-      @logger.debug("Date filter: type #{event.type}, looking for field #{field.inspect}",
-                    :type => event.type, :field => field)
-      # TODO(sissel): check event.message, too.
-      next unless event.fields.member?(field)
+      @logger.debug? && @logger.debug("Date filter looking for field",
+                                      :type => event.type, :field => field)
+      next unless event.include?(field)
 
-      fieldvalues = event.fields[field]
+      fieldvalues = event[field]
       fieldvalues = [fieldvalues] if !fieldvalues.is_a?(Array)
       fieldvalues.each do |value|
         next if value.nil?
@@ -234,11 +235,11 @@ class LogStash::Filters::Date < LogStash::Filters::Base
           time = time.withZone(org.joda.time.DateTimeZone.forID("UTC"))
           event.timestamp = time.to_s 
           #event.timestamp = LogStash::Time.to_iso8601(time)
-          @logger.debug("Date parsing done", :value => value, :timestamp => event.timestamp)
+          @logger.debug? && @logger.debug("Date parsing done", :value => value, :timestamp => event.timestamp)
         rescue StandardError, JavaException => e
           @logger.warn("Failed parsing date from field", :field => field,
-                       :value => value, :exception => e,
-                       :backtrace => e.backtrace)
+                       :value => value, :format => parserconfig[:format],
+                       :exception => e)
           # Raising here will bubble all the way up and cause an exit.
           # TODO(sissel): Maybe we shouldn't raise?
           # TODO(sissel): What do we do on a failure? Tag it like grok does?

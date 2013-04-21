@@ -24,11 +24,17 @@ You can also find documentation on the <http://logstash.net> site.
 To work on the code without building a jar, install rvm and run the following:
 
     # Install JRuby with rvm
-    rvm install jruby-1.7.1
-    rvm use jruby-1.7.1
+    rvm install jruby-1.7.2
+    rvm use jruby-1.7.2
 
-    # Install logstash dependencies
+    # Install logstash dependencies - installs gems into vendor/bundle/jruby/1.9/
     ruby gembag.rb logstash.gemspec
+
+    # to use Logstash gems in irb, use the following
+    bin/logstash irb
+
+    # or use irb from the jar
+    java -jar logstash-<version>-monolithic.jar irb
 
     # Run logstash
     bin/logstash agent [options]
@@ -45,6 +51,11 @@ rpm, deb, or other package formats are not currently available, but are easy to
 build with [fpm](https://github.com/jordansissel/fpm). If you are interested in
 seeing future releases include your favorite packaging format, please let me
 know.
+
+## Project Principles
+
+* Software: Make it work, then make it right, then make it fast.
+* Community: If a newbie has a bad time, it's a bug.
 
 ## Contributing
 

@@ -9,7 +9,7 @@ require "socket"
 #     input {
 #       eventlog {
 #         type  => 'Win32-EventLog'
-#         name  => 'System'
+#         logfile  => 'System'
 #       }
 #     }
 class LogStash::Inputs::EventLog < LogStash::Inputs::Base
@@ -50,7 +50,13 @@ class LogStash::Inputs::EventLog < LogStash::Inputs::Base
 
     @hostname = Socket.gethostname
     @logger.info("Registering input eventlog://#{@hostname}/#{@logfile}")
-    require "win32ole" # rubygem 'win32ole' ('jruby-win32ole' on JRuby)
+
+    if RUBY_PLATFORM == "java"
+      require "logstash/inputs/eventlog/racob_fix"
+      require "jruby-win32ole"
+    else
+      require "win32ole"
+    end
   end # def register
 
   public

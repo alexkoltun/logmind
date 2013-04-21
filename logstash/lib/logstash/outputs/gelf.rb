@@ -30,9 +30,12 @@ class LogStash::Outputs::Gelf < LogStash::Outputs::Base
   # as the gelf level/severity.
   #
   # Values here can be integers [0..7] inclusive or any of
-  # "debug", "info", "warn", "error", "fatal", "unknown" (case insensitive).
+  # "debug", "info", "warn", "error", "fatal" (case insensitive).
   # Single-character versions of these are also valid, "d", "i", "w", "e", "f",
   # "u"
+  # The following additional severity_labels from logstash's  syslog_pri filter
+  # are accepted: "emergency", "alert", "critical",  "warning", "notice", and 
+  # "informational"
   config :level, :validate => :array, :default => [ "%{severity}", "INFO" ]
 
   # The GELF facility. Dynamic values like %{foo} are permitted here; this
@@ -52,6 +55,10 @@ class LogStash::Outputs::Gelf < LogStash::Outputs::Base
   # any fields in the event (such as those created by grok) in the GELF
   # messages.
   config :ship_metadata, :validate => :boolean, :default => true
+
+  # Ship tags within events. This will cause logstash to ship the tags of an
+  # event as the field _tags.
+  config :ship_tags, :validate => :boolean, :default => true
 
   # Ignore these fields when ship_metadata is set. Typically this lists the
   # fields used in dynamic values for GELF fields.
@@ -99,9 +106,10 @@ class LogStash::Outputs::Gelf < LogStash::Outputs::Base
     @gelf.collect_file_and_line = false
 
     # these are syslog words and abbreviations mapped to RFC 5424 integers
+    # and logstash's syslog_pri filter
     @level_map = {
       "debug" => 7, "d" => 7,
-      "info" => 6, "i" => 6,
+      "info" => 6, "i" => 6, "informational" => 6,
       "notice" => 5, "n" => 5,
       "warn" => 4, "w" => 4, "warning" => 4,
       "error" => 3, "e" => 3,
@@ -154,6 +162,10 @@ class LogStash::Outputs::Gelf < LogStash::Outputs::Base
           end
         end
       end
+    end
+
+    if @ship_tags
+      m["_tags"] = event.tags.join(', ')
     end
 
     if @custom_fields

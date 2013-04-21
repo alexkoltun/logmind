@@ -72,7 +72,7 @@ class LogStash::Inputs::Generator < LogStash::Inputs::Threadable
           queue << event
         end
       else
-        event = to_event(@message, source)
+        event = to_event(@message.clone, source)
         event["sequence"] = number
         queue << event
       end
@@ -84,4 +84,4 @@ class LogStash::Inputs::Generator < LogStash::Inputs::Threadable
   def teardown
     finished
   end # def teardown
-end # class LogStash::Inputs::Stdin
+end # class LogStash::Inputs::Generator

@@ -15,6 +15,9 @@ class LogStash::Inputs::Irc < LogStash::Inputs::Base
   # Port for the IRC Server
   config :port, :validate => :number, :required => true
 
+  # Set this to true to enable SSL.
+  config :secure, :validate => :boolean, :default => false
+
   # IRC Nickname
   config :nick, :validate => :string, :default => "logstash"
 
@@ -27,7 +30,10 @@ class LogStash::Inputs::Irc < LogStash::Inputs::Base
   # IRC Server password
   config :password, :validate => :password
 
-  # Channels to listen to
+  # Channels to join and read messages from.
+  #
+  # These should be full channel names including the '#' symbol, such as
+  # "#logstash".
   config :channels, :validate => :array, :required => true
 
 
@@ -50,7 +56,8 @@ class LogStash::Inputs::Irc < LogStash::Inputs::Base
       c.realname = @real
       c.user = @user
       c.channels = @channels
-      c.password = @password
+      c.password = @password.value rescue nil
+      c.ssl.use = @secure
     end
     queue = @irc_queue
     @bot.on :channel  do |m|

@@ -95,11 +95,27 @@ class LogStash::Filters::Metrics < LogStash::Filters::Base
   config_name "metrics"
   plugin_status "experimental"
 
-  # syntax: meter => [ "name of metric", "name of metric" ]
+  # syntax: `meter => [ "name of metric", "name of metric" ]`
   config :meter, :validate => :array, :default => []
 
-  # syntax: timer => [ "name of metric", "%{time_value}" ]
+  # syntax: `timer => [ "name of metric", "%{time_value}" ]`
   config :timer, :validate => :hash, :default => {}
+
+  # Don't track events that have @timestamp older than some number of seconds. 
+  #
+  # This is useful if you want to only include events that are near real-time
+  # in your metrics.
+  #
+  # Example, to only count events that are within 10 seconds of real-time, you 
+  # would do this:
+  #
+  #     filter {
+  #       metrics {
+  #         meter => [ "hits" ]
+  #         ignore_older_than => 10
+  #       }
+  #     }
+  config :ignore_older_than, :validate => :number, :default => 0
 
   def register
     require "metriks"
@@ -112,6 +128,11 @@ class LogStash::Filters::Metrics < LogStash::Filters::Base
   def filter(event)
     return unless filter?(event)
 
+    if @ignore_older_than > 0 && Time.now - event.ruby_timestamp > @ignore_older_than
+      @logger.debug("Skipping metriks for old event", :event => event)
+      return
+    end
+
     @meter.each do |m|
       @metric_meters[event.sprintf(m)].mark
     end
@@ -122,6 +143,9 @@ class LogStash::Filters::Metrics < LogStash::Filters::Base
   end # def filter
 
   def flush
+    # Do nothing if there's nothing to do ;)
+    return if @metric_meters.empty? && @metric_timers.empty?
+
     event = LogStash::Event.new
     event.source_host = Socket.gethostname
     @metric_meters.each do |name, metric|
@@ -136,13 +160,25 @@ class LogStash::Filters::Metrics < LogStash::Filters::Base
       event["#{name}.rate_1m"] = metric.one_minute_rate
       event["#{name}.rate_5m"] = metric.five_minute_rate
       event["#{name}.rate_15m"] = metric.fifteen_minute_rate
+
+      # These 4 values are not sliding, so they probably are not useful.
       event["#{name}.min"] = metric.min
       event["#{name}.max"] = metric.max
-      event["#{name}.stddev"] = metric.stddev
+      # timer's stddev currently returns variance, fix it.
+      event["#{name}.stddev"] = metric.stddev ** 0.5
       event["#{name}.mean"] = metric.mean
+
+      # TODO(sissel): Maybe make this configurable?
+      #   percentiles => [ 0, 1, 5, 95 99 100 ]
+      event["#{name}.p1"] = metric.snapshot.value(0.01)
+      event["#{name}.p5"] = metric.snapshot.value(0.05)
+      event["#{name}.p10"] = metric.snapshot.value(0.10)
+      event["#{name}.p90"] = metric.snapshot.value(0.90)
+      event["#{name}.p95"] = metric.snapshot.value(0.95)
+      event["#{name}.p99"] = metric.snapshot.value(0.99)
     end
 
     filter_matched(event)
     return [event]
   end
-end # class LogStash::Filter::KV
+end # class LogStash::Filters::Metrics
