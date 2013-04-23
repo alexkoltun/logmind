@@ -36,6 +36,48 @@ class Kelastic
   end
 
   class << self
+
+    def just_logstash_indices
+      url = URI.parse("http://#{Kelastic.server}/_aliases")
+      http = Net::HTTP.new(url.host,url.port)
+      if KibanaConfig.constants.include?("ElasticsearchTimeout")
+        if KibanaConfig::ElasticsearchTimeout != ''
+          http.read_timeout = KibanaConfig::ElasticsearchTimeout
+        end
+      end
+
+      # take just logstash-... pattren indices
+      @status = JSON.parse(http.request(Net::HTTP::Get.new(url.request_uri)).body)
+      @indices = ""
+      @indicesList = {}
+      @status.keys.each do |index|
+        #if @status[index]['aliases'].count > 0
+        m = KibanaConfig::Smart_index_reg.match(index)
+        if (!m.nil?)
+          @indices += (index + ",")
+          @indicesList[index] = index
+        end
+      end
+      @indices = @indices.chomp(",")
+
+      # take statuses of all in single GET
+      url = URI.parse("http://#{Kelastic.server}/#{@indices}/_status")
+      http = Net::HTTP.new(url.host,url.port)
+      if KibanaConfig.constants.include?("ElasticsearchTimeout")
+        if KibanaConfig::ElasticsearchTimeout != ''
+          http.read_timeout = KibanaConfig::ElasticsearchTimeout
+        end
+      end
+
+      @status = JSON.parse(http.request(Net::HTTP::Get.new(url.request_uri)).body)
+
+      @ret = {}
+      @ret['list'] = @indicesList
+      @ret['response'] = @status
+
+      @ret
+    end
+
     def all_indices
       url = URI.parse("http://#{Kelastic.server}/_aliases")
       http = Net::HTTP.new(url.host,url.port)
@@ -179,6 +221,33 @@ class Kelastic
       path
     end
 
+    def close_index(indexName)
+      url = URI.parse("http://#{Kelastic.server}/#{indexName}/_close")
+      http = Net::HTTP.new(url.host,url.port)
+      if KibanaConfig.constants.include?("ElasticsearchTimeout")
+        if KibanaConfig::ElasticsearchTimeout != ''
+          http.read_timeout = KibanaConfig::ElasticsearchTimeout
+        end
+      end
+
+      # call es with the url
+      @ret = JSON.parse(http.request(Net::HTTP::Post.new(url.request_uri)).body)
+      @ret
+    end
+
+    def open_index(indexName)
+      url = URI.parse("http://#{Kelastic.server}/#{indexName}/_open")
+      http = Net::HTTP.new(url.host,url.port)
+      if KibanaConfig.constants.include?("ElasticsearchTimeout")
+        if KibanaConfig::ElasticsearchTimeout != ''
+          http.read_timeout = KibanaConfig::ElasticsearchTimeout
+        end
+      end
+
+      # call es with the url
+      @ret = JSON.parse(http.request(Net::HTTP::Post.new(url.request_uri)).body)
+      @ret
+    end
   end
 
 end
