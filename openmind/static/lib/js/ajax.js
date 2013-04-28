@@ -163,13 +163,34 @@ function getPage() {
 
         enable_popovers();
 
-        // Create and populate #logs table
-        $('#logs').html(CreateLogTable(
-          window.resultjson.hits.hits, fields,
-          'table logs table-condensed'
-        ));
 
-        pageLinks();
+        var activetab = (typeof window.hashjson.activetab != 'undefined') ? window.hashjson.activetab : "logs";
+
+          // Setting tabs
+          $('#maintabs').html(
+              "<ul class='nav nav-pills'>"
+                  + "<li class='" + (activetab == "logs" ? "active" : "") + "'><a tab-action='logs' class='tabpage' href='#'>Logs</a></li>"
+                  + "<li class='" + (activetab == "analytics" ? "active" : "") + "'><a tab-action='analytics' class='tabpage' href='#'>Analytics</a></li>"
+                  + "</ul>"
+          );
+          $('#maintabs a').click(function (e) {
+              e.preventDefault();
+              $(this).tab('show');
+          });
+
+
+        if ((activetab == "") || (activetab == "logs")) {
+            // Create and populate #logs table
+            $('#logs').html(CreateLogTable(
+              window.resultjson.hits.hits, fields,
+              'table logs table-condensed'
+            ));
+
+            pageLinks();
+
+        } else if (activetab == "analytics") {
+            $('#logs').html("");
+        }
 
         // Populate hit and total
         setMeta(window.resultjson.hits.total);
@@ -343,6 +364,7 @@ function getAnalysis() {
     type: "GET",
     cache: false,
     success: function (json) {
+
       // Make sure we're still on the same page
       if (sendhash == window.location.hash.replace(/^#/, '')) {
 
@@ -1623,6 +1645,22 @@ function bind_clicks() {
       }
       setHash(window.hashjson);
   });
+
+
+    $("#maintabs").delegate("a.tabpage", "click",
+        function () {
+            var action = $(this).attr('tab-action')
+            switch (action) {
+                case 'analytics':
+                    window.hashjson.activetab = "analytics";
+                    break;
+                case 'logs':
+                    window.hashjson.activetab = "logs"
+                    window.hashjson.offset = 0;
+                    break;
+            }
+            setHash(window.hashjson);
+        });
 
   // Sidebar analysis stuff
   $(document).delegate(".popover .analyze_btn", "click", function () {
