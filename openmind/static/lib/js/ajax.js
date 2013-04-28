@@ -196,20 +196,30 @@ function getPage() {
 
         } else if (activetab == "analytics") {
 
-            $('#logs').html("<div id='chartdiv' style='height: 400px; width: auto'></div>");
+            $('#logs').html("<div style='height: 50px;'><select style='margin-top: 8px;' id='plotfilter'>" +
+                "<option value='Activity'>Activity</option><option value='CustomerName'>Customer Name</option><option value='DeviceName'>Device Name</option><option value='FolderName'>Folder Name</option><option value='IP'>IP</option><option value='Username'>Username</option><option value='WorkspaceName'>Workspace Name</option></select>" +
+                "<button class='btn' id='plotfilter_button' type='button'>Refresh</button></div>" +
+                "<div id='chartdiv' style='height: 400px; width: auto'></div>");
+
+            if (typeof window.hashjson.plotfilter_value != 'undefined') {
+                $("#plotfilter option").filter(function() {
+                    //may want to use $.trim in here
+                    return $(this).text() == window.hashjson.plotfilter_value;
+                }).attr('selected', true);
+            }
+
+            $('#plotfilter_button').click(function() {
+                window.hashjson.plotfilter_name = $("#plotfilter option:selected").attr("value");
+                window.hashjson.plotfilter_value = $("#plotfilter option:selected").text();
+
+                setHash(window.hashjson);
+            });
+
+            var plotfilter_name = (typeof window.hashjson.plotfilter_name != 'undefined') ? window.hashjson.plotfilter_name : "Username";
+            var plotfilter_value = (typeof window.hashjson.plotfilter_value != 'undefined') ? window.hashjson.plotfilter_value : "Username";
 
 
-            /*window.request = $.ajax({
-                url: "api/analyze/" + "UserName" + "/" + window.hashjson.mode + "/" + sendhash,
-                type: "GET",
-                cache: false,
-                success: function (json) {
-                    result = JSON.parse(json);
-                    alert(result);
-                }
-            });*/
-
-            $.getJSON("/api/analyze/" + "Username" + "/terms/" + sendhash, function(result) {
+            $.getJSON("/api/analyze/" + plotfilter_name + "/terms/" + sendhash, function(result) {
 
                 var facets = result.facets;
                 var terms = facets.terms.terms;
@@ -234,9 +244,7 @@ function getPage() {
                     // option on the series option.  Here a series option object
                     // is specified for each series.
                     series:[
-                        {label:'Hotel'},
-                        {label:'Event Regristration'},
-                        {label:'Airfare'}
+                        {label:plotfilter_value}
                     ],
                     // Show the legend and put it outside the grid, but inside the
                     // plot container, shrinking the grid to accomodate the legend.
@@ -256,7 +264,7 @@ function getPage() {
                         // not touch, the grid boundaries.  1.2 is the default padding.
                         yaxis: {
                             pad: 1.05,
-                            tickOptions: {formatString: '$%d'}
+                            tickOptions: {formatString: '%d'}
                         }
                     }
                 });
