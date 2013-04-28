@@ -196,83 +196,164 @@ function getPage() {
 
         } else if (activetab == "analytics") {
 
-            $('#logs').html("<div style='height: 50px;'><select style='margin-top: 8px;' id='plotfilter'>" +
+            $('#logs').html("<div style='height: 50px;'>" +
+                "Chart Type: <select style='margin-top :8px;' id='plottype'>" +
+                "<option value='top'>Top Chart</option><option value='comp'>Compare Chart</option></select> " +
+                "Filter: <select style='margin-top: 8px;' id='plotfilter'>" +
                 "<option value='Activity'>Activity</option><option value='CustomerName'>Customer Name</option><option value='DeviceName'>Device Name</option><option value='FolderName'>Folder Name</option><option value='IP'>IP</option><option value='Username'>Username</option><option value='WorkspaceName'>Workspace Name</option></select>" +
                 "<button class='btn' id='plotfilter_button' type='button'>Refresh</button></div>" +
                 "<div id='chartdiv' style='height: 400px; width: auto'></div>");
 
-            if (typeof window.hashjson.plotfilter_value != 'undefined') {
-                $("#plotfilter option").filter(function() {
-                    //may want to use $.trim in here
-                    return $(this).text() == window.hashjson.plotfilter_value;
-                }).attr('selected', true);
-            }
+
+            var plottype = (typeof window.hashjson.plottype != 'undefined') ? window.hashjson.plottype : "top";
+
+            var plotfilter_name = (typeof window.hashjson.plotfilter_name != 'undefined') ? window.hashjson.plotfilter_name : "Username";
+            var plotfilter_value = (typeof window.hashjson.plotfilter_value != 'undefined') ? window.hashjson.plotfilter_value : "Username";
+
+
+            $("#plottype option").filter(function() {
+                //may want to use $.trim in here
+                return $(this).attr("value") == plottype;
+            }).attr('selected', true);
+
+            $("#plotfilter option").filter(function() {
+                //may want to use $.trim in here
+                return $(this).text() == plotfilter_value;
+            }).attr('selected', true);
+
 
             $('#plotfilter_button').click(function() {
+                window.hashjson.plottype = $("#plottype option:selected").attr("value");
+
                 window.hashjson.plotfilter_name = $("#plotfilter option:selected").attr("value");
                 window.hashjson.plotfilter_value = $("#plotfilter option:selected").text();
 
                 setHash(window.hashjson);
             });
 
-            var plotfilter_name = (typeof window.hashjson.plotfilter_name != 'undefined') ? window.hashjson.plotfilter_name : "Username";
-            var plotfilter_value = (typeof window.hashjson.plotfilter_value != 'undefined') ? window.hashjson.plotfilter_value : "Username";
+
+            if (plottype === "top") {
 
 
-            $.getJSON("/api/analyze/" + plotfilter_name + "/terms/" + sendhash, function(result) {
+                $.getJSON("/api/analyze/" + plotfilter_name + "/terms/" + sendhash, function(result) {
 
-                var facets = result.facets;
-                var terms = facets.terms.terms;
+                    var facets = result.facets;
+                    var terms = facets.terms.terms;
 
-                var series = new Array();
-                var ticks = new Array();
+                    var series = new Array();
+                    var ticks = new Array();
 
-                for (var i = 0; i < terms.length; i++) {
-                    series[i] = terms[i].count;
-                    ticks[i] = terms[i].term;
-                }
-
-
-                window.analytics_plot = $.jqplot('chartdiv', [series], {
-                    // The "seriesDefaults" option is an options object that will
-                    // be applied to all series in the chart.
-                    seriesDefaults:{
-                        renderer:$.jqplot.BarRenderer,
-                        rendererOptions: {fillToZero: true}
-                    },
-                    // Custom labels for the series are specified with the "label"
-                    // option on the series option.  Here a series option object
-                    // is specified for each series.
-                    series:[
-                        {label:plotfilter_value}
-                    ],
-                    // Show the legend and put it outside the grid, but inside the
-                    // plot container, shrinking the grid to accomodate the legend.
-                    // A value of "outside" would not shrink the grid and allow
-                    // the legend to overflow the container.
-                    legend: {
-                        show: true,
-                        placement: 'outsideGrid'
-                    },
-                    axes: {
-                        // Use a category axis on the x axis and use our custom ticks.
-                        xaxis: {
-                            renderer: $.jqplot.CategoryAxisRenderer,
-                            ticks: ticks
-                        },
-                        // Pad the y axis just a little so bars can get close to, but
-                        // not touch, the grid boundaries.  1.2 is the default padding.
-                        yaxis: {
-                            pad: 1.05,
-                            tickOptions: {formatString: '%d'}
-                        }
+                    for (var i = 0; i < terms.length; i++) {
+                        series[i] = terms[i].count;
+                        ticks[i] = terms[i].term;
                     }
+
+
+                    window.analytics_plot = $.jqplot('chartdiv', [series], {
+                        // The "seriesDefaults" option is an options object that will
+                        // be applied to all series in the chart.
+                        seriesDefaults:{
+                            renderer:$.jqplot.BarRenderer,
+                            rendererOptions: {fillToZero: true}
+                        },
+                        // Custom labels for the series are specified with the "label"
+                        // option on the series option.  Here a series option object
+                        // is specified for each series.
+                        series:[
+                            {label:plotfilter_value}
+                        ],
+                        // Show the legend and put it outside the grid, but inside the
+                        // plot container, shrinking the grid to accomodate the legend.
+                        // A value of "outside" would not shrink the grid and allow
+                        // the legend to overflow the container.
+                        legend: {
+                            show: true,
+                            placement: 'outsideGrid'
+                        },
+                        axes: {
+                            // Use a category axis on the x axis and use our custom ticks.
+                            xaxis: {
+                                renderer: $.jqplot.CategoryAxisRenderer,
+                                ticks: ticks
+                            },
+                            // Pad the y axis just a little so bars can get close to, but
+                            // not touch, the grid boundaries.  1.2 is the default padding.
+                            yaxis: {
+                                pad: 1.05,
+                                tickOptions: {formatString: '%d'}
+                            }
+                        }
+                    });
+
+
+                    setTimeout("window.analytics_plot.replot()", 0);
+
                 });
 
+            } else if (plottype === "comp") {
 
-                setTimeout("window.analytics_plot.replot()", 0);
+                var hashjson_clone1 = jQuery.extend(true, {}, window.hashjson);
+                if (hashjson_clone1.search === "") {
+                    hashjson_clone1.search = "@fields.Username:\"Dean Chipley\"";
+                } else {
+                    hashjson_clone1.search += " AND " + "@fields.Username:\"Dean Chipley\"";
+                }
 
-            });
+                $.getJSON("/api/graph/count/" + 10*1000 + "/" + Base64.encode(JSON.stringify(hashjson_clone1)), function(result1) {
+
+                    var entries1 = result1.facets.count.entries;
+
+                    var data1 = new Array();
+
+                    for (var i = 0; i < entries1.length; i++) {
+                        data1[i] = entries1[i].count;
+                    }
+
+                    var hashjson_clone2 = jQuery.extend(true, {}, window.hashjson);
+                    if (hashjson_clone2.search === "") {
+                        hashjson_clone2.search = "@fields.Username:\"Chaya Bart\"";
+                    } else {
+                        hashjson_clone2.search += " AND " + "@fields.Username:\"Chaya Bart\"";
+                    }
+
+                    $.getJSON("/api/graph/count/" + 10*1000 + "/" + Base64.encode(JSON.stringify(hashjson_clone2)), function(result2) {
+
+                        var entries2 = result2.facets.count.entries;
+
+                        var data2 = new Array();
+                        var ticks = new Array();
+
+                        for (var i = 0; i < entries2.length; i++) {
+                            data2[i] = entries2[i].count;
+                            ticks[i] = [i + 1, entries2[i].time];
+                        }
+
+
+                        window.analytics_plot = $.jqplot('chartdiv', [data1, data2],
+                            {
+                                // Series options are specified as an array of objects, one object
+                                // for each series.
+                                series:[
+                                    {
+                                        // Change our line width and use a diamond shaped marker.
+                                        lineWidth:2,
+                                        markerOptions: { style:'dimaond' }
+                                    }
+                                ],
+
+                                axes: {
+                                    // Use a category axis on the x axis and use our custom ticks.
+                                    xaxis: {
+                                        ticks: ticks
+                                    }
+                                }
+                            }
+                        );
+
+                        setTimeout("window.analytics_plot.replot()", 0);
+                    });
+                });
+            }
 
         }
 
