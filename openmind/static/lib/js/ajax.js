@@ -207,13 +207,29 @@ function getPage() {
             $('#logs').html("<div style='height: 50px;'>" +
                 "Chart Type: <select style='margin-top :8px;' id='plottype'>" +
                 "<option value='top'>Top Chart</option><option value='comp'>Compare Chart</option></select> " +
-                "Filter: <select style='margin-top: 8px;' id='plotfilter'>" +
-                "<option value='Activity'>Activity</option><option value='CustomerName'>Customer Name</option><option value='DeviceName'>Device Name</option><option value='FolderName'>Folder Name</option><option value='IP'>IP</option><option value='Username'>Username</option><option value='WorkspaceName'>Workspace Name</option></select>" +
+                "<span id='topfilters'>Filter: <select style='margin-top: 8px;' id='plotfilter'>" +
+                "<option value='Activity'>Activity</option><option value='CustomerName'>Customer Name</option><option value='DeviceName'>Device Name</option><option value='FolderName'>Folder Name</option><option value='IP'>IP</option><option value='Username'>Username</option><option value='WorkspaceName'>Workspace Name</option></select></span>" +
+                "<span style='border-width: 1px; border-color: #515151; margin-left: 10px;' id='cbfilters'>Compare Users: " +
+                "<input data-group='cbgroup' id='cb1' type='checkbox' value='Travis Ulmer' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Travis Ulmer</input>" +
+                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Jamika Heiden' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Jamika Heiden</input>" +
+                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Sherril Windholz' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Sherril Windholz</input>" +
+                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Alica Desper' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Alica Desper</input>" +
+                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Ozella Banister' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Ozella Banister</input>" +
+                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Agnus Maiden' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Agnus Maiden</input></span>" +
                 "<button class='btn' id='plotfilter_button' type='button'>Refresh</button></div>" +
                 "<div id='chartdiv' style='height: 400px; width: auto'></div>");
 
 
             var plottype = (typeof window.hashjson.plottype != 'undefined') ? window.hashjson.plottype : "top";
+            if (plottype === "top") {
+                $("#topfilters").show();
+                $("#cbfilters").hide();
+            } else if (plottype === "comp") {
+                $("#topfilters").hide();
+                $("#cbfilters").show();
+            }
+
+            var plotchecked = (typeof window.hashjson.plotchecked != 'undefined') ? window.hashjson.plotchecked : [];
 
             var plotfilter_name = (typeof window.hashjson.plotfilter_name != 'undefined') ? window.hashjson.plotfilter_name : "Username";
             var plotfilter_value = (typeof window.hashjson.plotfilter_value != 'undefined') ? window.hashjson.plotfilter_value : "Username";
@@ -224,6 +240,14 @@ function getPage() {
                 return $(this).attr("value") == plottype;
             }).attr('selected', true);
 
+
+            $.each(plotchecked, function(idx, item) {
+                $("#cbfilters [data-group='cbgroup']").filter(function() {
+                    return $(this).attr("value") == item;
+                }).attr('checked', true);
+            });
+
+
             $("#plotfilter option").filter(function() {
                 //may want to use $.trim in here
                 return $(this).text() == plotfilter_value;
@@ -231,12 +255,29 @@ function getPage() {
 
 
             $('#plotfilter_button').click(function() {
+
+                window.hashjson.plotchecked = [];
+
+                var cbfilters = $("#cbfilters [data-group='cbgroup']:checked");
+                $.each(cbfilters, function(idx, item) { window.hashjson.plotchecked.push(item.value);});
+
                 window.hashjson.plottype = $("#plottype option:selected").attr("value");
 
                 window.hashjson.plotfilter_name = $("#plotfilter option:selected").attr("value");
                 window.hashjson.plotfilter_value = $("#plotfilter option:selected").text();
 
                 setHash(window.hashjson);
+            });
+
+            $('#plottype').change(function() {
+                var selected = $("#plottype option:selected").attr("value");
+                if (selected === "top") {
+                    $("#topfilters").show();
+                    $("#cbfilters").hide();
+                } else if (selected === "comp") {
+                    $("#topfilters").hide();
+                    $("#cbfilters").show();
+                }
             });
 
 
@@ -313,7 +354,20 @@ function getPage() {
 
             } else if (plottype === "comp") {
 
-                var filters = [{name: "Dean", filter: "@fields.Username:\"Dean Chipley\""}, {name: "Chaya", filter:"@fields.Username:\"Chaya Bart\""}];
+                var checked = (typeof window.hashjson.plotchecked != "undefined") ? window.hashjson.plotchecked : {length: 0};
+
+                var filters = new Array();
+
+                for (var i = 0; i < checked.length; i++) {
+                    filters[i] = {name: checked[i], filter: "@fields.Username:\"" + checked[i] + "\""};
+                }
+
+                //var filters = [{name: "Dean", filter: "@fields.Username:\"Dean Chipley\""}, {name: "Chaya", filter:"@fields.Username:\"Chaya Bart\""}];
+
+
+                window.analytics_plot_data = [];
+                window.analytics_plot_ticks = [];
+                window.analytics_plot_labels = [];
 
                 $.each(filters, function (idx, item) {
 
