@@ -256,6 +256,8 @@ function getPage() {
                         ticks[i] = terms[i].term;
                     }
 
+                    window.analytics_plot_ticks = ticks;
+
 
                     window.analytics_plot = $.jqplot('chartdiv', [series], {
                         // The "seriesDefaults" option is an options object that will
@@ -282,7 +284,7 @@ function getPage() {
                             // Use a category axis on the x axis and use our custom ticks.
                             xaxis: {
                                 renderer: $.jqplot.CategoryAxisRenderer,
-                                ticks: ticks,
+                                ticks: window.analytics_plot_ticks,
                                 tickOptions:{
                                     angle: -30
                                 },
@@ -301,6 +303,13 @@ function getPage() {
                     setTimeout("window.analytics_plot.replot()", 0);
 
                 });
+
+                $('#chartdiv').bind('jqplotDataClick',
+                    function (ev, seriesIndex, pointIndex, data) {
+                        window.hashjson.activetab = "logs";
+                        mSearch("@fields." + plotfilter_name, window.analytics_plot_ticks[data[0] -1], "value");
+                    }
+                );
 
             } else if (plottype === "comp") {
 
