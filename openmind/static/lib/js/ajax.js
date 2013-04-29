@@ -91,6 +91,14 @@ function pageload(hash) {
   }
 }
 
+function pad(int) {
+    if (int > 10) {
+        return int;
+    }
+
+    return "0" + int;
+}
+
 function getPage() {
 
   if (window.inprogress) {
@@ -268,13 +276,17 @@ function getPage() {
                         // the legend to overflow the container.
                         legend: {
                             show: true,
-                            placement: 'outsideGrid'
+                            placement: 'insideGrid'
                         },
                         axes: {
                             // Use a category axis on the x axis and use our custom ticks.
                             xaxis: {
                                 renderer: $.jqplot.CategoryAxisRenderer,
-                                ticks: ticks
+                                ticks: ticks,
+                                tickOptions:{
+                                    angle: -30
+                                },
+                                tickRenderer:$.jqplot.CanvasAxisTickRenderer
                             },
                             // Pad the y axis just a little so bars can get close to, but
                             // not touch, the grid boundaries.  1.2 is the default padding.
@@ -292,14 +304,100 @@ function getPage() {
 
             } else if (plottype === "comp") {
 
-                var hashjson_clone1 = jQuery.extend(true, {}, window.hashjson);
+                var filters = [{name: "Dean", filter: "@fields.Username:\"Dean Chipley\""}, {name: "Chaya", filter:"@fields.Username:\"Chaya Bart\""}];
+
+                $.each(filters, function (idx, item) {
+
+                    var hashjson_clone = jQuery.extend(true, {}, window.hashjson);
+                    if (hashjson_clone.search === "") {
+                        hashjson_clone.search = item.filter;
+                    } else {
+                        hashjson_clone.search += " AND " + item.filter;
+                    }
+
+                    $.getJSON("/api/graph/count/" + 10000 + "/" + Base64.encode(JSON.stringify(hashjson_clone)), function(result) {
+
+                        var entries = result.facets.count.entries;
+
+                        var data = new Array();
+                        var ticks = new Array();
+
+                        for (var i = 0; i < entries.length; i++) {
+                            data[i] = entries[i].count;
+                        }
+
+                        if (typeof window.analytics_plot_data != "undefined") {
+                            window.analytics_plot_data.push(data);
+                            window.analytics_plot_labels.push(item.name);
+                        } else {
+                            window.analytics_plot_data = [data];
+                            window.analytics_plot_labels = [item.name];
+                        }
+
+
+                        var maxticks = 25;
+                        var segsize = parseInt(entries.length / maxticks);
+                        var remain = entries.length % maxticks;
+                        for (var i = 0; i <= maxticks + parseInt(remain / segsize); i++) {
+                            var d = new Date(entries[i * segsize].time);
+                            var tickstr = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) + "." + d.getMilliseconds();;
+                            if (i > 0) {
+                                var old = new Date(entries[(i - 1) * segsize].time);
+                                if ((old.getFullYear() == d.getFullYear()) && (old.getMonth() == d.getMonth()) && (old.getDate() == d.getDate())) {
+                                    tickstr = pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) + "." + d.getMilliseconds();
+                                }
+                            }
+                            ticks[i] = [i + 1, tickstr];
+                        }
+
+
+                        window.analytics_plot = $.jqplot('chartdiv', window.analytics_plot_data,
+                            {
+                                // Series options are specified as an array of objects, one object
+                                // for each series.
+                                series:[
+                                    {
+                                        // Change our line width and use a diamond shaped marker.
+                                        lineWidth:2,
+                                        markerOptions: { style:'dimaond' }
+                                    }
+                                ],
+
+                                legend: {
+                                    labels: window.analytics_plot_labels,
+                                    show: true,
+                                    placement: 'insideGrid'
+                                },
+
+                                axes: {
+                                    // Use a category axis on the x axis and use our custom ticks.
+                                    xaxis: {
+                                        ticks: ticks,
+                                        /*numberTicks: 50,
+                                         min: ticks[0][0],
+                                         max: ticks[ticks.length - 1][0],*/
+                                        tickOptions:{
+                                            angle: -30
+                                        },
+                                        tickRenderer:$.jqplot.CanvasAxisTickRenderer
+                                    }
+                                }
+                            }
+                        );
+
+                        setTimeout("window.analytics_plot.replot()", 0);
+                    });
+                });
+
+
+                /*var hashjson_clone1 = jQuery.extend(true, {}, window.hashjson);
                 if (hashjson_clone1.search === "") {
                     hashjson_clone1.search = "@fields.Username:\"Dean Chipley\"";
                 } else {
                     hashjson_clone1.search += " AND " + "@fields.Username:\"Dean Chipley\"";
                 }
 
-                $.getJSON("/api/graph/count/" + 10*1000 + "/" + Base64.encode(JSON.stringify(hashjson_clone1)), function(result1) {
+                $.getJSON("/api/graph/count/" + 10000 + "/" + Base64.encode(JSON.stringify(hashjson_clone1)), function(result1) {
 
                     var entries1 = result1.facets.count.entries;
 
@@ -316,7 +414,7 @@ function getPage() {
                         hashjson_clone2.search += " AND " + "@fields.Username:\"Chaya Bart\"";
                     }
 
-                    $.getJSON("/api/graph/count/" + 10*1000 + "/" + Base64.encode(JSON.stringify(hashjson_clone2)), function(result2) {
+                    $.getJSON("/api/graph/count/" + 10000 + "/" + Base64.encode(JSON.stringify(hashjson_clone2)), function(result2) {
 
                         var entries2 = result2.facets.count.entries;
 
@@ -325,7 +423,22 @@ function getPage() {
 
                         for (var i = 0; i < entries2.length; i++) {
                             data2[i] = entries2[i].count;
-                            ticks[i] = [i + 1, entries2[i].time];
+                        }
+
+
+                        var maxticks = 25;
+                        var segsize = parseInt(entries2.length / maxticks);
+                        var remain = entries2.length % maxticks;
+                        for (var i = 0; i <= maxticks + parseInt(remain / segsize); i++) {
+                            var d = new Date(entries2[i * segsize].time);
+                            var tickstr = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) + "." + d.getMilliseconds();;
+                            if (i > 0) {
+                                var old = new Date(entries2[(i - 1) * segsize].time);
+                                if ((old.getFullYear() == d.getFullYear()) && (old.getMonth() == d.getMonth()) && (old.getDate() == d.getDate())) {
+                                    tickstr = pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) + "." + d.getMilliseconds();
+                                }
+                            }
+                            ticks[i] = [i + 1, tickstr];
                         }
 
 
@@ -344,7 +457,11 @@ function getPage() {
                                 axes: {
                                     // Use a category axis on the x axis and use our custom ticks.
                                     xaxis: {
-                                        ticks: ticks
+                                        ticks: ticks,
+                                        tickOptions:{
+                                            angle: -30
+                                        },
+                                        tickRenderer:$.jqplot.CanvasAxisTickRenderer
                                     }
                                 }
                             }
@@ -352,7 +469,7 @@ function getPage() {
 
                         setTimeout("window.analytics_plot.replot()", 0);
                     });
-                });
+                });*/
             }
 
         }
