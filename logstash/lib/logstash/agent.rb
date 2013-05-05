@@ -8,6 +8,7 @@ require "logstash/namespace"
 require "logstash/program"
 require "logstash/threadwatchdog"
 require "logstash/util"
+require "stud/task"
 require "optparse"
 require "thread"
 require "uri"
@@ -29,10 +30,14 @@ class LogStash::Agent
   attr_reader :config_path
   attr_reader :logfile
   attr_reader :verbose
+  attr_reader :configtest
 
   public
   def initialize
     log_to(STDERR)
+    # default log level for now.
+    @logger.level = :warn 
+
     @config_path = nil
     @config_string = nil
     @is_yaml = false
@@ -41,7 +46,9 @@ class LogStash::Agent
     # flag/config defaults
     @verbose = 0
     @filterworker_count = 1
+    @queue_size = 10
     @watchdog_timeout = 10
+    @configtest = false
 
     @plugins = {}
     @plugins_mutex = Mutex.new
@@ -93,12 +100,21 @@ class LogStash::Agent
       end
     end # -w
 
+    opts.on("--queue-size COUNT", Integer,
+            "Set internal input->filter and filter->output queue size") do
+      @queue_size = arg
+    end
+
     opts.on("--watchdog-timeout TIMEOUT", "Set watchdog timeout value") do |arg|
       @watchdog_timeout = arg.to_f
     end # --watchdog-timeout
 
     opts.on("-l", "--log FILE", "Log to a given path. Default is stdout.") do |path|
       @logfile = path
+    end
+
+    opts.on("-t", "--configtest", "Test configuration and exit.") do |arg|
+        @configtest = true
     end
 
     opts.on("-v", "Increase verbosity") do
@@ -152,8 +168,8 @@ class LogStash::Agent
     # Load any plugins that we have flags for.
     # TODO(sissel): The --<plugin> flag support currently will load
     # any matching plugins input, output, or filter. This means, for example,
-    # that the 'amqp' input *and* output plugin will be loaded if you pass
-    # --amqp-foo flag. This might cause confusion, but it seems reasonable for
+    # that the 'rabbitmq' input *and* output plugin will be loaded if you pass
+    # --rabbitmq-foo flag. This might cause confusion, but it seems reasonable for
     # now that any same-named component will have the same flags.
     plugins = []
     args.each do |arg|
@@ -252,12 +268,14 @@ class LogStash::Agent
         paths = Dir.glob(@config_path).sort
       end
 
+      is_yaml = false
       concatconfig = []
       paths.each do |path|
+        next if File.directory?(path)
         file = File.new(path)
         if File.extname(file) == '.yaml'
           # assume always YAML if even one file is
-          @is_yaml = true
+          is_yaml = true
         end
         concatconfig << file.read
       end
@@ -267,7 +285,7 @@ class LogStash::Agent
       config_data = @config_string
     end
 
-    if @is_yaml
+    if is_yaml
       config = LogStash::Config::File::Yaml.new(nil, config_data)
     else
       config = LogStash::Config::File.new(nil, config_data)
@@ -330,7 +348,7 @@ class LogStash::Agent
     config = read_config
 
     @logger.info("Start thread")
-    @thread = Thread.new do
+    @thread = Stud::Task.new do
       LogStash::Util::set_thread_name(self.class.name)
       run_with_config(config, &block)
     end
@@ -340,8 +358,10 @@ class LogStash::Agent
 
   public
   def wait
-    @thread.join
+    @thread.wait
     return 0
+  rescue LogStash::Plugin::ConfigurationError
+    return 1
   end # def wait
 
   private
@@ -371,7 +391,7 @@ class LogStash::Agent
   private
   def start_output(output)
     @logger.debug? and @logger.debug("Starting output", :plugin => output)
-    queue = LogStash::SizedQueue.new(10 * @filterworker_count)
+    queue = LogStash::SizedQueue.new(@queue_size * @filterworker_count)
     queue.logger = @logger
     @output_queue.add_queue(queue)
     @output_plugin_queues[output] = queue
@@ -388,7 +408,7 @@ class LogStash::Agent
 
       # If we are given a config string (run usually with 'agent -e "some config string"')
       # then set up some defaults.
-      if @config_string
+      if @config_string or @configtest
         require "logstash/inputs/stdin"
         require "logstash/outputs/stdout"
 
@@ -400,10 +420,10 @@ class LogStash::Agent
         end
 
         # If no inputs are specified, use stdin by default.
-        @inputs = [LogStash::Inputs::Stdin.new("type" => [ "stdin" ])] if @inputs.length == 0
+        @inputs = [LogStash::Inputs::Stdin.new("type" => [ "stdin" ])] if (@inputs.length == 0 or @configtest)
 
         # If no outputs are specified, use stdout in debug mode.
-        @outputs = [LogStash::Outputs::Stdout.new("debug" => [ "true" ])] if @outputs.length == 0
+        @outputs = [LogStash::Outputs::Stdout.new("debug" => [ "true" ])] if (@outputs.length == 0 or @configtest)
       end
 
       if @inputs.length == 0 or @outputs.length == 0
@@ -411,7 +431,7 @@ class LogStash::Agent
       end
 
       # NOTE(petef) we should have config params for queue size
-      @filter_queue = LogStash::SizedQueue.new(10 * @filterworker_count)
+      @filter_queue = LogStash::SizedQueue.new(@queue_size * @filterworker_count)
       @filter_queue.logger = @logger
       @output_queue = LogStash::MultiQueue.new
       @output_queue.logger = @logger
@@ -477,6 +497,13 @@ class LogStash::Agent
       end
       @logger.info("All plugins are started and registered.")
     end # synchronize
+
+    # exit if configtest
+    if @configtest
+      puts "Config test passed.  Exiting..."
+      shutdown
+      exit (0)
+    end
 
     # yield to a block in case someone's waiting for us to be done setting up
     # like tests, etc.
@@ -702,7 +729,7 @@ class LogStash::Agent
 
   private
   def run_input(input, queue)
-    LogStash::Util::set_thread_name("input|#{input.to_s}")
+    LogStash::Util::set_thread_name("<#{input.class.config_name}")
     input.logger = @logger
     @plugin_setup_mutex.synchronize { input.register }
     @logger.info("Input registered", :plugin => input)
@@ -734,7 +761,7 @@ class LogStash::Agent
   # Run a filter thread
   public
   def run_filter(filterworker, index, output_queue)
-    LogStash::Util::set_thread_name("filter|worker|#{index}")
+    LogStash::Util::set_thread_name("|worker.#{index}")
     filterworker.run
     @logger.warn("Filter worker shutting down", :index => index)
 
@@ -744,7 +771,7 @@ class LogStash::Agent
 
   # TODO(sissel): Factor this into an 'outputworker'
   def run_output(output, queue)
-    LogStash::Util::set_thread_name("output|#{output.to_s}")
+    LogStash::Util::set_thread_name(">#{output.class.config_name}")
     output.logger = @logger
     @plugin_setup_mutex.synchronize { output.register }
     @logger.info("Output registered", :plugin => output)

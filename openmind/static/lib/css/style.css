@@ -572,3 +572,10 @@ modaltxtarea.error:focus {
 .favoriteSelect {
    width : 400px;
 }
+
+
+a.tablink {
+    width: 50px;
+    height: 20px;
+    color: #002a80;
+}

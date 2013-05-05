@@ -5,6 +5,12 @@ $(document).ready(function () {
   populate_selectboxes();
   popover_setup();
 
+    $(window).resize(function() {
+        if (typeof window.analytics_plot != "undefined") {
+            window.analytics_plot.replot( { resetAxes: true } );
+        }
+    });
+
   // Common color profile.
   window.graph_colors = ["#edc240", "#afd8f8", "#cb4b4b", "#4da74d", "#9440ed"]
 
@@ -85,6 +91,14 @@ function pageload(hash) {
   }
 }
 
+function pad(int) {
+    if (int > 10) {
+        return int;
+    }
+
+    return "0" + int;
+}
+
 function getPage() {
 
   if (window.inprogress) {
@@ -163,13 +177,365 @@ function getPage() {
 
         enable_popovers();
 
-        // Create and populate #logs table
-        $('#logs').html(CreateLogTable(
-          window.resultjson.hits.hits, fields,
-          'table logs table-condensed'
-        ));
 
-        pageLinks();
+        var activetab = (typeof window.hashjson.activetab != 'undefined') ? window.hashjson.activetab : "logs";
+
+          // Setting tabs
+          $('#maintabs').html(
+              "<ul class='nav nav-pills'>"
+                  + "<li class='" + (activetab == "logs" ? "active" : "") + "'><a tab-action='logs' class='tabpage' href='#'>Logs</a></li>"
+                  + "<li class='" + (activetab == "analytics" ? "active" : "") + "'><a tab-action='analytics' class='tabpage' href='#'>Analytics</a></li>"
+                  + "</ul>"
+          );
+          $('#maintabs a').click(function (e) {
+              e.preventDefault();
+              $(this).tab('show');
+          });
+
+
+        if ((activetab == "") || (activetab == "logs")) {
+            // Create and populate #logs table
+            $('#logs').html(CreateLogTable(
+              window.resultjson.hits.hits, fields,
+              'table logs table-condensed'
+            ));
+
+            pageLinks();
+
+        } else if (activetab == "analytics") {
+
+            $('#logs').html("<div style='height: 50px;'>" +
+                "Chart Type: <select style='margin-top :8px;' id='plottype'>" +
+                "<option value='top'>Top Chart</option><option value='comp'>Compare Chart</option></select> " +
+                "<span id='topfilters'>Filter: <select style='margin-top: 8px;' id='plotfilter'>" +
+                "<option value='Activity'>Activity</option><option value='CustomerName'>Customer Name</option><option value='DeviceName'>Device Name</option><option value='FolderName'>Folder Name</option><option value='IP'>IP</option><option value='Username'>Username</option><option value='WorkspaceName'>Workspace Name</option></select></span>" +
+                "<span style='border-width: 1px; border-color: #515151; margin-left: 10px;' id='cbfilters'>Compare Users: " +
+                "<input data-group='cbgroup' id='cb1' type='checkbox' value='Travis Ulmer' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Travis Ulmer</input>" +
+                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Jamika Heiden' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Jamika Heiden</input>" +
+                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Sherril Windholz' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Sherril Windholz</input>" +
+                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Alica Desper' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Alica Desper</input>" +
+                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Ozella Banister' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Ozella Banister</input>" +
+                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Agnus Maiden' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Agnus Maiden</input></span>" +
+                "<button class='btn' id='plotfilter_button' type='button'>Refresh</button></div>" +
+                "<div id='chartdiv' style='height: 400px; width: auto'></div>");
+
+
+            var plottype = (typeof window.hashjson.plottype != 'undefined') ? window.hashjson.plottype : "top";
+            if (plottype === "top") {
+                $("#topfilters").show();
+                $("#cbfilters").hide();
+            } else if (plottype === "comp") {
+                $("#topfilters").hide();
+                $("#cbfilters").show();
+            }
+
+            var plotchecked = (typeof window.hashjson.plotchecked != 'undefined') ? window.hashjson.plotchecked : [];
+
+            var plotfilter_name = (typeof window.hashjson.plotfilter_name != 'undefined') ? window.hashjson.plotfilter_name : "Username";
+            var plotfilter_value = (typeof window.hashjson.plotfilter_value != 'undefined') ? window.hashjson.plotfilter_value : "Username";
+
+
+            $("#plottype option").filter(function() {
+                //may want to use $.trim in here
+                return $(this).attr("value") == plottype;
+            }).attr('selected', true);
+
+
+            $.each(plotchecked, function(idx, item) {
+                $("#cbfilters [data-group='cbgroup']").filter(function() {
+                    return $(this).attr("value") == item;
+                }).attr('checked', true);
+            });
+
+
+            $("#plotfilter option").filter(function() {
+                //may want to use $.trim in here
+                return $(this).text() == plotfilter_value;
+            }).attr('selected', true);
+
+
+            $('#plotfilter_button').click(function() {
+
+                window.hashjson.plotchecked = [];
+
+                var cbfilters = $("#cbfilters [data-group='cbgroup']:checked");
+                $.each(cbfilters, function(idx, item) { window.hashjson.plotchecked.push(item.value);});
+
+                window.hashjson.plottype = $("#plottype option:selected").attr("value");
+
+                window.hashjson.plotfilter_name = $("#plotfilter option:selected").attr("value");
+                window.hashjson.plotfilter_value = $("#plotfilter option:selected").text();
+
+                setHash(window.hashjson);
+            });
+
+            $('#plottype').change(function() {
+                var selected = $("#plottype option:selected").attr("value");
+                if (selected === "top") {
+                    $("#topfilters").show();
+                    $("#cbfilters").hide();
+                } else if (selected === "comp") {
+                    $("#topfilters").hide();
+                    $("#cbfilters").show();
+                }
+            });
+
+
+            if (plottype === "top") {
+
+
+                $.getJSON("/api/analyze/" + plotfilter_name + "/terms/" + sendhash, function(result) {
+
+                    var facets = result.facets;
+                    var terms = facets.terms.terms;
+
+                    var series = new Array();
+                    var ticks = new Array();
+
+                    for (var i = 0; i < terms.length; i++) {
+                        series[i] = terms[i].count;
+                        ticks[i] = terms[i].term;
+                    }
+
+                    window.analytics_plot_ticks = ticks;
+
+
+                    window.analytics_plot = $.jqplot('chartdiv', [series], {
+                        // The "seriesDefaults" option is an options object that will
+                        // be applied to all series in the chart.
+                        seriesDefaults:{
+                            renderer:$.jqplot.BarRenderer,
+                            rendererOptions: {fillToZero: true}
+                        },
+                        // Custom labels for the series are specified with the "label"
+                        // option on the series option.  Here a series option object
+                        // is specified for each series.
+                        series:[
+                            {label:plotfilter_value}
+                        ],
+                        // Show the legend and put it outside the grid, but inside the
+                        // plot container, shrinking the grid to accomodate the legend.
+                        // A value of "outside" would not shrink the grid and allow
+                        // the legend to overflow the container.
+                        legend: {
+                            show: true,
+                            placement: 'insideGrid'
+                        },
+                        axes: {
+                            // Use a category axis on the x axis and use our custom ticks.
+                            xaxis: {
+                                renderer: $.jqplot.CategoryAxisRenderer,
+                                ticks: window.analytics_plot_ticks,
+                                tickOptions:{
+                                    angle: -30
+                                },
+                                tickRenderer:$.jqplot.CanvasAxisTickRenderer
+                            },
+                            // Pad the y axis just a little so bars can get close to, but
+                            // not touch, the grid boundaries.  1.2 is the default padding.
+                            yaxis: {
+                                pad: 1.05,
+                                tickOptions: {formatString: '%d'}
+                            }
+                        }
+                    });
+
+
+                    setTimeout("window.analytics_plot.replot()", 0);
+
+                });
+
+                $('#chartdiv').bind('jqplotDataClick',
+                    function (ev, seriesIndex, pointIndex, data) {
+                        window.hashjson.activetab = "logs";
+                        mSearch("@fields." + plotfilter_name, window.analytics_plot_ticks[data[0] -1], "value");
+                    }
+                );
+
+            } else if (plottype === "comp") {
+
+                var checked = (typeof window.hashjson.plotchecked != "undefined") ? window.hashjson.plotchecked : {length: 0};
+
+                var filters = new Array();
+
+                for (var i = 0; i < checked.length; i++) {
+                    filters[i] = {name: checked[i], filter: "@fields.Username:\"" + checked[i] + "\""};
+                }
+
+                //var filters = [{name: "Dean", filter: "@fields.Username:\"Dean Chipley\""}, {name: "Chaya", filter:"@fields.Username:\"Chaya Bart\""}];
+
+
+                window.analytics_plot_data = [];
+                window.analytics_plot_ticks = [];
+                window.analytics_plot_labels = [];
+
+                $.each(filters, function (idx, item) {
+
+                    var hashjson_clone = jQuery.extend(true, {}, window.hashjson);
+                    if (hashjson_clone.search === "") {
+                        hashjson_clone.search = item.filter;
+                    } else {
+                        hashjson_clone.search += " AND " + item.filter;
+                    }
+
+                    $.getJSON("/api/graph/count/" + 10000 + "/" + Base64.encode(JSON.stringify(hashjson_clone)), function(result) {
+
+                        var entries = result.facets.count.entries;
+
+                        var data = new Array();
+                        var ticks = new Array();
+
+                        for (var i = 0; i < entries.length; i++) {
+                            data[i] = entries[i].count;
+                        }
+
+                        if (typeof window.analytics_plot_data != "undefined") {
+                            window.analytics_plot_data.push(data);
+                            window.analytics_plot_labels.push(item.name);
+                        } else {
+                            window.analytics_plot_data = [data];
+                            window.analytics_plot_labels = [item.name];
+                        }
+
+
+                        var maxticks = 25;
+                        var segsize = parseInt(entries.length / maxticks);
+                        var remain = entries.length % maxticks;
+                        for (var i = 0; i <= maxticks + parseInt(remain / segsize); i++) {
+                            var d = new Date(entries[i * segsize].time);
+                            var tickstr = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) + "." + d.getMilliseconds();;
+                            if (i > 0) {
+                                var old = new Date(entries[(i - 1) * segsize].time);
+                                if ((old.getFullYear() == d.getFullYear()) && (old.getMonth() == d.getMonth()) && (old.getDate() == d.getDate())) {
+                                    tickstr = pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) + "." + d.getMilliseconds();
+                                }
+                            }
+                            ticks[i] = [i + 1, tickstr];
+                        }
+
+
+                        window.analytics_plot = $.jqplot('chartdiv', window.analytics_plot_data,
+                            {
+                                // Series options are specified as an array of objects, one object
+                                // for each series.
+                                series:[
+                                    {
+                                        // Change our line width and use a diamond shaped marker.
+                                        lineWidth:2,
+                                        markerOptions: { style:'dimaond' }
+                                    }
+                                ],
+
+                                legend: {
+                                    labels: window.analytics_plot_labels,
+                                    show: true,
+                                    placement: 'insideGrid'
+                                },
+
+                                axes: {
+                                    // Use a category axis on the x axis and use our custom ticks.
+                                    xaxis: {
+                                        ticks: ticks,
+                                        /*numberTicks: 50,
+                                         min: ticks[0][0],
+                                         max: ticks[ticks.length - 1][0],*/
+                                        tickOptions:{
+                                            angle: -30
+                                        },
+                                        tickRenderer:$.jqplot.CanvasAxisTickRenderer
+                                    }
+                                }
+                            }
+                        );
+
+                        setTimeout("window.analytics_plot.replot()", 0);
+                    });
+                });
+
+
+                /*var hashjson_clone1 = jQuery.extend(true, {}, window.hashjson);
+                if (hashjson_clone1.search === "") {
+                    hashjson_clone1.search = "@fields.Username:\"Dean Chipley\"";
+                } else {
+                    hashjson_clone1.search += " AND " + "@fields.Username:\"Dean Chipley\"";
+                }
+
+                $.getJSON("/api/graph/count/" + 10000 + "/" + Base64.encode(JSON.stringify(hashjson_clone1)), function(result1) {
+
+                    var entries1 = result1.facets.count.entries;
+
+                    var data1 = new Array();
+
+                    for (var i = 0; i < entries1.length; i++) {
+                        data1[i] = entries1[i].count;
+                    }
+
+                    var hashjson_clone2 = jQuery.extend(true, {}, window.hashjson);
+                    if (hashjson_clone2.search === "") {
+                        hashjson_clone2.search = "@fields.Username:\"Chaya Bart\"";
+                    } else {
+                        hashjson_clone2.search += " AND " + "@fields.Username:\"Chaya Bart\"";
+                    }
+
+                    $.getJSON("/api/graph/count/" + 10000 + "/" + Base64.encode(JSON.stringify(hashjson_clone2)), function(result2) {
+
+                        var entries2 = result2.facets.count.entries;
+
+                        var data2 = new Array();
+                        var ticks = new Array();
+
+                        for (var i = 0; i < entries2.length; i++) {
+                            data2[i] = entries2[i].count;
+                        }
+
+
+                        var maxticks = 25;
+                        var segsize = parseInt(entries2.length / maxticks);
+                        var remain = entries2.length % maxticks;
+                        for (var i = 0; i <= maxticks + parseInt(remain / segsize); i++) {
+                            var d = new Date(entries2[i * segsize].time);
+                            var tickstr = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) + "." + d.getMilliseconds();;
+                            if (i > 0) {
+                                var old = new Date(entries2[(i - 1) * segsize].time);
+                                if ((old.getFullYear() == d.getFullYear()) && (old.getMonth() == d.getMonth()) && (old.getDate() == d.getDate())) {
+                                    tickstr = pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) + "." + d.getMilliseconds();
+                                }
+                            }
+                            ticks[i] = [i + 1, tickstr];
+                        }
+
+
+                        window.analytics_plot = $.jqplot('chartdiv', [data1, data2],
+                            {
+                                // Series options are specified as an array of objects, one object
+                                // for each series.
+                                series:[
+                                    {
+                                        // Change our line width and use a diamond shaped marker.
+                                        lineWidth:2,
+                                        markerOptions: { style:'dimaond' }
+                                    }
+                                ],
+
+                                axes: {
+                                    // Use a category axis on the x axis and use our custom ticks.
+                                    xaxis: {
+                                        ticks: ticks,
+                                        tickOptions:{
+                                            angle: -30
+                                        },
+                                        tickRenderer:$.jqplot.CanvasAxisTickRenderer
+                                    }
+                                }
+                            }
+                        );
+
+                        setTimeout("window.analytics_plot.replot()", 0);
+                    });
+                });*/
+            }
+
+        }
 
         // Populate hit and total
         setMeta(window.resultjson.hits.total);
@@ -343,6 +709,7 @@ function getAnalysis() {
     type: "GET",
     cache: false,
     success: function (json) {
+
       // Make sure we're still on the same page
       if (sendhash == window.location.hash.replace(/^#/, '')) {
 
@@ -1623,6 +1990,22 @@ function bind_clicks() {
       }
       setHash(window.hashjson);
   });
+
+
+    $("#maintabs").delegate("a.tabpage", "click",
+        function () {
+            var action = $(this).attr('tab-action')
+            switch (action) {
+                case 'analytics':
+                    window.hashjson.activetab = "analytics";
+                    break;
+                case 'logs':
+                    window.hashjson.activetab = "logs"
+                    window.hashjson.offset = 0;
+                    break;
+            }
+            setHash(window.hashjson);
+        });
 
   // Sidebar analysis stuff
   $(document).delegate(".popover .analyze_btn", "click", function () {

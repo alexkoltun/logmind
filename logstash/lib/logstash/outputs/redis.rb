@@ -1,10 +1,13 @@
 require "logstash/outputs/base"
 require "logstash/namespace"
+require "stud/buffer"
 
 # send events to a redis database using RPUSH
 #
 # For more information about redis, see <http://redis.io/>
 class LogStash::Outputs::Redis < LogStash::Outputs::Base
+
+  include Stud::Buffer
 
   config_name "redis"
   plugin_status "beta"
@@ -60,6 +63,7 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
   #
   # If true, we send an RPUSH every "batch_events" events or
   # "batch_timeout" seconds (whichever comes first).
+  # Only supported for list redis data_type.
   config :batch, :validate => :boolean, :default => false
 
   # If batch is set to true, the number of events we queue up for an RPUSH.
@@ -69,7 +73,21 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
   # when there are pending events to flush.
   config :batch_timeout, :validate => :number, :default => 5
 
-  public
+  # Interval for reconnecting to failed redis connections
+  config :reconnect_interval, :validate => :number, :default => 1
+
+  # In case redis data_type is list and has more than @congestion_threshold items, block until someone consumes them and reduces
+  # congestion, otherwise if there are no consumers redis will run out of memory, unless it was configured with OOM protection.
+  # But even with OOM protection single redis list can block all other users of redis, as well redis cpu consumption
+  # becomes bad then it reaches the max allowed ram size.
+  # Default value of 0 means that this limit is disabled.
+  # Only supported for list redis data_type.
+  config :congestion_threshold, :validate => :number, :default => 0
+
+  # How often to check for congestion, defaults to 1 second.
+  # Zero means to check on every event.
+  config :congestion_interval, :validate => :number, :default => 1
+
   def register
     require 'redis'
 
@@ -91,20 +109,18 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
     end
     # end TODO
 
-    @pending = Hash.new { |h, k| h[k] = [] }
-    @last_pending_flush = Time.now.to_f
-    if @batch and @data_type != "list"
-      raise RuntimeError.new(
-        "batch is not supported with data_type #{@data_type}"
-      )
-    end
 
     if @batch
-      @flush_thread = Thread.new do
-        while sleep(@batch_timeout) do
-          process_pending(true)
-        end
+      if @data_type != "list"
+        raise RuntimeError.new(
+          "batch is not supported with data_type #{@data_type}"
+        )
       end
+      buffer_initialize(
+        :max_items => @batch_events,
+        :max_interval => @batch_timeout,
+        :logger => @logger
+      )
     end
 
     @redis = nil
@@ -112,8 +128,78 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
         @host.shuffle!
     end
     @host_idx = 0
-    @pending_mutex = Mutex.new
+
+    @congestion_check_times = Hash.new { |h,k| h[k] = Time.now.to_i - @congestion_interval }
   end # def register
+
+  def receive(event)
+    return unless output?(event)
+
+    if @batch and @data_type == 'list' # Don't use batched method for pubsub.
+      # Stud::Buffer
+      buffer_receive(event.to_json, event.sprintf(@key))
+      return
+    end
+
+    event_key = event.sprintf(@key)
+    event_key_and_payload = [event_key, event.to_json]
+
+    begin
+      @redis ||= connect
+      if @data_type == 'list'
+        congestion_check(event_key)
+        @redis.rpush *event_key_and_payload
+      else
+        @redis.publish *event_key_and_payload
+      end
+    rescue => e
+      @logger.warn("Failed to send event to redis", :event => event,
+                   :identity => identity, :exception => e,
+                   :backtrace => e.backtrace)
+      sleep @reconnect_interval
+      @redis = nil
+      retry
+    end
+  end # def receive
+
+  def congestion_check(key)
+    return if @congestion_threshold == 0
+    if (Time.now.to_i - @congestion_check_times[key]) >= @congestion_interval # Check congestion only if enough time has passed since last check.
+      while @redis.llen(key) > @congestion_threshold # Don't push event to redis key which has reached @congestion_threshold.
+        @logger.warn? and @logger.warn("Redis key size has hit a congestion threshold #{@congestion_threshold} suspending output for #{@congestion_interval} seconds")
+        sleep @congestion_interval
+      end
+      @congestion_check_time = Time.now.to_i
+    end
+  end
+
+  # called from Stud::Buffer#buffer_flush when there are events to flush
+  def flush(events, key, teardown=false)
+    @redis ||= connect
+    # we should not block due to congestion on teardown
+    # to support this Stud::Buffer#buffer_flush should pass here the :final boolean value.
+    congestion_check(key) unless teardown
+    @redis.rpush(key, events)
+  end
+  # called from Stud::Buffer#buffer_flush when an error occurs
+  def on_flush_error(e)
+    @logger.warn("Failed to send backlog of events to redis",
+      :identity => identity,
+      :exception => e,
+      :backtrace => e.backtrace
+    )
+    @redis = connect
+  end
+
+  def teardown
+    if @batch
+      buffer_flush(:final => true)
+    end
+    if @data_type == 'channel' and @redis
+      @redis.quit
+      @redis = nil
+    end
+  end
 
   private
   def connect
@@ -121,7 +207,7 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
     @host_idx = @host_idx + 1 >= @host.length ? 0 : @host_idx + 1
 
     if not @current_port
-        @current_port = @port
+      @current_port = @port
     end
 
     params = {
@@ -140,86 +226,8 @@ class LogStash::Outputs::Redis < LogStash::Outputs::Base
   end # def connect
 
   # A string used to identify a redis instance in log messages
-  private
   def identity
     @name || "redis://#{@password}@#{@current_host}:#{@current_port}/#{@db} #{@data_type}:#{@key}"
-  end
-
-  public
-  def receive(event)
-    return unless output?(event)
-
-    if @batch
-      @pending[event.sprintf(@key)] << event.to_json
-      process_pending
-      return
-    end
-
-    event_key_and_payload = [event.sprintf(@key), event.to_json]
-
-    begin
-      @redis ||= connect
-      if @data_type == 'list'
-        @redis.rpush *event_key_and_payload
-      else
-        @redis.publish *event_key_and_payload
-      end
-    rescue => e
-      @logger.warn("Failed to send event to redis", :event => event,
-                   :identity => identity, :exception => e,
-                   :backtrace => e.backtrace)
-      sleep 1
-      @redis = nil
-      retry
-    end
-  end # def receive
-
-  private
-  def process_pending(force=false)
-    if !@pending_mutex.try_lock # failed to get lock
-      return
-    end
-
-    pending_count = 0
-    @pending.each { |k, v| pending_count += v.length }
-    time_since_last_flush = Time.now.to_f - @last_pending_flush
-
-    if (force && pending_count > 0) ||
-       (pending_count >= @batch_events) ||
-       (time_since_last_flush >= @batch_timeout && pending_count > 0)
-      @logger.debug("Flushing redis output",
-                    :pending_count => pending_count,
-                    :time_since_last_flush => time_since_last_flush,
-                    :batch_events => @batch_events,
-                    :batch_timeout => @batch_timeout,
-                    :force => force)
-      begin
-        @redis ||= connect
-        @pending.each do |k, v|
-          @redis.rpush(k, v)
-          @pending.delete(k)
-        end
-        @last_pending_flush = Time.now.to_f
-      rescue => e
-        @logger.warn("Failed to send backlog of events to redis",
-                     :pending_count => pending_count,
-                     :identity => identity, :exception => e,
-                     :backtrace => e.backtrace)
-        sleep 1
-        retry
-      end
-    end
-
-    @pending_mutex.unlock
-  end
-
-  public
-  def teardown
-    process_pending(true)
-    if @data_type == 'channel' and @redis
-      @redis.quit
-      @redis = nil
-    end
   end
 
 end

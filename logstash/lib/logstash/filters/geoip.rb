@@ -1,5 +1,6 @@
 require "logstash/filters/base"
 require "logstash/namespace"
+require "tempfile"
 
 # Add GeoIP fields from Maxmind database
 #
@@ -19,19 +20,38 @@ class LogStash::Filters::GeoIP < LogStash::Filters::Base
   #
   # If not specified, this will default to the GeoLiteCity database that ships
   # with logstash.
-  config :database, :validate => :string
+  config :database, :validate => :path
 
   # The field containing IP address, hostname is also OK. If this field is an
   # array, only the first value will be used.
-  config :field, :validate => :string, :required => true
+  config :field, :validate => :string, :deprecated => true
+
+  # The field containing IP address, hostname is also OK. If this field is an
+  # array, only the first value will be used.
+  config :source, :validate => :string
+
+  # Array of fields that we want to be included in our event
+  # Default it will include all fields.
+  # Possible fields depend on the database type
+  # For the built in GeoLiteCity database:
+  # city_name, continent_code, country_code2, country_code3, country_name, dma_code, ip, latitude, longitude, postal_code, region_name, timezone
+  config :fields, :validate => :array
 
   public
   def register
     require "geoip"
     if @database.nil?
       if __FILE__ =~ /^file:\/.+!.+/
-        # Running from a jar, assume GeoLiteCity.dat is at the root.
-        @database = [__FILE__.split("!").first, "/GeoLiteCity.dat"].join("!")
+        begin
+          # Running from a jar, assume GeoLiteCity.dat is at the root.
+          jar_path = [__FILE__.split("!").first, "/GeoLiteCity.dat"].join("!")
+          tmp_file = Tempfile.new('logstash-geoip')
+          tmp_file.write(File.read(jar_path))
+          tmp_file.close # this file is reaped when ruby exits
+          @database = tmp_file.path
+        rescue => ex
+          raise "Failed to cache, due to: #{ex}\n#{ex.backtrace}"
+        end
       else
         if File.exists?("GeoLiteCity.dat")
           @database = "GeoLiteCity.dat"
@@ -55,6 +75,15 @@ class LogStash::Filters::GeoIP < LogStash::Filters::Base
     else
       raise RuntimeException.new "This GeoIP database is not currently supported"
     end
+
+    #TODO(electrical): Remove this when removing the field variable
+    if @field
+      if @source
+        logger.error("'field' and 'source' are the same setting, but 'field' is deprecated. Please use only 'source'")
+      end
+      @source = @field
+    end
+
   end # def register
 
   public
@@ -62,7 +91,7 @@ class LogStash::Filters::GeoIP < LogStash::Filters::Base
     return unless filter?(event)
     geo_data = nil
     begin
-      ip = event[@field]
+      ip = event[@source]
       ip = ip.first if ip.is_a? Array
       geo_data = @geoip.send(@geoip_type, ip)
     rescue SocketError => e
@@ -75,8 +104,17 @@ class LogStash::Filters::GeoIP < LogStash::Filters::Base
       geo_data_hash.delete(:request)
       event["geoip"] = {} if event["geoip"].nil?
       geo_data_hash.each do |key, value|
-        # convert key to string (normally a Symbol)
-        event["geoip"][key.to_s] = value
+        # Check if we have an array for specific fields
+        if !fields.empty?
+          # Check if the key is in our fields array
+          if fields.include?(key.to_s)
+            # convert key to string (normally a Symbol)
+            event["geoip"][key.to_s] = value
+          end
+        else
+          # convert key to string (normally a Symbol)
+          event["geoip"][key.to_s] = value
+        end
       end
       filter_matched(event)
     end

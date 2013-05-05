@@ -1,0 +1,15 @@
+.*.swp
+*.gem
+*.class
+Gemfile.lock
+*.tar.gz
+*.jar
+.bundle
+build
+local
+test/setup/elasticsearch/elasticsearch-*
+vendor
+.sass-cache
+data
+.buildpath
+.project

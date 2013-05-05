@@ -27,7 +27,10 @@ class LogStash::Outputs::Irc < LogStash::Outputs::Base
   # IRC server password
   config :password, :validate => :password
 
-  # Channels to broadcast to
+  # Channels to broadcast to.
+  # 
+  # These should be full channel names including the '#' symbol, such as
+  # "#logstash".
   config :channels, :validate => :array, :required => true
 
   # Message format to send, event tokens are usable here
@@ -48,7 +51,7 @@ class LogStash::Outputs::Irc < LogStash::Outputs::Base
       c.user = @user
       c.realname = @real
       c.channels = @channels
-      c.password = @password
+      c.password = @password.value rescue nil
     end
     Thread.new(@bot) do |bot|
       bot.start

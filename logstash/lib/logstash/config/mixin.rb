@@ -4,6 +4,8 @@ require "logstash/config/registry"
 require "logstash/logging"
 require "logstash/util/password"
 require "logstash/version"
+require "i18n"
+require "pathname"
 
 # This module is meant as a mixin to classes wishing to be configurable from
 # config files
@@ -44,9 +46,12 @@ module LogStash::Config::Mixin
   def config_init(params)
     # Validation will modify the values inside params if necessary.
     # For example: converting a string to a number, etc.
+    
+    # store the plugin type, turns LogStash::Inputs::Base into 'input'
+    @plugin_type = self.class.ancestors.find { |a| a.name =~ /::Base$/ }.config_name
     if !self.class.validate(params)
-      @logger.error("Config validation failed.")
-      exit 1
+      raise LogStash::Plugin::ConfigurationError,
+        I18n.t("logstash.agent.configuration.invalid_plugin_settings")
     end
 
     # warn about deprecated variable use
@@ -157,8 +162,10 @@ module LogStash::Config::Mixin
     end # def inherited
 
     def validate(params)
-      @plugin_name = [superclass.config_name, config_name].join("/")
-      @logger = LogStash::Logger.new(STDOUT)
+      @plugin_name = config_name #[superclass.config_name, config_name].join("/")
+      @plugin_type = ancestors.find { |a| a.name =~ /::Base$/ }.config_name
+      #.name.split("::")[1].downcase.gsub(/s$/,"")
+      @logger = Cabin::Channel.get(LogStash)
       is_valid = true
 
       is_valid &&= validate_plugin_status
@@ -183,7 +190,7 @@ module LogStash::Config::Mixin
       when nil
         raise "#{@config_name} must set a plugin_status. #{docmsg}"
       else
-        raise "#{@config_name} set an invalid plugin status #{@plugin_status}. Valid values are experimental, beta and stable. #{docmsg}"
+        raise "#{@config_name} set an invalid plugin status #{@plugin_status}. Valid values are unsupported, experimental, beta and stable. #{docmsg}"
       end
       return true
     end
@@ -221,8 +228,9 @@ module LogStash::Config::Mixin
         elsif config_key.is_a?(String)
           next if params.keys.member?(config_key)
         end
-        @logger.error("Missing required parameter '#{config_key}' for " \
-                      "#{@plugin_name}")
+        @logger.error(I18n.t("logstash.agent.configuration.setting_missing",
+                             :setting => config_key, :plugin => @plugin_name,
+                             :type => @plugin_type))
         is_valid = false
       end
 
@@ -257,7 +265,10 @@ module LogStash::Config::Mixin
             # Used for converting values in the config to proper objects.
             params[key] = result if !result.nil?
           else
-            @logger.error("Failed config #{@plugin_name}/#{key}: #{result} (#{value.inspect})")
+            @logger.error(I18n.t("logstash.agent.configuration.setting_invalid",
+                                 :plugin => @plugin_name, :type => @plugin_type,
+                                 :setting => key, :value => value, :value_type => config_val,
+                                 :note => result))
           end
           #puts "Result: #{key} / #{result.inspect} / #{success}"
           is_valid &&= success
@@ -291,6 +302,7 @@ module LogStash::Config::Mixin
       elsif validator.is_a?(Proc)
         return validator.call(value)
       elsif validator.is_a?(Array)
+        value = [*value]
         if value.size > 1
           return false, "Expected one of #{validator.inspect}, got #{value.inspect}"
         end
@@ -307,24 +319,24 @@ module LogStash::Config::Mixin
         case validator
           when :hash
             if value.is_a?(Hash)
-              result = value
-            else
-              if value.size % 2 == 1
-                return false, "This field must contain an even number of items, got #{value.size}"
-              end
+              return true, value
+            end
 
-              # Convert the array the config parser produces into a hash.
-              result = {}
-              value.each_slice(2) do |key, value|
-                entry = result[key]
-                if entry.nil?
-                  result[key] = value
+            if value.size % 2 == 1
+              return false, "This field must contain an even number of items, got #{value.size}"
+            end
+
+            # Convert the array the config parser produces into a hash.
+            result = {}
+            value.each_slice(2) do |key, value|
+              entry = result[key]
+              if entry.nil?
+                result[key] = value
+              else
+                if entry.is_a?(Array)
+                  entry << value
                 else
-                  if entry.is_a?(Array)
-                    entry << value
-                  else
-                    result[key] = [entry, value]
-                  end
+                  result[key] = [entry, value]
                 end
               end
             end
@@ -337,10 +349,11 @@ module LogStash::Config::Mixin
             result = value.first
           when :number
             if value.size > 1 # only one value wanted
-              return false, "Expected number, got #{value.inspect}"
+              return false, "Expected number, got #{value.inspect} (type #{value.class})"
             end
-            if value.first.to_s.to_i.to_s != value.first.to_s
-              return false, "Expected number, got #{value.first.inspect}"
+            if value.first.to_s.to_f.to_s != value.first.to_s \
+               && value.first.to_s.to_i.to_s != value.first.to_s
+              return false, "Expected number, got #{value.first.inspect} (type #{value.first})"
             end
             result = value.first.to_i
           when :boolean
@@ -381,6 +394,21 @@ module LogStash::Config::Mixin
             end
 
             result = ::LogStash::Util::Password.new(value.first)
+          when :path
+            if value.size > 1 # Only 1 value wanted
+              return false, "Expected path (one value), got #{value.size} values?"
+            end
+
+            # Paths must be absolute
+            #if !Pathname.new(value.first).absolute?
+              #return false, "Require absolute path, got relative path #{value.first}?"
+            #end
+
+            if !File.exists?(value.first) # Check if the file exists
+              return false, "File does not exist or cannot be opened #{value.first}"
+            end
+
+            result = value.first
         end # case validator
       else
         return false, "Unknown validator #{validator.class}"

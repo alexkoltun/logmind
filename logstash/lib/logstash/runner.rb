@@ -1,10 +1,7 @@
-require "rubygems"
-require "logstash/namespace"
-require "logstash/program"
-require "logstash/util"
-require "logstash/JRUBY-6970"
 
-if ENV["PROFILE_BAD_LOG_CALLS"]
+$START = Time.now
+$DEBUGLIST = (ENV["DEBUG"] || "").split(",")
+if ENV["PROFILE_BAD_LOG_CALLS"] || $DEBUGLIST.include?("log")
   # Set PROFILE_BAD_LOG_CALLS=1 in your environment if you want
   # to track down logger calls that cause performance problems
   #
@@ -39,32 +36,38 @@ if ENV["PROFILE_BAD_LOG_CALLS"]
   end
 end
 
+require "logstash/monkeypatches-for-performance"
+require "logstash/monkeypatches-for-bugs"
+require "logstash/monkeypatches-for-debugging"
+require "logstash/namespace"
+require "logstash/program"
+require "i18n" # gem 'i18n'
+I18n.load_path << File.expand_path(
+  File.join(File.dirname(__FILE__), "../../locales/en.yml")
+)
+
 class LogStash::Runner
   include LogStash::Program
 
   def main(args)
+    require "logstash/util"
+    require "stud/trap"
+    @startup_interruption_trap = Stud::trap("INT") { puts "Interrupted"; exit 0 }
+
     LogStash::Util::set_thread_name(self.class.name)
     $: << File.join(File.dirname(__FILE__), "..")
 
     if args.empty?
       $stderr.puts "No arguments given."
-      exit(1)
-    end
-
-    #if (RUBY_ENGINE rescue nil) != "jruby"
-      #$stderr.puts "JRuby is required to use this."
-      #exit(1)
-    #end
-
-    if RUBY_VERSION < "1.9.2"
-      $stderr.puts "Ruby 1.9.2 or later is required. (You are running: " + RUBY_VERSION + ")"
-      $stderr.puts "Options for fixing this: "
-      $stderr.puts "  * If doing 'ruby bin/logstash ...' add --1.9 flag to 'ruby'"
-      $stderr.puts "  * If doing 'java -jar ... ' add -Djruby.compat.version=RUBY1_9 to java flags"
       return 1
     end
 
-    #require "java"
+    if RUBY_VERSION < "1.9.2"
+      $stderr.puts "Ruby 1.9.2 or later is required. (You are running: " + RUBY_VERSION + ")"
+      return 1
+    end
+
+    Stud::untrap("INT", @startup_interruption_trap)
 
     @runners = []
     while !args.empty?
@@ -73,7 +76,7 @@ class LogStash::Runner
 
     status = []
     @runners.each do |r|
-      $stderr.puts "Waiting on #{r.wait.inspect}"
+      #$stderr.puts "Waiting on #{r.wait.inspect}"
       status << r.wait
     end
 
@@ -166,6 +169,29 @@ class LogStash::Runner
       "pry" => lambda do
         require "pry"
         return binding.pry
+      end,
+      "agent2" => lambda do
+        require "logstash/agent2"
+        # Hack up a runner
+        runner = Class.new do
+          def initialize(args)
+            @args = args
+          end
+          def run
+            @thread = Thread.new do
+              @result = LogStash::Agent2.run($0, @args)
+            end
+          end
+          def wait
+            @thread.join
+            return @result
+          end
+        end
+
+        agent = runner.new(args)
+        agent.run
+        @runners << agent
+        return []
       end
     } # commands
 

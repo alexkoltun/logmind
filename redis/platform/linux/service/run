@@ -1,4 +1,4 @@
 #!/bin/bash
 exec 2>&1
 # execute redis server
-exec /usr/local/logmind/redis/bin/redis-server
+exec /usr/local/logmind/redis/redis-server
