@@ -204,18 +204,38 @@ function getPage() {
 
         } else if (activetab == "analytics") {
 
+            var top_chart_options = "";
+            var compare_chart_options = "";
+
+//            $.getScript('lib/js/charts.js', function()
+//            {
+                var top_chart_filters = typeof window.charts != "undefined" ? (typeof window.charts.top_chart_filters != "undefined" ? window.charts.top_chart_filters : []) : [];
+                $.each(top_chart_filters, function(idx, item) {
+                    top_chart_options += "<option value='" + item.name + "'>" + item.value + "</option>";
+                });
+
+                var compare_chart_filters = typeof window.charts != "undefined" ? (typeof window.charts.compare_chart_filters != "undefined" ? window.charts.compare_chart_filters : []) : [];
+                $.each(compare_chart_filters, function(idx, item) {
+                    compare_chart_options += "<input id='cb1' data-group='cbgroup' type='checkbox' value='" + item.name + "' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>" + item.value + "</input>";
+                });
+//            });
+
             $('#logs').html("<div style='height: 50px;'>" +
                 "Chart Type: <select style='margin-top :8px;' id='plottype'>" +
                 "<option value='top'>Top Chart</option><option value='comp'>Compare Chart</option></select> " +
                 "<span id='topfilters'>Filter: <select style='margin-top: 8px;' id='plotfilter'>" +
-                "<option value='Activity'>Activity</option><option value='CustomerName'>Customer Name</option><option value='DeviceName'>Device Name</option><option value='FolderName'>Folder Name</option><option value='IP'>IP</option><option value='Username'>Username</option><option value='WorkspaceName'>Workspace Name</option></select></span>" +
+                //"<option value='Activity'>Activity</option><option value='CustomerName'>Customer Name</option><option value='DeviceName'>Device Name</option><option value='FolderName'>Folder Name</option><option value='IP'>IP</option><option value='Username'>Username</option><option value='WorkspaceName'>Workspace Name</option>" +
+                top_chart_options +
+                "</select></span>" +
                 "<span style='border-width: 1px; border-color: #515151; margin-left: 10px;' id='cbfilters'>Compare Users: " +
-                "<input data-group='cbgroup' id='cb1' type='checkbox' value='Travis Ulmer' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Travis Ulmer</input>" +
+                /*"<input data-group='cbgroup' id='cb1' type='checkbox' value='Travis Ulmer' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Travis Ulmer</input>" +
                 "<input id='cb1' data-group='cbgroup' type='checkbox' value='Jamika Heiden' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Jamika Heiden</input>" +
                 "<input id='cb1' data-group='cbgroup' type='checkbox' value='Sherril Windholz' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Sherril Windholz</input>" +
                 "<input id='cb1' data-group='cbgroup' type='checkbox' value='Alica Desper' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Alica Desper</input>" +
                 "<input id='cb1' data-group='cbgroup' type='checkbox' value='Ozella Banister' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Ozella Banister</input>" +
-                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Agnus Maiden' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Agnus Maiden</input></span>" +
+                "<input id='cb1' data-group='cbgroup' type='checkbox' value='Agnus Maiden' style='margin-top: -3px; margin-left: 5px; margin-right: 5px;'>Agnus Maiden</input>" + */
+                compare_chart_options +
+                "</span>" +
                 "<button class='btn' id='plotfilter_button' type='button'>Refresh</button></div>" +
                 "<div id='chartdiv' style='height: 400px; width: auto'></div>");
 
