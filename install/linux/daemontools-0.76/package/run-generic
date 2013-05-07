@@ -1,0 +1,8 @@
+#!/bin/sh -e
+
+if test -r /etc/inittab
+then
+  /command/setlock /etc/inittab package/run.inittab
+else
+  /command/setlock /etc/rc.local package/run.rclocal
+fi
