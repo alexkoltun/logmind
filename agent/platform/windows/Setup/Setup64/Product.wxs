@@ -115,35 +115,34 @@
 
       <Component Id="EveLogReader" Guid="*">
         <File Id="EveLogReader_Exe" Name="evLogReader.exe" Source="..\SetupFiles\evLogReader\evLogReader.exe" KeyPath="yes"/>
-        <File Id="EveLogReader_Pdb" Name="evLogReader.pdb" Source="..\SetupFiles\evLogReader\evLogReader.pdb" />
       </Component>
 
-      <Component Id="LogStash_Jar" Guid="*">
-        <File Id="LogStash_Jar" Name="logstash.jar" Source="..\SetupFiles\Logmind\logstash.jar" KeyPath="yes"/>
+      <Component Guid="*">
+        <File Name="logstash.jar" Source="..\SetupFiles\Logmind\logstash.jar" KeyPath="yes"/>
       </Component>
 
-      <Component Id="RunServiceBatch" Guid="*">
-        <File Id="Run_Service" Name="run.bat" Source="..\SetupFiles\Logmind\run.bat" KeyPath="yes"/>
+      <Component Guid="*">
+        <File Name="run.bat" Source="..\SetupFiles\Logmind\run.bat" KeyPath="yes"/>
       </Component>
 
-      <Component Id="InstallServiceBatch" Guid="*">
-        <File Id="InstallService" Name="installService.bat" Source="..\SetupFiles\Logmind\installService.bat" />
+      <Component Guid="*">
+        <File Name="installService.bat" Source="..\SetupFiles\Logmind\installService.bat" />
       </Component>
 
-      <Component Id="RemoveServiceBatch" Guid="*">
-        <File Id="RemoveService" Name="removeService.bat" Source="..\SetupFiles\Logmind\removeService.bat" />
+      <Component Guid="*">
+        <File Name="removeService.bat" Source="..\SetupFiles\Logmind\removeService.bat" />
       </Component>
 
-      <Component Id="Nssm_Exe" Guid="*">
-        <File Id="Nssm_Exe" Name="nssm.exe" Source="..\SetupFiles\Logmind\nssm-2.16\win64\nssm.exe" KeyPath="yes"/>
+      <Component Guid="*">
+        <File Name="nssm.exe" Source="..\SetupFiles\Logmind\nssm-2.16\win64\nssm.exe" KeyPath="yes"/>
       </Component>
 
-      <Component Id="Conf_Samples" Guid="*">
-        <File Id="Pipe_Conf" Name="pipe.conf" Source="..\SetupFiles\Logmind\pipe.conf" KeyPath="yes"/>
+      <Component Guid="*">
+        <File Name="pipe.conf" Source="..\SetupFiles\Logmind\pipe.conf" KeyPath="yes"/>
       </Component>
 
-      <Component Id="NssmReg" Guid="EB12B72D-991B-4D80-B272-5CA4AE367FCE">
-        <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\services\LogmindService\Parameters" Action="createAndRemoveOnUninstall">
+      <Component Guid="*">
+        <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\services\LogmindService\Parameters">
           <RegistryValue Type="string" KeyPath="yes" Name="AppDirectory" Value="[INSTALLFOLDER]" />
         </RegistryKey>
       </Component>
@@ -151,31 +150,24 @@
 
     <!--install service -->
     <CustomAction Id="InstallServiceCommand"
-                  Impersonate="yes"
+                  Impersonate="no"
                   Execute="deferred"
                   Directory="INSTALLFOLDER"
                   ExeCommand="[INSTALLFOLDER]nssm.exe install LogmindService run.bat"/>
 
     <CustomAction Id="StartServiceCommand"
-                  Impersonate="yes"
+                  Impersonate="no"
                   Execute="deferred"
                   Directory="INSTALLFOLDER"
                   ExeCommand="net start LogmindService"/>
 
     
     <CustomAction Id="RemoveServiceCommand"
-                  Impersonate="yes"
+                  Impersonate="no"
                   Execute="deferred"
                   Directory="INSTALLFOLDER"
                   ExeCommand="[INSTALLFOLDER]nssm.exe remove LogmindService confirm"/>
 
-    <!--
-    <CustomAction Id="RemoveServiceCommand"
-                  Impersonate="yes"
-                  Execute="deferred"
-                  Directory="INSTALLFOLDER"
-                  ExeCommand="sc.exe delete LogmindService"/>
-    -->
     <InstallExecuteSequence>
       <Custom Action='InstallServiceCommand' After='InstallFiles'>NOT Installed</Custom>
       <Custom Action='StartServiceCommand' Before='InstallFinalize'>NOT Installed</Custom>

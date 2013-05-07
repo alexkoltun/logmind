@@ -151,19 +151,19 @@
 
     <!--install service -->
     <CustomAction Id="InstallServiceCommand"
-                  Impersonate="yes"
+                  Impersonate="no"
                   Execute="deferred"
                   Directory="INSTALLFOLDER"
                   ExeCommand="[INSTALLFOLDER]nssm.exe install LogmindService run.bat"/>
 
     <CustomAction Id="StartServiceCommand"
-                  Impersonate="yes"
+                  Impersonate="no"
                   Execute="deferred"
                   Directory="INSTALLFOLDER"
                   ExeCommand="net start LogmindService"/>
 
     <CustomAction Id="RemoveServiceCommand"
-                  Impersonate="yes"
+                  Impersonate="no"
                   Execute="deferred"
                   Directory="INSTALLFOLDER"
                   ExeCommand="[INSTALLFOLDER]nssm.exe remove LogmindService confirm"/>

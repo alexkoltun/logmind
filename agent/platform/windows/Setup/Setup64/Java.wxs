@@ -281,18 +281,7 @@
                 <File Id="fil61D89C30DB15DE8E9F29099BF1DECC76" KeyPath="yes" Source="$(var.java_dir)\jre6\bin\w2k_lsa_auth.dll" />
             </Component>
             <Component Id="cmp4E420D0A4236D006AC1675A509043220" Directory="dirE47CF73315088C41AE37B0A25F2A24E3" Guid="*">
-                <File Id="fil984FE013C10473F5687D46CB591855B3" KeyPath="yes" Source="$(var.java_dir)\jre6\bin\wsdetect.dll">
-                    <TypeLib Id="{5852F5E0-8BF4-11D4-A245-0080C6F74284}" Description="JavaWebStart 1.0 Type Library" HelpDirectory="dirE47CF73315088C41AE37B0A25F2A24E3" Language="0" MajorVersion="1" MinorVersion="0">
-                        <Class Id="{5852F5ED-8BF4-11D4-A245-0080C6F74284}" Context="InprocServer32" Description="isInstalled Class" ThreadingModel="apartment" Programmable="yes">
-                            <ProgId Id="JavaWebStart.isInstalled.1.6.0.0" Description="isInstalled Class">
-                                <ProgId Id="JavaWebStart.isInstalled" Description="isInstalled Class" />
-                            </ProgId>
-                        </Class>
-                        <Interface Id="{5852F5EC-8BF4-11D4-A245-0080C6F74284}" Name="IisInstalled" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" />
-                    </TypeLib>
-                </File>
-                <RegistryValue Root="HKCR" Key="CLSID\{5852F5ED-8BF4-11D4-A245-0080C6F74284}\MiscStatus\1" Value="384" Type="string" Action="write" />
-                <RegistryValue Root="HKCR" Key="CLSID\{5852F5ED-8BF4-11D4-A245-0080C6F74284}\MiscStatus" Value="0" Type="string" Action="write" />
+                <File Id="fil984FE013C10473F5687D46CB591855B3" KeyPath="yes" Source="$(var.java_dir)\jre6\bin\wsdetect.dll" />
             </Component>
             <Component Id="cmpF47C1A4698357193C80725E8A5CF7C70" Directory="dirE47CF73315088C41AE37B0A25F2A24E3" Guid="*">
                 <File Id="filE3479771EAE62312334BE7F9A0B7A1B5" KeyPath="yes" Source="$(var.java_dir)\jre6\bin\zip.dll" />
@@ -475,21 +464,7 @@
                 <File Id="filDDB0252C3152A42470AC4E7E1207FCF6" KeyPath="yes" Source="$(var.java_dir)\jre6\lib\deploy\jqs\ff\chrome\content\overlay.xul" />
             </Component>
             <Component Id="cmp48C366E69CD57A815CD8A386EC23E8D8" Directory="dir31E874327B03E22C0FA6F8914D52F09F" Guid="*">
-                <File Id="fil5AE8FAC269CC9E0B3761B2C88C0D6F3A" KeyPath="yes" Source="$(var.java_dir)\jre6\lib\deploy\jqs\ie\jqs_plugin.dll">
-                    <TypeLib Id="{D85100D8-894D-4F80-9697-C220AF4202EB}" Description="JQSIEStartDetector 1.0 Type Library" HelpDirectory="dir31E874327B03E22C0FA6F8914D52F09F" Language="0" MajorVersion="1" MinorVersion="0">
-                        <AppId Description="JQSIEStartDetector" Id="{E311BFF9-7280-40D3-AE0B-2D3651C37EC8}">
-                            <Class Id="{E7E6F031-17CE-4C07-BC86-EABFE594F69C}" Context="InprocServer32" Description="JQSIEStartDetectorImpl Class" ThreadingModel="apartment" Programmable="yes">
-                                <ProgId Id="ieplugin.JQSIEStartDetectorImpl.1" Description="JQSIEStartDetectorImpl Class">
-                                    <ProgId Id="ieplugin.JQSIEStartDetectorImpl" Description="JQSIEStartDetectorImpl Class" />
-                                </ProgId>
-                            </Class>
-                        </AppId>
-                        <Interface Id="{AD5FB04F-5A8D-44D4-8206-6A8734186EA2}" Name="IJQSIEStartDetectorImpl" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" />
-                    </TypeLib>
-                </File>
-                <RegistryValue Root="HKCR" Key="AppID\JQSIEStartDetector.DLL" Name="AppID" Value="{E311BFF9-7280-40D3-AE0B-2D3651C37EC8}" Type="string" Action="write" />
-                <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\{E7E6F031-17CE-4C07-BC86-EABFE594F69C}" Value="JQSIEStartDetectorImpl" Type="string" Action="write" />
-                <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Explorer\Browser Helper Objects\{E7E6F031-17CE-4C07-BC86-EABFE594F69C}" Name="NoExplorer" Value="1" Type="integer" Action="write" />
+                <File Id="fil5AE8FAC269CC9E0B3761B2C88C0D6F3A" KeyPath="yes" Source="$(var.java_dir)\jre6\lib\deploy\jqs\ie\jqs_plugin.dll" />
             </Component>
             <Component Id="cmp20C34C5B92514B8D5D2814F0189FA8AF" Directory="dirB5556F4806426CDAB57A518BDE35762A" Guid="*">
                 <File Id="filB76E5BEFD8248186173A49E02A2E715E" KeyPath="yes" Source="$(var.java_dir)\jre6\lib\ext\dnsns.jar" />

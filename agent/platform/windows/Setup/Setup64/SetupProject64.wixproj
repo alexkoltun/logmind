@@ -42,7 +42,7 @@
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <PropertyGroup>
-    <PreBuildEvent>"$(WiX)\bin\heat.exe" dir ..\..\..\SetupFiles\Java -dr java -cg JavaFiles -ag -g1 -sf -srd -var "var.java_dir" -out "..\..\Java.wxs"</PreBuildEvent>
+    <PreBuildEvent>"$(WiX)\bin\heat.exe" dir ..\..\..\SetupFiles\Java -dr java -cg JavaFiles -ag -srd -sreg -svb6 -scom -var "var.java_dir" -out "..\..\Java.wxs"</PreBuildEvent>
   </PropertyGroup>
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.
