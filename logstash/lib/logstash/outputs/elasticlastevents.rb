@@ -1,6 +1,5 @@
 require "logstash/namespace"
 require "logstash/outputs/base"
-require "digest/md5"
 
 # This output lets you store logs in elasticsearch and is the most recommended
 # output for logstash. If you plan on using the logstash web interface, you'll
@@ -124,8 +123,7 @@ class LogStash::Outputs::ElasticLastEvents < LogStash::Outputs::Base
 
     @client = ElasticSearch::Client.new(options)
     @inflight_mutex = Mutex.new
-	@digest = Digest::MD5.new
-	
+
 	@esThread = Thread.start() do
 		loop do
 			begin
@@ -142,8 +140,7 @@ class LogStash::Outputs::ElasticLastEvents < LogStash::Outputs::Base
 						event = v
 						index = event.sprintf(@index)
 						type = event.sprintf(@index_type)
-						# convert the string source key into reasonable deleteable id
-						id = event.sprintf(@digest.hexdigest(k))
+						id = event.sprintf(k)
 						
 						#@logger.info("details", :index => index, :type => type, :id => id);
 						

@@ -3,7 +3,7 @@
 import os
 import sys
 import shutil
-from subprocess import call
+from subprocess import call, Popen
 
 
 LOGMIND_PATH = "/usr/local/logmind"
@@ -88,6 +88,8 @@ def set_permissions():
         os.chmod(LOGMIND_PATH + "/sixthsense/shipper/service/log/run", 0755)
         os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/upgrade", 0755)
         os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/run", 0755)
+        os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/run-generic", 0755)
+        os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/run-ubuntu", 0755)
         os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/run.inittab", 0755)
         
         commands_path = LOGMIND_PATH + "/daemontools-0.76/command"
@@ -146,6 +148,25 @@ def prep_links(curdir):
     except Exception, e:
         print "ERROR: ", e
         return False
+    return True
+
+
+def finalize_inst():
+
+    try:
+
+        if "Ubuntu" in os.uname()[3]:
+            print "Starting services on Ubuntu Linux OS..."
+
+            pid = Popen(["svscanboot"]).pid
+            print "svscanboot started with PID", pid
+
+        
+        return True
+
+    except Exception, e:
+        print "ERROR: ", e
+        return False
 
 
 
@@ -172,7 +193,9 @@ def __main__() :
                 if inst_daemon(curdir):
 
                     if prep_links(curdir):
-                        print "Logmind installed successfully!"
+
+                        if finalize_inst():
+                            print "Logmind installed successfully!"
 
 
 
