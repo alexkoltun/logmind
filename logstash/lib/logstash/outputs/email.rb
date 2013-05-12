@@ -93,64 +93,23 @@ class LogStash::Outputs::Email < LogStash::Outputs::Base
   public
   def register
     require "mail"
+
+    # Mail uses instance_eval which changes the scope of self so @options is
+    # inaccessible from inside 'Mail.defaults'. So set a local variable instead.
+    options = @options
+
     if @via == "smtp"
-      debug = @options.include?("debug")
-      if !debug
-        debug = false
-      else
-        debug = @options.fetch("debug")
-      end
-      smtpIporHost = @options.include?("smtpIporHost")
-      if !smtpIporHost
-        smtpIporHost = "localhost"
-      else
-        smtpIporHost = @options.fetch("smtpIporHost")
-      end
-      domain = @options.include?("domain")
-      if !domain
-        domain = "localhost"
-      else
-        domain = @options.fetch("domain")
-      end
-      port = @options.include?("port")
-      if !port
-        port = 25
-      else
-        port = @options.fetch("port")
-      end
-      tls = @options.include?("starttls")
-      if !tls
-        tls = false
-      else
-        tls = @options.fetch("starttls")
-      end
-      pass = @options.include?("password")
-      if !pass
-        pass = nil
-      else
-        pass = @options.fetch("password")
-      end
-      userName = @options.include?("userName")
-      if !userName
-        userName = nil
-      else
-        userName = @options.fetch("userName")
-      end
-      authenticationType = @options.include?("authenticationType")
-      if !authenticationType
-        authenticationType = nil
-      else
-        authenticationType = @options.fetch("authenticationType")
-      end
       Mail.defaults do
-        delivery_method :smtp , { :address   => smtpIporHost,
-                                  :port      => port,
-                                  :domain    => domain,
-                                  :user_name => userName,
-                                  :password  => pass,
-                                  :authentication => authenticationType,
-                                  :enable_starttls_auto => tls,
-                                  :debug => debug }
+        delivery_method :smtp, {
+          :address              => options.fetch("smtpIporHost", "localhost"),
+          :port                 => options.fetch("port", 25),
+          :domain               => options.fetch("domain", "localhost"),
+          :user_name            => options.fetch("userName", nil),
+          :password             => options.fetch("password", nil),
+          :authentication       => options.fetch("authenticationType", nil),
+          :enable_starttls_auto => options.fetch("starttls", false),
+          :debug                => options.fetch("debug", false)
+        }
       end
     elsif @via == 'sendmail'
       Mail.defaults do
@@ -158,7 +117,7 @@ class LogStash::Outputs::Email < LogStash::Outputs::Base
       end
     else
       Mail.defaults do
-        delivery_method :@via, @options
+        delivery_method :@via, options
       end
     end # @via tests
     @logger.debug("Email Output Registered!", :config => @config)

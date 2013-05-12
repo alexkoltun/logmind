@@ -15,29 +15,32 @@ require "cgi" # for CGI.escape
 class LogStash::Inputs::RabbitMQ < LogStash::Inputs::Threadable
 
   config_name "rabbitmq"
-  plugin_status "beta"
+  plugin_status "unsupported"
 
-  # Custom arguments. For example, mirrored queues in RabbitMQ 2.x:  [ "x-ha-policy", "all" ]
-  # RabbitMQ 3.x mirrored queues are set by policy. More information can be found
-  # here: http://www.rabbitmq.com/blog/2012/11/19/breaking-things-with-rabbitmq-3-0/
+  # Your amqp broker's custom arguments. For mirrored queues in RabbitMQ: [ "x-ha-policy", "all" ]
   config :arguments, :validate => :array, :default => []
 
-  # Your rabbitmq server address
+  # Your amqp server address
   config :host, :validate => :string, :required => true
 
-  # The rabbitmq port to connect on
+  # The AMQP port to connect on
   config :port, :validate => :number, :default => 5672
 
-  # Your rabbitmq username
+  # Your amqp username
   config :user, :validate => :string, :default => "guest"
 
-  # Your rabbitmq password
+  # Your amqp password
   config :password, :validate => :password, :default => "guest"
+
+  # The name of the queue. Depricated due to conflicts with puppet naming convention.
+  # Replaced by 'queue' variable. See LOGSTASH-755
+  config :name, :validate => :string, :deprecated => true
 
   # The name of the queue.
   config :queue, :validate => :string, :default => ""
 
-  # The name of the exchange to bind the queue.
+  # The name of the exchange to bind the queue. This is analogous to the 'amqp
+  # output' [config 'name'](../outputs/amqp)
   config :exchange, :validate => :string, :required => true
 
   # The routing key to use. This is only valid for direct or fanout exchanges
@@ -78,13 +81,7 @@ class LogStash::Inputs::RabbitMQ < LogStash::Inputs::Threadable
 
   # Validate SSL certificate
   config :verify_ssl, :validate => :boolean, :default => false
-  
-  # Maximum permissible size of a frame (in bytes) to negotiate with clients
-  config :frame_max, :validate => :number, :default => 131072
 
-  # Array of headers (in messages' metadata) to add to fields in the event
-  config :headers_fields, :validate => :array, :default => {}
-  
   public
   def initialize(params)
     super
@@ -94,41 +91,43 @@ class LogStash::Inputs::RabbitMQ < LogStash::Inputs::Threadable
   end # def initialize
 
   public
-  def register   
+  def register
+
+    if @name
+      if @queue
+        @logger.error("'name' and 'queue' are the same setting, but 'name' is deprecated. Please use only 'queue'")
+      end
+      @queue = @name
+    end   
 
     @logger.info("Registering input #{@url}")
-    require "bunny"
-    
+    require "bunny" # rubygem 'bunny'
     @vhost ||= "/"
     @port ||= 5672
     @key ||= "#"
-    
-    @rabbitmq_settings = {
+    @amqpsettings = {
       :vhost => @vhost,
       :host => @host,
       :port => @port,
     }
-    
-    @rabbitmq_settings[:user] = @user if @user
-    @rabbitmq_settings[:pass] = @password.value if @password
-    @rabbitmq_settings[:logging] = @debug
-    @rabbitmq_settings[:ssl] = @ssl if @ssl
-    @rabbitmq_settings[:verify_ssl] = @verify_ssl if @verify_ssl
-    @rabbitmq_settings[:frame_max] = @frame_max if @frame_max
-    
-    @rabbitmq_url = "amqp://"
+    @amqpsettings[:user] = @user if @user
+    @amqpsettings[:pass] = @password.value if @password
+    @amqpsettings[:logging] = @debug
+    @amqpsettings[:ssl] = @ssl if @ssl
+    @amqpsettings[:verify_ssl] = @verify_ssl if @verify_ssl
+    @amqpurl = "amqp://"
     if @user
-      @rabbitmq_url << @user if @user
-      @rabbitmq_url << ":#{CGI.escape(@password.to_s)}" if @password
-      @rabbitmq_url << "@"
+      @amqpurl << @user if @user
+      @amqpurl << ":#{CGI.escape(@password.to_s)}" if @password
+      @amqpurl << "@"
     end
-    @rabbitmq_url += "#{@host}:#{@port}#{@vhost}/#{@queue}"
+    @amqpurl += "#{@host}:#{@port}#{@vhost}/#{@queue}"
   end # def register
 
   def run(queue)
     begin
-      @logger.debug("Connecting with RabbitMQ settings #{@rabbitmq_settings.inspect} to set up queue #{@queue.inspect}")
-      @bunny = Bunny.new(@rabbitmq_settings)
+      @logger.debug("Connecting with AMQP settings #{@amqpsettings.inspect} to set up queue #{@queue.inspect}")
+      @bunny = Bunny.new(@amqpsettings)
       return if terminating?
       @bunny.start
       @bunny.qos({:prefetch_count => @prefetch_count})
@@ -138,27 +137,15 @@ class LogStash::Inputs::RabbitMQ < LogStash::Inputs::Threadable
       @bunnyqueue = @bunny.queue(@queue, {:durable => @durable, :auto_delete => @auto_delete, :exclusive => @exclusive, :arguments => @arguments_hash })
       @bunnyqueue.bind(@exchange, :key => @key)
 
-      # need to get metadata from data
-      @bunnyqueue.subscribe({:ack => @ack, :block => true}) do |delivery_info, metadata, data|
-        
-        e = to_event(data, @rabbitmq_url)
-        if e          
-          if !@headers_fields.empty?
-            # constructing the hash array of headers to add
-            # select headers from properties if they are in the array @headers_fields
-            headers_add = metadata.headers.select {|k, v| @headers_fields.include?(k)}          
-            @logger.debug("Headers to insert in fields : ", :headers => headers_add)
-             
-            headers_add.each do |added_field, added_value|
-              e[added_field] = added_value              
-            end # headers_add.each do
-          end # if !@headers_fields.empty?
+      @bunnyqueue.subscribe({:ack => @ack}) do |data|
+        e = to_event(data[:payload], @amqpurl)
+        if e
           queue << e
-        end # if e
-      end # @bunnyqueue.subscribe do
+        end
+      end # @bunnyqueue.subscribe
 
     rescue *[Bunny::ConnectionError, Bunny::ServerDownError] => e
-      @logger.error("RabbitMQ connection error, will reconnect: #{e}")
+      @logger.error("AMQP connection error, will reconnect: #{e}")
       # Sleep for a bit before retrying.
       # TODO(sissel): Write 'backoff' method?
       sleep(1)

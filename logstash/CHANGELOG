@@ -1,4 +1,46 @@
-1.1.10 (????)
+1.1.12 (May 7, 2013)
+  ## filters
+  - bugfix: useragent filter now works correctly with the built-in regexes.yaml
+  - bugfix: mail output with smtp now works again
+
+1.1.11 (May 7, 2013)
+  ## general
+  - This release is primarily a bugfix release for bugs introduced by the
+    previous release.
+  - Support for Rubinius and MRI exists once again.
+
+  ## inputs
+  - bugfix: lumberjack now respects field data again (lumberjack --field foo=bar)
+  - bugfix: rabbitmq was broken by the previous release (LOGSTASH-1003,
+    LOGSTASH-1038; Patch by Jason Koppe)
+  - bugfix: relp: allow multiple client socket connections to RELP input
+    (LOGSTASH-707, LOGSTASH-736, LOGSTASH-921)
+
+  ## filters
+  - bugfix: geoip was broken by the previous release (LOGSTASH-1013)
+  - feature: sleep now accepts an 'every' setting which causes it to
+    sleep every N events. Example; sleep every 10 events: every => 10.
+  - feature: grok now permits dashes and dots in captures, such as
+    %{WORD:foo-bar}.
+  - bugfix: useragent filter now ships with a default regexes.yaml file
+    that is used by default unless you otherwise specify (LOGSTASH-1051)
+  - bugfix: add_field now correctly sets top-level fields like @message
+  - bugfix: mutate 'replace' now sets a field regardless of whether or not
+    it exists.
+  - feature: new mutate 'update' setting to change a field's value but
+    only if that field exists already.
+
+  ## outputs
+  - feature: irc output now supports 'secure' setting to use ssl (LOGSTASH-139)
+  - feature: nagios_nsca has new setting 'message_format'
+  - bugfix: fix graphite plugin broken in 1.1.10 (LOGSTASH-968)
+  - bugfix: elasticsearch_http was broken in 1.1.10 (LOGSTASH-1004)
+  - bugfix: rabbitmq was broken by the previous release (LOGSTASH-1003,
+    LOGSTASH-1038; Patch by Jason Koppe)
+  - feature: hipchat 'notify' setting now called 'trigger_notify' (#467, patch
+    by Richard Pijnenburg)
+
+1.1.10 (April 16, 2013)
   ## general
   - On linux, all threads will set their process names so you can identify
     threads in tools like top(1).
