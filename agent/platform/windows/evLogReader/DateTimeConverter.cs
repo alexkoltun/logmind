@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections;
 using System.Web.Script.Serialization;
+using System.Xml;
 
 namespace evLogReader
 {
@@ -17,7 +18,7 @@ namespace evLogReader
         public override IDictionary<string, object> Serialize(object obj, JavaScriptSerializer serializer)
         {
             if (!(obj is DateTime)) return null;
-            return new CustomString(((DateTime)obj).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fff"));
+            return new CustomString(XmlConvert.ToString(((DateTime)obj).ToUniversalTime(), XmlDateTimeSerializationMode.Utc));
         }
 
         public override IEnumerable<Type> SupportedTypes
