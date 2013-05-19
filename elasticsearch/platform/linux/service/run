@@ -1,4 +1,6 @@
 #!/bin/bash
 exec 2>&1
+# set max open files limit
+ulimit -n unlimited
 # execute elastic search
-exec /usr/local/logmind/elasticsearch/bin/elasticsearch -f
+/usr/local/logmind/elasticsearch/bin/elasticsearch -f
