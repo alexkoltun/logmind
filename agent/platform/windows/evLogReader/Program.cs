@@ -5,6 +5,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Threading;
 using System.Management;
+using System.Diagnostics.Eventing.Reader;
 
 namespace evLogReader
 {
@@ -15,6 +16,30 @@ namespace evLogReader
 
         static void Main(string[] args)
         {
+            EventLog el = new EventLog("System");
+            el.Entries.GetEnumerator()
+
+            return;
+            EventLogReader reader = new EventLogReader(new EventLogQuery("System", PathType.LogName, "*[System[(Level <= 3) and TimeCreated[timediff(@SystemTime, '2013-01-01T00:00:00Z') > 0]]]"));
+            
+            EventRecord r;
+
+            while ((r = reader.ReadEvent(TimeSpan.MaxValue)) != null)
+            {
+                Console.WriteLine(r.FormatDescription());
+            }
+
+            return;
+
+            foreach (var l in EventLog.GetEventLogs())
+            {
+                EventLogWatcher watcher = new EventLogWatcher(new EventLogQuery(l.Log, PathType.LogName));
+                watcher.EventRecordWritten += new EventHandler<EventRecordWrittenEventArgs>(watcher_EventRecordWritten);
+                watcher.Enabled = true;
+            }
+
+            Thread.Sleep(3600000);
+
             int pId = GetParentProcessId();
             Process parent = Process.GetProcessById(pId);
             parent.EnableRaisingEvents = true;
@@ -46,6 +71,11 @@ namespace evLogReader
             {
                 l.Stop();
             }
+        }
+
+        static void watcher_EventRecordWritten(object sender, EventRecordWrittenEventArgs e)
+        {
+            Console.WriteLine(e.EventRecord.ToXml());            
         }
 
         static void parent_Exited(object sender, EventArgs e)

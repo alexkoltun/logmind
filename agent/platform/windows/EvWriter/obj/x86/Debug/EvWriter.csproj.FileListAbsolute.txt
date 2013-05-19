@@ -12,3 +12,6 @@ C:\Work\logmind\workspace\logmind\agent\platform\windows\EvWriter\obj\x86\Debug\
 C:\Work\logmind\workspace\logmind\agent\platform\windows\EvWriter\obj\x86\Debug\EvWriter.pdb
 C:\Users\Alex\workspace\logmind\agent\platform\windows\EvWriter\obj\x86\Debug\EvWriter.exe
 C:\Users\Alex\workspace\logmind\agent\platform\windows\EvWriter\obj\x86\Debug\EvWriter.pdb
+C:\Users\Alex\workspace\logmind\agent\platform\windows\EvWriter\bin\Debug\EvWriter.exe
+C:\Users\Alex\workspace\logmind\agent\platform\windows\EvWriter\bin\Debug\EvWriter.pdb
+C:\Users\Alex\workspace\logmind\agent\platform\windows\EvWriter\obj\x86\Debug\ResolveAssemblyReference.cache

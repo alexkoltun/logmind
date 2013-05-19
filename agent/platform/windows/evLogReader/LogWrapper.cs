@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using System.Web.Script.Serialization;
+using System.Diagnostics.Eventing.Reader;
 
 namespace evLogReader
 {

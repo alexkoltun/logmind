@@ -19,3 +19,9 @@ C:\Work\logmind\workspace\logmind\agent\platform\windows\Setup\SetupFiles\evLogR
 C:\Work\logmind\workspace\logmind\agent\platform\windows\evLogReader\obj\x86\Debug\ResolveAssemblyReference.cache
 C:\Work\logmind\workspace\logmind\agent\platform\windows\evLogReader\obj\x86\Debug\evLogReader.exe
 C:\Work\logmind\workspace\logmind\agent\platform\windows\evLogReader\obj\x86\Debug\evLogReader.pdb
+C:\Users\Alex\workspace\logmind\agent\platform\windows\Setup\SetupFiles\evLogReader\evLogReader.exe.config
+C:\Users\Alex\workspace\logmind\agent\platform\windows\evLogReader\obj\x86\Debug\evLogReader.exe
+C:\Users\Alex\workspace\logmind\agent\platform\windows\evLogReader\obj\x86\Debug\evLogReader.pdb
+C:\Users\Alex\workspace\logmind\agent\platform\windows\Setup\SetupFiles\evLogReader\evLogReader.exe
+C:\Users\Alex\workspace\logmind\agent\platform\windows\Setup\SetupFiles\evLogReader\evLogReader.pdb
+C:\Users\Alex\workspace\logmind\agent\platform\windows\evLogReader\obj\x86\Debug\ResolveAssemblyReference.cache
