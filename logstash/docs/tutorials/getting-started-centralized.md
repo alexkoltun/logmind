@@ -42,7 +42,7 @@ for easy downloading of ElasticSearch:
 
     ES_PACKAGE=elasticsearch-%ELASTICSEARCH_VERSION%.zip
     ES_DIR=${ES_PACKAGE%%.zip}
-    SITE=https://github.com/downloads/elasticsearch/elasticsearch
+    SITE=https://download.elasticsearch.org/elasticsearch/elasticsearch
     if [ ! -d "$ES_DIR" ] ; then
       wget --no-check-certificate $SITE/$ES_PACKAGE
       unzip $ES_PACKAGE
@@ -72,15 +72,15 @@ That's it.
 Once you have elasticsearch and redis running, you're
 ready to configure logstash.
 
-Download the monolithic logstash release package. By 'monolithic' I mean the
-package contains all required dependencies to save you time chasing down
-requirements.
+Download the logstash release jar file. The package contains all
+required dependencies to save you time chasing down requirements.
 
 Follow [this link to download logstash-%VERSION%](http://logstash.objects.dreamhost.com/release/logstash-%VERSION%-flatjar.jar).
 
-Since we're doing a centralized configuration, you'll have two main logstash
-agent roles: a shipper and an indexer. You will ship logs from all servers via Redis and have another agent receive those messages, parse
-them, and index them in elasticsearch.
+Since we're doing a centralized configuration, you'll have two main
+logstash agent roles: a shipper and an indexer. You will ship logs from
+all servers via Redis and have another agent receive those messages,
+parse them, and index them in elasticsearch.
 
 ### logstash log shipper
 

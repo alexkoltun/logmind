@@ -101,7 +101,7 @@ class LogStash::Agent
     end # -w
 
     opts.on("--queue-size COUNT", Integer,
-            "Set internal input->filter and filter->output queue size") do
+            "Set internal input->filter and filter->output queue size") do |arg|
       @queue_size = arg
     end
 
@@ -119,6 +119,22 @@ class LogStash::Agent
 
     opts.on("-v", "Increase verbosity") do
       @verbose += 1
+    end
+
+    opts.on("--verbose", "Use verbose logging") do
+      @verbose = 1
+    end
+
+    opts.on("--debug", "Use debug logging") do
+      @verbose = 2
+    end
+
+    opts.on("-q", "--quiet", "Quieter logging; only errors will be logged") do
+      @verbose = -1
+    end
+
+    opts.on("--silent", "Silent logging. Nothing should get logged") do
+      @verbose = -2
     end
 
     opts.on("-V", "--version", "Show the version of logstash") do
@@ -249,8 +265,12 @@ class LogStash::Agent
       @logger.level = :debug
     elsif @verbose == 1 # logstash info logs
       @logger.level = :info
-    else # Default log level
-      @logger.level = :warn
+    elsif @verbose == 0 # Default log level
+      @logger.level = :warn 
+    elsif @verbose == -1 # Default log level
+      @logger.level = :error
+    elsif @verbose == -2 # Default log level
+      @logger.level = :fatal
     end
   end # def configure
 
@@ -456,7 +476,7 @@ class LogStash::Agent
         if @filterworker_count > 1
           @filters.each do |filter|
             if ! filter.threadsafe?
-                raise "fail"
+                raise "The filter #{filter.class} is not threadsafe. Cannot use more than 1 filter worker"
             end
           end
         end

@@ -20,6 +20,11 @@ require "logstash/outputs/base"
 # elasticsearch's cluster health status.
 #
 # You can learn more about elasticsearch at <http://elasticsearch.org>
+#
+# ## Operational Notes
+#
+# Your firewalls will need to permit port 9300 in *both* directions (from
+# logstash to elasticsearch, and elasticsearch to logstash)
 class LogStash::Outputs::ElasticSearch < LogStash::Outputs::Base
 
   config_name "elasticsearch"
@@ -52,7 +57,7 @@ class LogStash::Outputs::ElasticSearch < LogStash::Outputs::Base
 
   # The port for ElasticSearch transport to use. This is *not* the ElasticSearch
   # REST API port (normally 9200).
-  config :port, :validate => :number, :default => 9300
+  config :port, :validate => :number, :default => "9300-9400"
 
   # The name/address of the host to bind to for ElasticSearch clustering
   config :bind_host, :validate => :string
