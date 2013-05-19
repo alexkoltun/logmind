@@ -42,7 +42,7 @@
   <ItemGroup>
     <Compile Include="ICommunicationChannel.cs" />
     <Compile Include="IConfigurationManager.cs" />
-    <Compile Include="IPersistanceProvider.cs" />
+    <Compile Include="IPersistenceProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
