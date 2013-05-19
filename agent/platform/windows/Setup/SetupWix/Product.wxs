@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <Product Id="33C7A976-CB64-4895-89D9-7E2428ED118C" Name="Logmind Service" Language="1033" Version="1.0.0.0" Manufacturer="Logmind"
+           UpgradeCode="a53bc787-b009-4d53-bf70-6b8944b7153d">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+    <Media Id="1" Cabinet="Cab1.cab" EmbedCab="yes" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    
+    <PropertyRef Id="NETFRAMEWORK40FULL"/>
+    <Condition Message='This setup requires the .NET Framework 4.0. Please install the .NET Framework then run this installer again.'>
+      <![CDATA[Installed OR NETFRAMEWORK40FULL]]>
+    </Condition>
+
+
+    <Feature Id="AllFeatures" Title="AllFeatures" Level="1">
+      <ComponentRef Id="ChangePath"/>
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="JavaFiles" />
+    </Feature>
+
+    <UI Id="UISequence">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <Property Id="WixUI_Mode" Value="Mondo" />
+
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+
+      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="2">LicenseAccepted = "1"</Publish>
+
+      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="1">WixUI_InstallMode = "Change"</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg" Order="2">WixUI_InstallMode = "InstallCustom"</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+
+
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="1">WixUI_InstallMode = "Repair" OR WixUI_InstallMode = "Remove" OR WixUI_InstallMode = "Change"</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg" Order="2"></Publish>
+
+
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+
+      <Publish Dialog="MaintenanceTypeDlg" Control="ChangeButton" Event="NewDialog" Value="CustomizeDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+    </UI>
+
+    <UIRef Id="WixUI_Common" />
+
+    <WixVariable Id="WixUIBannerBmp" Value="..\SetupFiles\Bitmaps\banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="..\SetupFiles\Bitmaps\side.bmp" />
+    
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <?if $(var.Platform)="x86" ?>
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="Logmind" >
+          <Directory Id="java" Name="Java" />
+        </Directory>
+      </Directory>
+      <?endif ?>
+      <?if $(var.Platform)="x64" ?>
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="INSTALLFOLDER" Name="Logmind" >
+          <Directory Id="java" Name="Java" />
+        </Directory>
+      </Directory>
+      <?endif ?>
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+
+    <DirectoryRef Id="INSTALLFOLDER">
+      
+      <Component Id="ChangePath" Guid="DA338E16-4411-4EF2-A027-0475076D2BF3">
+        <CreateFolder/>
+        <Environment
+              Id="Environment"
+              Name="PATH"
+              Part="first"
+              System="yes"
+              Value="[INSTALLFOLDER]"
+              Action="set"/>
+      </Component>
+    </DirectoryRef>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+
+      <Component Id="EveLogReader" Guid="*">
+        <File Id="EveLogReader_Exe" Name="evLogReader.exe" Source="..\SetupFiles\evLogReader\evLogReader.exe" KeyPath="yes"/>
+      </Component>
+
+      <Component Guid="*">
+        <File Name="logstash.jar" Source="..\SetupFiles\Logmind\logstash.jar" KeyPath="yes"/>
+      </Component>
+
+      <Component Guid="*">
+        <File Name="run.bat" Source="..\SetupFiles\Logmind\run.bat" KeyPath="yes"/>
+      </Component>
+
+      <Component Guid="*">
+        <File Name="installService.bat" Source="..\SetupFiles\Logmind\installService.bat" />
+      </Component>
+
+      <Component Guid="*">
+        <File Name="removeService.bat" Source="..\SetupFiles\Logmind\removeService.bat" />
+      </Component>
+
+      <Component Guid="*">
+        <?if $(var.Platform)="x64" ?>
+          <File Name="nssm.exe" Source="..\SetupFiles\Logmind\nssm-2.16\win64\nssm.exe" KeyPath="yes"/>
+        <?endif ?>
+        <?if $(var.Platform)="x86" ?>
+        <File Name="nssm.exe" Source="..\SetupFiles\Logmind\nssm-2.16\win32\nssm.exe" KeyPath="yes"/>
+        <?endif ?>
+      </Component>
+
+      <Component Guid="*">
+        <File Name="pipe.conf" Source="..\SetupFiles\Logmind\pipe.conf" KeyPath="yes"/>
+      </Component>
+
+      <Component Guid="*">
+        <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\services\LogmindService\Parameters">
+          <RegistryValue Type="string" KeyPath="yes" Name="AppDirectory" Value="[INSTALLFOLDER]" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+
+    <!--install service -->
+    <CustomAction Id="InstallServiceCommand"
+                  Impersonate="no"
+                  Execute="deferred"
+                  Directory="INSTALLFOLDER"
+                  ExeCommand="[INSTALLFOLDER]nssm.exe install LogmindService run.bat"/>
+
+    <CustomAction Id="StartServiceCommand"
+                  Impersonate="no"
+                  Execute="deferred"
+                  Directory="INSTALLFOLDER"
+                  ExeCommand="net start LogmindService"/>
+
+    
+    <CustomAction Id="RemoveServiceCommand"
+                  Impersonate="no"
+                  Execute="deferred"
+                  Directory="INSTALLFOLDER"
+                  ExeCommand="[INSTALLFOLDER]nssm.exe remove LogmindService confirm"/>
+
+    <InstallExecuteSequence>
+      <Custom Action='InstallServiceCommand' After='InstallFiles'>NOT Installed</Custom>
+      <Custom Action='StartServiceCommand' Before='InstallFinalize'>NOT Installed</Custom>
+      <Custom Action='RemoveServiceCommand' After='InstallInitialize'>Installed</Custom>
+    </InstallExecuteSequence>
+
+  </Fragment>
+
+</Wix>

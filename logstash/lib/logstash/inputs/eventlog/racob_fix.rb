@@ -27,9 +27,11 @@ class << java.lang.System
       
       # open both files in 'binary' mode (sets encoding to BINARY aka
       # ASCII-8BIT).
-      input = File.new(path, "rb") 
+      input = File.new(value, "rb") 
       output = File.new(extracted_path, "wb")
-      output.write(chunk) while chunk = input.read(16384)
+      while chunk = input.read(16384)
+        output.write(chunk) 
+      end
       input.close
       output.close
 

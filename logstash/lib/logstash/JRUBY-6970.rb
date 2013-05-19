@@ -31,15 +31,34 @@ class File
     alias_method :expand_path_JRUBY_6970, :expand_path
 
     def expand_path(path, dir=nil)
+      #p :expand_path => [path, dir]
       if path =~ /(jar:)?file:\/.*\.jar!/
+        #p :expand_path_path => [path, dir]
         jar, resource = path.split("!", 2)
         #p :expand_path => [jar, resource]
         if resource.nil? || resource == ""
           # Nothing after the "!", nothing special to handle.
           return expand_path_JRUBY_6970(path, dir)
         else
-          return "#{jar}!#{expand_path_JRUBY_6970(resource, dir)}"
+          resource = expand_path_JRUBY_6970(resource, dir)
+          # TODO(sissel): use LogStash::Util::UNAME
+          if RbConfig::CONFIG["host_os"] == "mswin32"
+            # 'expand_path' on "/" will return "C:/" on windows.
+            # So like.. we don't want that because technically this
+            # is the root of the jar, not of a disk.
+            puts :expand_path => [path, "#{jar}!#{resource.gsub(/^[A-Z]:/, "")}"]
+            return "#{jar}!#{resource.gsub(/^[A-Z]:/, "")}"
+          else
+            return "#{jar}!#{resource}"
+          end
         end
+      elsif dir =~ /(jar:)?file:\/.*\.jar!/
+        jar, dir = dir.split("!", 2)
+        if dir.empty?
+          # sometimes the original dir is just 'file:/foo.jar!'
+          return File.join("#{jar}!", path) 
+        end
+        return "#{jar}!#{expand_path_JRUBY_6970(path, dir)}"
       else
         return expand_path_JRUBY_6970(path, dir)
       end

@@ -6,6 +6,7 @@ require 'date'
 require 'rss/maker'
 require 'yaml'
 require 'tzinfo'
+require 'curb'
 
 $LOAD_PATH << '.'
 $LOAD_PATH << './lib'
@@ -704,4 +705,45 @@ get '/archivedlist' do
     locals[:result] = result
   end
   erb :archivedlist, :locals => locals
+end
+
+
+get %r{/napi/es/(.*)} do
+  q = params[:captures].first
+
+  c = Curl::Easy.http_get("http://" + KibanaConfig::Elasticsearch + "/" + q
+  ) do |curl|
+    curl.headers['Accept'] = 'application/json'
+    curl.headers['Content-Type'] = 'application/json'
+  end
+
+  c.body_str
+end
+
+
+post %r{/napi/es/(.*)} do
+  q = params[:captures].first
+  raw = request.env["rack.input"].read
+
+  c = Curl::Easy.http_post("http://" + KibanaConfig::Elasticsearch + "/" + q, raw
+  ) do |curl|
+    curl.headers['Accept'] = 'application/json'
+    curl.headers['Content-Type'] = 'application/json'
+  end
+
+  c.body_str
+end
+
+
+put %r{/napi/es/(.*)} do
+  q = params[:captures].first
+  raw = request.env["rack.input"].read
+
+  c = Curl::Easy.http_put("http://" + KibanaConfig::Elasticsearch + "/" + q, raw
+  ) do |curl|
+    curl.headers['Accept'] = 'application/json'
+    curl.headers['Content-Type'] = 'application/json'
+  end
+
+  c.body_str
 end

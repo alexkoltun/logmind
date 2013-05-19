@@ -22,7 +22,6 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "minitest"           # for running the tests from the jar, (MIT license)
   gem.add_runtime_dependency "pry"                #(ruby license)
   gem.add_runtime_dependency "stud"               #(Apache 2.0 license)
-  gem.add_runtime_dependency "sys-uname"          # for platform detection (Artistic 2.0 license)
   gem.add_runtime_dependency "clamp"              # for command line args/flags (MIT license)
   gem.add_runtime_dependency "i18n"               #(MIT license)
 
@@ -39,21 +38,21 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "aws-sdk"                          #{Apache 2.0 license}
   gem.add_runtime_dependency "heroku"                           #(MIT license)
   gem.add_runtime_dependency "addressable"                      #(Apache 2.0 license)
-  gem.add_runtime_dependency "bunny", [">= 0.9.0.pre6"]         #(MIT license)
+  gem.add_runtime_dependency "bunny", ["0.8.0"]                 #(MIT license)
   gem.add_runtime_dependency "ffi"                              #(LGPL-3 license)
   gem.add_runtime_dependency "ffi-rzmq", ["1.0.0"]              #(MIT license)
   gem.add_runtime_dependency "filewatch", ["0.5.1"]             #(BSD license)
   gem.add_runtime_dependency "gelfd", ["0.2.0"]                 #(Apache 2.0 license)
   gem.add_runtime_dependency "gelf", ["1.3.2"]                  #(MIT license)
   gem.add_runtime_dependency "gmetric", ["0.1.3"]               #(MIT license)
-  gem.add_runtime_dependency "jls-grok", ["0.10.10"]            #(BSD license)
+  gem.add_runtime_dependency "jls-grok", ["0.10.11"]            #(BSD license)
   gem.add_runtime_dependency "mail"                             #(MIT license)
   gem.add_runtime_dependency "mongo"                            #(Apache 2.0 license)
   gem.add_runtime_dependency "metriks"                          #(MIT license)
   gem.add_runtime_dependency "onstomp"                          #(Apache 2.0 license)
   gem.add_runtime_dependency "redis"                            #(MIT license)
   gem.add_runtime_dependency "riak-client", ["1.0.3"]           #(Apache 2.0 license)
-  gem.add_runtime_dependency "riemann-client", ["0.0.6"]        #(MIT license)
+  gem.add_runtime_dependency "riemann-client", ["0.2.1"]        #(MIT license)
   gem.add_runtime_dependency "statsd-ruby", ["0.3.0"]           #(MIT license)
   gem.add_runtime_dependency "uuidtools"                        # For generating amqp queue names (Apache 2.0 license)
   gem.add_runtime_dependency "xml-simple"                       #(ruby license?)
@@ -72,7 +71,7 @@ Gem::Specification.new do |gem|
 
   if RUBY_PLATFORM == 'java'
     gem.platform = RUBY_PLATFORM
-    gem.add_runtime_dependency "jruby-elasticsearch", ["0.0.14"]  #(BSD license)
+    gem.add_runtime_dependency "jruby-elasticsearch", ["0.0.15"]  #(BSD license)
     gem.add_runtime_dependency "jruby-httpclient"                 #(Apache 2.0 license)
     gem.add_runtime_dependency "bouncy-castle-java", "1.5.0147"   #(MIT license)
     gem.add_runtime_dependency "jruby-openssl", "0.8.7"           #(CPL/GPL/LGPL license)
