@@ -1,5 +1,5 @@
 #!/bin/sh -e
 
-echo "Installing service for Ubuntu Linux OS"
+echo "Installing service for using Upstart"
 
 cp -f package/daemontools.conf /etc/init
