@@ -11,7 +11,8 @@
     <RootNamespace>Logmind.Runner</RootNamespace>
     <AssemblyName>Logmind.Runner</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
@@ -38,13 +39,54 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ProcessController.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommandAndControl\CommandAndControl.csproj">
+      <Project>{15475AB8-49CA-481B-B6F0-22E8425E96B9}</Project>
+      <Name>CommandAndControl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CommandEngine\CommandEngine.csproj">
+      <Project>{9E42FC98-8D8C-4846-9ECC-AE10189173A9}</Project>
+      <Name>CommandEngine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CommunicationLayer\CommunicationLayer.csproj">
+      <Project>{A39E38C1-031D-4A3B-8727-4D1A437CE296}</Project>
+      <Name>CommunicationLayer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ConfigurationManager\ConfigurationManager.csproj">
+      <Project>{1404F687-ED30-4439-BC3D-79FFFEE484C3}</Project>
+      <Name>ConfigurationManager</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DataDelivery\DataDelivery.csproj">
+      <Project>{BB169472-160C-4167-84F1-3E7FDEA2F00A}</Project>
+      <Name>DataDelivery</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Domain\Domain.csproj">
+      <Project>{DCB7A8D6-B631-401B-BEEE-190D3A1F226A}</Project>
+      <Name>Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Harvester\Harvester.csproj">
+      <Project>{42CB0DF4-B0EE-4D09-9214-5D6BB43FE181}</Project>
+      <Name>Harvester</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Interfaces\Interfaces.csproj">
+      <Project>{AC91E578-E219-4E51-8D3E-27E543A87EF9}</Project>
+      <Name>Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Persistance\Persistance.csproj">
+      <Project>{14EE4042-AD94-4985-A1B9-3C7CA46F8301}</Project>
+      <Name>Persistance</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

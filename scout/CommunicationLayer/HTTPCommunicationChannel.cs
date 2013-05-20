@@ -16,6 +16,7 @@ namespace Logmind.CommunicationLayer
 
         public delegate void onPacketDelegate (byte[] data, int start, int len);
         public event onPacketDelegate onPacket;
+
         private void fireOnPacket(byte[] data, int start, int len)
         {
             if (onPacket != null)
@@ -83,6 +84,9 @@ namespace Logmind.CommunicationLayer
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
             Stream responseStream = response.GetResponseStream();
+
+            // TODO,
+            return null;
             
         }
 

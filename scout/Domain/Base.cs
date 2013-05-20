@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Domain
 {
-    public class Class1
+    public class Base
     {
     }
 }
