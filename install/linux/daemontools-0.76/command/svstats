@@ -1,0 +1,7 @@
+#!/bin/sh
+
+/command/svstat /service/logmind-elasticsearch
+/command/svstat /service/logmind-shipper
+/command/svstat /service/logmind-indexer
+/command/svstat /service/logmind-redis
+/command/svstat /service/logmind-openmind
