@@ -3,7 +3,7 @@
 import os
 import sys
 import shutil
-from subprocess import call
+from subprocess import call, Popen, PIPE
 
 
 
@@ -124,8 +124,8 @@ def set_permissions():
         os.chmod(LOGMIND_PATH + "/sixthsense/shipper/service/log/run", 0755)
         os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/upgrade", 0755)
         os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/run", 0755)
-        os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/run-generic", 0755)
-        os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/run-ubuntu", 0755)
+        os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/run-inittab", 0755)
+        os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/run-upstart", 0755)
         os.chmod(LOGMIND_PATH + "/daemontools-0.76/package/run.inittab", 0755)
         
         commands_path = LOGMIND_PATH + "/daemontools-0.76/command"
@@ -224,6 +224,29 @@ def post_install():
         print "ERROR: ", e
         return False
 
+
+def start_services():
+
+    try:
+        p = Popen(["uname", "-a"], stdout=PIPE)
+        out, err = p.communicate()
+        if "Ubuntu" in out or "CentOS-6" in out:
+            print "Upstart: starting services..."
+            ret_start = call(["/sbin/start", "daemontools"])
+
+            success = ret_start == 0
+            if not success:
+                print "Error starting upstart services."
+
+            return success
+        
+
+        return True
+
+    except Exception, e:
+        print "ERROR: ", e
+        return False
+
         
 
 
@@ -258,7 +281,10 @@ def __main__() :
  
                             print "Running post-installation operations..."
                             if post_install():
-                                print ShellColors.OKGREEN + "Logmind installed successfully!" + ShellColors.ENDC
+
+                                print "Starting services..."
+                                if start_services():
+                                    print ShellColors.OKGREEN + "Logmind installed successfully!" + ShellColors.ENDC
 
 
 
