@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace evLogReader
+namespace Logmind.EventLogStreamer
 {
     internal static class LocalLogger
     {

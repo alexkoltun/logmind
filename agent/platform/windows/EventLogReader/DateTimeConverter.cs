@@ -6,7 +6,7 @@ using System.Collections;
 using System.Web.Script.Serialization;
 using System.Xml;
 
-namespace evLogReader
+namespace Logmind.EventLogStreamer
 {
     public class DateTimeConverter : JavaScriptConverter
     {

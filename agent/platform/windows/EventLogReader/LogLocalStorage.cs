@@ -5,7 +5,7 @@ using System.Text;
 using System.Xml.Serialization;
 using System.IO;
 
-namespace evLogReader
+namespace Logmind.EventLogStreamer
 {
     [XmlRoot("localStorage")]
     public class LogLocalStorage
@@ -17,6 +17,11 @@ namespace evLogReader
 
         [XmlIgnore()]
         public bool IsDirty { get; set; }
+
+        public LogLocalStorage()
+        {
+            LastLogGenerated = new DateTime(2000, 1, 1);
+        }
 
         private static string GetFilePath(string logName)
         {
