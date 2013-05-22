@@ -313,7 +313,7 @@ class KelasticMulti
       return @response
     end
 
-    index = indices.first
+    index = indices.kind_of?(Array) ? indices.first : indices
     @url = "#{Kelastic.index_path(index)}/_search"
     # TODO: This badly needs error handling for missing indices
     @response = Kelastic.run(@url,query)
