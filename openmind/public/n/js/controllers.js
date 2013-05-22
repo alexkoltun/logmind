@@ -9,6 +9,7 @@ angular.module('openmind.controllers', [])
     title: "",
     editable: true,
     rows: [],
+    last: null
   }
 
   $scope.init = function() {
@@ -24,7 +25,8 @@ angular.module('openmind.controllers', [])
 
     // Load dashboard by event 
     eventBus.register($scope,'dashboard', function(event,dashboard){
-      $scope.dashboards = dashboard;
+      $scope.dashboards = dashboard.dashboard;
+      $scope.dashboards.last = dashboard.last;
       _.defaults($scope.dashboards,_d)
     })
 

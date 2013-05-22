@@ -39,8 +39,11 @@ angular.module('openmind.table', [])
     group   : "default",
     style   : {'font-size': '9pt'},
     fields  : [],
+    highlight : [],
     sortable: true,
-    spyable: true,
+    header  : true,
+    paging  : true, 
+    spyable: true
   }
   _.defaults($scope.panel,_d)
 
@@ -68,10 +71,10 @@ angular.module('openmind.table', [])
     eventBus.register($scope,'selected_fields', function(event, fields) {
       $scope.panel.fields = _.clone(fields)
     });
-      eventBus.register($scope,'table_documents', function(event, docs) {
-          $scope.panel.query = docs.query;
-          $scope.data = docs.docs;
-      });
+    eventBus.register($scope,'table_documents', function(event, docs) {
+        $scope.panel.query = docs.query;
+        $scope.data = docs.docs;
+    });
   }
 
   $scope.set_sort = function(field) {
@@ -89,6 +92,13 @@ angular.module('openmind.table', [])
       $scope.panel.fields.push(field)
     broadcast_results();
   }
+
+  $scope.toggle_highlight = function(field) {
+    if (_.indexOf($scope.panel.highlight,field) > -1) 
+      $scope.panel.highlight = _.without($scope.panel.highlight,field)
+    else
+      $scope.panel.highlight.push(field)
+  }  
 
   $scope.toggle_details = function(row) {
     row.openmind = row.openmind || {};
@@ -127,6 +137,12 @@ angular.module('openmind.table', [])
           .to($scope.time.to)
         )
       )
+      .highlight(
+        ejs.Highlight($scope.panel.highlight)
+        .fragmentSize(2147483647) // Max size of a 32bit unsigned int
+        .preTags('@start-highlight@')
+        .postTags('@end-highlight@')
+      )
       .size($scope.panel.size*$scope.panel.pages)
       .sort($scope.panel.sort[0],$scope.panel.sort[1]);
 
@@ -153,14 +169,17 @@ angular.module('openmind.table', [])
       // Check that we're still on the same query, if not stop
       if($scope.query_id === query_id) {
         $scope.data= $scope.data.concat(_.map(results.hits.hits, function(hit) {
-          return flatten_json(hit['_source']);
+          return {
+            _source   : flatten_json(hit['_source']),
+            highlight : flatten_json(hit['highlight']||{})
+          }
         }));
         
         $scope.hits += results.hits.total;
 
         // Sort the data
         $scope.data = _.sortBy($scope.data, function(v){
-          return v[$scope.panel.sort[0]]
+          return v._source[$scope.panel.sort[0]]
         });
         
         // Reverse if needed
@@ -175,7 +194,7 @@ angular.module('openmind.table', [])
       }
       
       // This breaks, use $scope.data for this
-      $scope.all_fields = get_all_fields($scope.data);
+      $scope.all_fields = get_all_fields(_.pluck($scope.data,'_source'));
       broadcast_results();
 
       // If we're not sorting in reverse chrono order, query every index for
@@ -203,9 +222,10 @@ angular.module('openmind.table', [])
   }
 
   $scope.without_openmind = function (row) {
-    row = _.clone(row)
-    delete row.openmind
-    return row
+    return { 
+      _source   : row._source,
+      highlight : row.highlight
+    }
   } 
 
   // Broadcast a list of all fields. Note that receivers of field array 
@@ -218,8 +238,23 @@ angular.module('openmind.table', [])
       active: $scope.panel.fields      
     });
     eventBus.broadcast($scope.$id,$scope.panel.group,"table_documents", 
-      {query:$scope.panel.query,docs:$scope.data});
+      {
+        query: $scope.panel.query,
+        docs : _.pluck($scope.data,'_source'),
+        index: $scope.index
+      });
   }
+
+  $scope.set_refresh = function (state) { 
+    $scope.refresh = state; 
+  }
+
+  $scope.close_edit = function() {
+    if($scope.refresh)
+      $scope.get_data();
+    $scope.refresh =  false;
+  }
+
 
   function set_time(time) {
     $scope.time = time;
@@ -227,4 +262,17 @@ angular.module('openmind.table', [])
     $scope.get_data();
   }
 
+})
+.filter('highlight', function() {
+  return function(text) {
+    if (text.toString().length) {
+      return text.toString().
+        replace(/&/g, '&amp;').
+        replace(/</g, '&lt;').
+        replace(/>/g, '&gt;').
+        replace(/@start-highlight@/g, '<code class="highlight">').
+        replace(/@end-highlight@/g, '</code>')
+    }
+    return '';
+  }
 });

@@ -11,6 +11,8 @@
               this is usually populated by a stringquery panel wher the query and label
               parameter are the same
   * auto_int :: Auto calculate data point interval?
+  * resolution ::  If auto_int is enables, shoot for this many data points, rounding to
+                    sane intervals
   * interval :: Datapoint interval in elasticsearch date math format (eg 1d, 1w, 1y, 5y)
   * fill :: Only applies to line charts. Level of area shading from 0-10
   * linewidth ::  Only applies to line charts. How thick the line should be in pixels
@@ -43,22 +45,25 @@ angular.module('openmind.histogram', [])
 
   // Set and populate defaults
   var _d = {
-    group     : "default",
-    query     : [ {query: "*", label:"Query"} ],
-    auto_int  : true,
-    interval  : '5m',
-    fill      : 3,
-    linewidth : 3,
-    timezone  : 'browser', // browser, utc or a standard timezone
-    spyable   : true,
-    zoomlinks : true,
-    bars      : true,
-    stack     : true,
-    points    : false,
-    lines     : false,
-    legend    : true,
-    'x-axis'  : true,
-    'y-axis'  : true,
+    group       : "default",
+    query       : [ {query: "*", label:"Query"} ],
+    mode        : 'count',
+    value_field : null,
+    auto_int    : true,
+    resolution  : 100, 
+    interval    : '5m',
+    fill        : 3,
+    linewidth   : 3,
+    timezone    : 'browser', // browser, utc or a standard timezone
+    spyable     : true,
+    zoomlinks   : true,
+    bars        : true,
+    stack       : true,
+    points      : false,
+    lines       : false,
+    legend      : true,
+    'x-axis'    : true,
+    'y-axis'    : true,
   }
   _.defaults($scope.panel,_d)
 
@@ -105,7 +110,7 @@ angular.module('openmind.histogram', [])
       return
 
     if ($scope.panel.auto_int)
-      $scope.panel.interval = secondsToHms(calculate_interval($scope.time.from,$scope.time.to,50,0)/1000);
+      $scope.panel.interval = secondsToHms(calculate_interval($scope.time.from,$scope.time.to,$scope.panel.resolution,0)/1000);
 
     $scope.panel.loading = true;
     var _segment = _.isUndefined(segment) ? 0 : segment
@@ -124,12 +129,20 @@ angular.module('openmind.histogram', [])
 
     // Build the facet part, injecting the query in as a facet filter
     _.each(queries, function(v) {
-      request = request
-        .facet($scope.ejs.DateHistogramFacet("chart"+_.indexOf(queries,v))
-          .field($scope.time.field)
-          .interval($scope.panel.interval)
-          .facetFilter($scope.ejs.QueryFilter(v))
-        ).size(0)
+
+      var facet = $scope.ejs.DateHistogramFacet("chart"+_.indexOf(queries,v))
+
+      if($scope.panel.mode === 'count') {
+        facet = facet.field($scope.time.field)
+      } else {
+        if(_.isNull($scope.panel.value_field)) {
+          $scope.panel.error = "In " + $scope.panel.mode + " mode a field must be specified";
+          return
+        }
+        facet = facet.keyField($scope.time.field).valueField($scope.panel.value_field)
+      }
+      facet = facet.interval($scope.panel.interval).facetFilter($scope.ejs.QueryFilter(v))
+      request = request.facet(facet).size(0)
     })
 
     // Populate the inspector panel
@@ -171,13 +184,11 @@ angular.module('openmind.histogram', [])
           // Assemble segments
           var segment_data = [];
           _.each(v.entries, function(v, k) {
-            segment_data.push([v['time'],v['count']])
+            segment_data.push([v['time'],v[$scope.panel.mode]])
             hits += v['count']; // The series level hits counter
             $scope.hits += v['count']; // Entire dataset level hits counter
           });
-
           data.splice.apply(data,[1,0].concat(segment_data)) // Join histogram data
-
 
           // Create the flot series object
           var series = { 
