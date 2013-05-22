@@ -1,4 +1,8 @@
 #!/bin/bash
 exec 2>&1
+
+# remove open fds limit
+ulimit -n 65536
+
 # execute elastic search
-exec /usr/local/logmind/elasticsearch/bin/elasticsearch -f
+exec softlimit -o 65536 /usr/local/logmind/elasticsearch/bin/elasticsearch -f
