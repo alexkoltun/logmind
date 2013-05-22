@@ -14,7 +14,7 @@ echo 'Creating /service...'
 mkdir /service
 
 
-if [[ -n $(uname -a | egrep "Ubuntu|CentOS-6") ]]; then 
+if [[ -n $(uname -a | egrep "Ubuntu|CentOS-6|el6") ]]; then 
 	echo "Using Upstart";
 	package/run-upstart 
 else 

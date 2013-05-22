@@ -230,7 +230,7 @@ def start_services():
     try:
         p = Popen(["uname", "-a"], stdout=PIPE)
         out, err = p.communicate()
-        if "Ubuntu" in out or "CentOS-6" in out:
+        if "Ubuntu" in out or "CentOS-6" in out or ".el6." in out:
             print "Upstart: starting services..."
             ret_start = call(["/sbin/start", "daemontools"])
 
