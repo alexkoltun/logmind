@@ -106,8 +106,8 @@
     </DirectoryRef>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
 
-      <Component Id="EveLogReader" Guid="*">
-        <File Id="EveLogReader_Exe" Name="evLogReader.exe" Source="..\SetupFiles\evLogReader\evLogReader.exe" KeyPath="yes"/>
+      <Component Guid="*">
+        <File Id="EventLogStreamer.exe" Name="EventLogStreamer.exe" Source="..\SetupFiles\EventLogStreamer\EventLogStreamer.exe" KeyPath="yes"/>
       </Component>
 
       <Component Guid="*">
@@ -135,8 +135,8 @@
         <?endif ?>
       </Component>
 
-      <Component Guid="*">
-        <File Name="pipe.conf" Source="..\SetupFiles\Logmind\pipe.conf" KeyPath="yes"/>
+      <Component Guid="*" NeverOverwrite="yes" Permanent="yes">
+        <File Name="pipe.conf" Source="..\SetupFiles\Logmind\pipe.conf" KeyPath="yes" />
       </Component>
 
       <Component Guid="*">
