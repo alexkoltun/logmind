@@ -17,6 +17,8 @@ namespace Logmind.EventLogStreamer
 
         static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
+
             int pId = GetParentProcessId();
             Process parent = Process.GetProcessById(pId);
 
