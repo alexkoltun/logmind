@@ -5,4 +5,4 @@ exec 2>&1
 ulimit -u unlimited
 
 # execute redis server
-/usr/local/logmind/redis/redis-server
+exec /usr/local/logmind/redis/redis-server
