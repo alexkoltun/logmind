@@ -1,7 +1,0 @@
-#!/bin/sh
-
-/command/svc -t /service/logmind-elasticsearch
-/command/svc -t /service/logmind-shipper
-/command/svc -t /service/logmind-indexer
-/command/svc -t /service/logmind-redis
-/command/svc -t /service/logmind-openmind

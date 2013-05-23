@@ -5,7 +5,7 @@
   </span>
 
   <div style="height:{{panel.height || row.height}};overflow-y:auto;overflow-x:auto">
-    <div class="row-fluid">
+    <div class="row-fluid" ng-show="panel.paging">
       <div class="span1 offset1" style="text-align:right">
         <i ng-click="panel.offset = 0" ng-show="panel.offset > 0" class='icon-circle-arrow-left pointer'></i>
         <i ng-click="panel.offset = (panel.offset - panel.size)" ng-show="panel.offset > 0" class='icon-arrow-left pointer'></i>
@@ -20,7 +20,7 @@
     </div>
     <div class="small" ng-show="panel.fields.length == 0">No columns configured. You may want to add a <strong>fields panel</strong>, or click the edit button in the top right of this panel to add some columns</div>
     <table class="table-hover table table-condensed" ng-style="panel.style">
-      <thead>
+      <thead ng-show="panel.header">
         
         <th style="white-space:nowrap" ng-repeat="field in panel.fields">
           <i ng-show="!$first" class="pointer link icon-caret-left" ng-click="_.move(panel.fields,$index,$index-1)"></i>
@@ -35,8 +35,8 @@
       
       </thead>
       <tbody ng-repeat="row in data.slice(panel.offset,panel.offset+panel.size)" ng-class-odd="'odd'">
-        <tr ng-click="toggle_details(row)">
-          <td ng-repeat="field in panel.fields">{{row[field]}}</td>
+        <tr ng-click="toggle_details(row)" class="pointer">
+          <td ng-repeat="field in panel.fields" ng-bind-html-unsafe="(row.highlight[field]||row._source[field]) | highlight"></td>
         </tr>
         <tr ng-show="row.openmind.details">
           <td colspan=1000>
@@ -46,7 +46,7 @@
                 <th>Action</th>
                 <th>Value</th>
               </thead>
-              <tr ng-repeat="(key,value) in row.openmind.details" ng-class-odd="'odd'">
+              <tr ng-repeat="(key,value) in row.openmind.details._source" ng-class-odd="'odd'">
                 <td>{{key}}</td>
                 <td>
                   <i class='icon-search pointer' ng-click="build_search(key,value)"></i> 
@@ -59,7 +59,7 @@
         </tr>
       </tbody>
     </table>
-    <div class="row-fluid">
+    <div class="row-fluid" ng-show="panel.paging">
       <div class="span1 offset3" style="text-align:right">
         <i ng-click="panel.offset = 0" ng-show="panel.offset > 0" class='icon-circle-arrow-left pointer'></i>
         <i ng-click="panel.offset = (panel.offset - panel.size)" ng-show="panel.offset > 0" class='icon-arrow-left pointer'></i>

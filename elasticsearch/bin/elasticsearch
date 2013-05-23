@@ -46,6 +46,8 @@
 # Be aware that you will be entirely responsible for populating the needed
 # environment variables.
 
+ES_JAVA_OPTS="$ES_JAVA_OPTS -Xmx1024m -Xms256m"
+
 CDPATH=""
 SCRIPT="$0"
 

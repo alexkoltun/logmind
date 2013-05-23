@@ -1,4 +1,4 @@
 #!/bin/bash
 
 # run logstash
-exec java -jar /usr/local/logmind/sixthsense/logstash.jar agent -f $1
+exec java -Xmx1024m -Xms256m -jar /usr/local/logmind/sixthsense/logstash.jar agent -f $1

@@ -19,3 +19,4 @@ setuidgid
 envuidgid
 envdir
 setlock
+limits
