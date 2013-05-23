@@ -9,7 +9,7 @@ using Logmind.Interfaces;
 
 namespace Logmind.DataDelivery
 {
-    public class Postman
+    public class Postman : ThreadBasedManager
     {
         private Queue<Package> m_Packages = new Queue<Package>();
         private Guid m_LastMsgId = Guid.NewGuid();
@@ -28,34 +28,25 @@ namespace Logmind.DataDelivery
             m_ConfigManager = configManager;
             m_ConfigManager.ConfigurationReceived += new EventHandler<ConfigEventArgs>(m_ConfigManager_ConfigurationReceived);
 
-            var configHolder = m_ConfigManager.GetConfiguration;
+            var configHolder = m_ConfigManager.LastConfig;
             if (configHolder != null && configHolder.PostMan != null)
             {
                 m_Config = configHolder.PostMan;
-                RestartSendingThread();
+                base.StartThread(new ThreadStart(SendingThreadMethod));
             }
         }
 
+        public void Shutdown()
+        {
+            base.StopThread();
+        }
         private void m_ConfigManager_ConfigurationReceived(object sender, ConfigEventArgs e)
         {
             if (e.NewConfig.PostMan != null)
             {
                 m_Config = e.NewConfig.PostMan;
-                RestartSendingThread();
+                base.StartThread(new ThreadStart(SendingThreadMethod));
             }
-        }
-
-
-        private void RestartSendingThread()
-        {
-            if (m_SendingThread != null && m_SendingThread.IsAlive)
-            {
-                m_SendingThread.Join(1000);
-            }
-
-            m_SendingThread = new Thread(new ThreadStart(SendingThreadMethod));
-            m_SendingThread.IsBackground = true;
-            m_SendingThread.Start();
         }
 
         private void SendingThreadMethod()

@@ -35,13 +35,30 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommandAndControl\CommandAndControl.csproj">
+      <Project>{15475AB8-49CA-481B-B6F0-22E8425E96B9}</Project>
+      <Name>CommandAndControl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Domain\Domain.csproj">
+      <Project>{DCB7A8D6-B631-401B-BEEE-190D3A1F226A}</Project>
+      <Name>Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Interfaces\Interfaces.csproj">
+      <Project>{AC91E578-E219-4E51-8D3E-27E543A87EF9}</Project>
+      <Name>Interfaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Persistance\Persistance.csproj">
+      <Project>{14EE4042-AD94-4985-A1B9-3C7CA46F8301}</Project>
+      <Name>Persistance</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -14,6 +14,7 @@ namespace Logmind.Interfaces
 
         void InsertOrUpdate(string module, string key, string val);
         DataTable GetModuleKeys(string module);
+        string GetModuleKey(string module,string key);
         string ValueColumnName { get; }
         string KeyColumnName { get; }
     }

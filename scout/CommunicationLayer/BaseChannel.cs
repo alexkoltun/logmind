@@ -9,14 +9,14 @@ namespace Logmind.CommunicationLayer
 {
     public abstract class BaseChannel : ICommunicationChannel
     {
-        protected Domain.Config.CommunicationConfig m_Config;
+        protected Domain.Config.BaseCommunicationConfig m_Config;
         protected ManualResetEvent m_StopEvent;
 
         protected const int STOP_WAIT = 20;
 
         #region ICommunicationChannel Members
 
-        public virtual void Init(Domain.Config.CommunicationConfig config)
+        public virtual void Init(Domain.Config.BaseCommunicationConfig config)
         {
             m_Config = config;
 

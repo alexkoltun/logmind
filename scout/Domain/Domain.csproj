@@ -41,13 +41,18 @@
   <ItemGroup>
     <Compile Include="Base.cs" />
     <Compile Include="Config\BaseConfig.cs" />
-    <Compile Include="Config\CommunicationConfig.cs" />
+    <Compile Include="Config\BaseCommunicationConfig.cs" />
+    <Compile Include="Config\CCConfig.cs" />
     <Compile Include="Config\ConfigEventArgs.cs" />
     <Compile Include="Config\ConfigurationHolder.cs" />
     <Compile Include="Config\PostmanConfig.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="InitPacket.cs" />
     <Compile Include="ModulesTypes.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ThreadBasedManager.cs" />
+    <Compile Include="Utils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

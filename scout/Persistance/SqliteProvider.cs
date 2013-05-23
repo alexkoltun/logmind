@@ -13,11 +13,16 @@ namespace Logmind.Persistance
     {
         private const string DB_NAME = "scoutDb.db3";
         private const string CONN_TEMPLATE = "Data Source={0};FailIfMissing=False;Version=3";
-        private const string CREATE_SETTING_TABLE = "CREATE TABLE IF NOT EXISTS [SettingConfig]([Module] NVARCHAR(2048) NOT NULL ,[Key] NVARCHAR(2048) NOT NULL ,[Value] NVARCHAR(2048) NULL); CREATE UNIQUE INDEX pk_SettingConfig ON [SettingConfig] ([Module],[Key]);";
+        private const string CREATE_SETTING_TABLE = "CREATE TABLE IF NOT EXISTS [SettingConfig]([Module] NVARCHAR(100) NOT NULL ,[Key] NVARCHAR(255) NOT NULL ,[Value] NVARCHAR(2048) NULL); CREATE UNIQUE INDEX pk_SettingConfig ON [SettingConfig] ([Module],[Key]);";
         private const string INSERT_REPLACE = "INSERT OR REPLACE INTO [SettingConfig] ([Module],[Key],[Value]) VALUES ('{0}','{1}','{2}');";
-        private const string SELECT_MODULE_CONFIG = "SELECT * FROM [SettingConfig] WHERE [Module] = '{0}'";
+        private const string SELECT_MODULE_CONFIG = "SELECT * FROM [SettingConfig] WHERE [Module] = '{0}';";
+        private const string SELECT_SPECIFIC_KEY = "SELECT [Value] FROM [SettingConfig] WHERE [Module] = '{0}' AND [Key] = '{1}';";
+
         private const string VAL_COl_NAME = "Value";
         private const string KEY_COl_NAME = "Key";
+
+        private SQLiteConnection m_Connection;
+
 
         private string GetDbFile()
         {
@@ -26,7 +31,7 @@ namespace Logmind.Persistance
             return Path.Combine(folder, DB_NAME);
         }
 
-        private SQLiteConnection m_Connection;
+        
 
         private SQLiteConnection GetConnection()
         {
@@ -87,10 +92,6 @@ namespace Logmind.Persistance
             return null;
         }
 
-
-        #region IPersistanceProvider Members
-
-
         public string ValueColumnName
         {
             get { return VAL_COl_NAME; }
@@ -99,6 +100,24 @@ namespace Logmind.Persistance
         {
             get { return KEY_COl_NAME; }
         }
-        #endregion
+
+        public string GetModuleKey(string module, string key)
+        {
+            string sql = string.Format(SELECT_SPECIFIC_KEY, module,key);
+
+            SQLiteCommand command = new SQLiteCommand(sql, m_Connection);
+            var reader = command.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SequentialAccess);
+
+            if (reader != null && reader.HasRows)
+            {
+                var res = reader.GetString(0);
+
+                reader.Close();
+                return res;
+            }
+
+            return null;
+            
+        }
     }
 }

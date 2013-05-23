@@ -11,21 +11,21 @@ using System.ComponentModel;
 
 namespace Logmind.Persistance
 {
-    public static class PersistanceManager
+    public class PersistanceManager : IPersistence
     {
-        private static IPersistenceProvider m_Provider;
+        private IPersistenceProvider m_Provider;
 
         #region privates
         /// <summary>
         /// factory method
         /// </summary>
         /// <returns></returns>
-        private static IPersistenceProvider CreateProvider()
+        private IPersistenceProvider CreateProvider()
         {
             return new SqliteProvider();
         }
 
-        private static bool TryConvert(string val, Type objType, out object retVal)
+        private  bool TryConvert(string val, Type objType, out object retVal)
         {
             TypeConverter tc = TypeDescriptor.GetConverter(objType);
 
@@ -41,18 +41,18 @@ namespace Logmind.Persistance
 
         #endregion
 
-        public static void Init()
+        public void Init(IRunner runner)
         {
             m_Provider = CreateProvider();
             m_Provider.Init();
         }
 
-        public static void Shutdown()
+        public void Shutdown()
         {
             m_Provider.Shutdown();
         }
 
-        public static void SaveConfigObject(Domain.ModulesTypes module, BaseConfig instance)
+        public void SaveConfigObject(Domain.ModulesTypes module, BaseConfig instance)
         {
             if (instance == null)
                 throw new ArgumentNullException("config object instance can't be null");
@@ -78,7 +78,7 @@ namespace Logmind.Persistance
             }
         }
 
-        public static T GetObject<T>(Domain.ModulesTypes module) where T : BaseConfig, new()
+        public T GetObject<T>(Domain.ModulesTypes module) where T : BaseConfig, new()
         {
             var table = m_Provider.GetModuleKeys(module.ToString());
 
@@ -111,6 +111,24 @@ namespace Logmind.Persistance
                 }
 
                 return instance;
+            }
+
+            return default(T);
+        }
+
+        public T GetKey<T>(Domain.ModulesTypes module, string key)
+        {
+            string keyVal = m_Provider.GetModuleKey(module.ToString(), key);
+
+            if (string.IsNullOrEmpty(keyVal) == false)
+            {
+                var realT = typeof(T);
+                object convertedObj;
+                if (TryConvert(keyVal, realT, out convertedObj))
+                {
+                    return (T)convertedObj;
+                }
+
             }
 
             return default(T);

@@ -14,7 +14,7 @@ namespace Logmind.CommunicationLayer
 
         private Thread m_ReceiveThread;
 
-        public override void Init(Domain.Config.CommunicationConfig config)
+        public override void Init(Domain.Config.BaseCommunicationConfig config)
         {
             base.Init(config);
 
