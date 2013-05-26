@@ -82,6 +82,9 @@ helpers do
 end
 
 before do
+  if request.path.end_with?(".js")
+    content_type 'text/javascript'
+  end
   if @@auth_module
     unless session[:username]
       if request.path.start_with?("/api")
