@@ -31,7 +31,7 @@
           "timespan": "6h",
           "timefield": "@timestamp",
           "index": "\"logstash*\"",
-          "defaultindex": "logstash-2013.03.03",
+          "defaultindex": "_all",
           "index_interval": "day",
           "refresh": {
             "enable": false,
