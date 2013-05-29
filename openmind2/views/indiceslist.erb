@@ -1,0 +1,54 @@
+<!--%= erb :internalheader, :locals => locals %-->
+<!--div class="span2" id=sidebar-->
+  <!--%= erb :loginmenu, :locals => locals %>
+</div-->
+
+<div class="content span10" id=main>
+<% # = locals[:result] %>
+      <table class="table logs table-condensed">
+        <tr>
+          <th></th>
+          <th>Index Name</th>
+          <th>Size</th>
+          <th>Events Count</th>
+        </tr>
+        <tbody>
+        <% locals[:result]["list"].each_pair do |k,v|%>
+            <% if !locals[:result]["response"]["indices"][k].nil? %>
+                <tr>
+                  <td><a href="javascript:archiveIndex('<%= v %>');" >archive</a></td>
+                  <td><%= v %></td>
+                  <td><%= locals[:result]["response"]["indices"][k]["index"]["size"] %></td>
+                  <td><%= locals[:result]["response"]["indices"][k]["docs"]["num_docs"] %></td>
+                </tr>
+            <% end %>
+        <% end %>
+        </tbody>
+      </table>
+
+  <script>
+      function archiveIndex(name)  {
+          var r = confirm('Are you sure to archive the following index: ' + name + ' ?');
+          if (r == true)
+          {
+              var data = { "action" : "archive", "indexName" : name};
+              $.ajax({
+                  url: '/indexController',
+                  type: 'post',
+                  cache: false,
+                  data: data,
+                  success: function (json) {
+                      result = JSON.parse(json);
+                      if (result.success) {
+                          //window.location.href = window.location.href;
+                          window.location.href = '/archivedlist';
+                      }
+                      else {
+                          alert (json);
+                      }
+                  }
+              });
+          }
+      }
+  </script>
+<!--%= erb :footer, :locals => locals %-->
