@@ -1627,3 +1627,26 @@ form {
 		text-align: center;
 	}
 }
+
+.btn-primary i {
+    background-image: url("../img/glyphicons-halflings-white.png");
+}
+
+.select-list {
+    border: 1px solid;
+    list-style-type: none;
+    margin: 0px;
+    min-height: 250px;
+}
+.select-list .ui-selecting {
+    background: #FECA40;
+}
+.select-list .ui-selected {
+    background: #F39814; color: white;
+}
+.select-item {
+    font-size: 14px;
+    border: 1px solid #aaaaaa;
+    margin: 5px;
+    padding: 4px;
+}

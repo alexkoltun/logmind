@@ -13,3 +13,9 @@
 <% if locals[:current_content] == "archivedlist" %>
     <%= erb :archivedlist, :locals => locals %>
 <% end %>
+<% if locals[:current_content] == "admin" %>
+    <%= erb :admin, :locals => locals %>
+<% end %>
+<% if locals[:current_content] == "adminedit" %>
+    <%= erb :adminedit, :locals => locals %>
+<% end %>

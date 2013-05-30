@@ -126,7 +126,7 @@ before do
           end
         end
 
-        if request.path.start_with?("/auth/admin")
+        if request.path.start_with?("/admin")
           # only admins get to go here
           if !@user_perms[:is_admin]
             halt 401, "You are not authorized to be here"
@@ -190,7 +190,7 @@ get '/auth/logout' do
 end
 
 # User/permission administration
-get '/auth/admin' do
+get '/admin' do
   locals = {}
   if @@auth_module
     locals[:username] = session[:username]
@@ -199,6 +199,12 @@ get '/auth/admin' do
 
     locals[:users] = []
     locals[:groups] = []
+
+    locals[:header_title] = "Administration"
+    locals[:internal_content] = true
+    locals[:current_content] = "admin"
+    locals[:pathtobase] = ""
+
     @@storage_module.get_all_permissions().each do |perm|
       if perm.username.start_with?("@")
         locals[:groups].push(perm)
@@ -207,11 +213,17 @@ get '/auth/admin' do
       end
     end
   end
-  erb :admin, :locals => locals
+  erb :main, :locals => locals
 end
 
-get %r{/auth/admin/([\w]+)(/[@% \w]+)?} do
+get %r{/admin/([\w]+)(/[@% \w]+)?} do
   locals = {}
+
+  locals[:header_title] = "Administration"
+  locals[:internal_content] = true
+  locals[:current_content] = "adminedit"
+  locals[:pathtobase] = "../"
+
   mode = params[:captures].first
   if @@auth_module
     locals[:username] = session[:username]
@@ -221,6 +233,7 @@ get %r{/auth/admin/([\w]+)(/[@% \w]+)?} do
     # TODO: Dynamically populate alltags
     locals[:alltags] = ['*', '_grokparsefailure']
     if mode == "edit"
+      locals[:pathtobase] = "../../"
       # the second match contains the '/' at the start,
       # so we take the substring starting at position 1
       locals[:user_data] = @@storage_module.get_permissions(params[:captures][1][1..-1])
@@ -252,10 +265,10 @@ get %r{/auth/admin/([\w]+)(/[@% \w]+)?} do
       halt 404, "Invalid action"
     end
   end
-  erb :adminedit, :locals => locals
+  erb :main, :locals => locals
 end
 
-post '/auth/admin/save' do
+post '/admin/save' do
   if params[:Groupname] != nil
     # prefix group name with only one @
     params[:Username]= params[:Groupname].gsub(/^@*(.*)$/, '@\1') 
@@ -267,7 +280,7 @@ post '/auth/admin/save' do
   username = params[:Username].gsub(/[^@0-9A-Za-z_\\.-]/, '')
   if username.length < 3
     sleep(1)
-    redirect '/auth/admin'
+    redirect '/admin'
   end
   usertags = params[:usertags]
   if params[:delete] != nil
@@ -321,7 +334,7 @@ post '/auth/admin/save' do
   end
   # FIXME: Find a better way to make sure the changes will show on page load
   sleep(1)
-  redirect '/auth/admin'
+  redirect '/admin'
 end
 
 # Returns
@@ -636,6 +649,7 @@ get '/lastevents' do
   locals[:header_title] = "Last Events"
   locals[:internal_content] = true
   locals[:current_content] = "lastevents"
+  locals[:pathtobase] = ""
   if @@auth_module
     locals[:show_back] = true
 
@@ -671,6 +685,7 @@ get '/indiceslist' do
   locals[:header_title] = "Live Indices"
   locals[:internal_content] = true
   locals[:current_content] = "indiceslist"
+  locals[:pathtobase] = ""
   if @@auth_module
     locals[:show_back] = true
     result = Kelastic.just_logstash_indices()
@@ -708,6 +723,7 @@ get '/archivedlist' do
   locals[:header_title] = "Archived Indices"
   locals[:internal_content] = true
   locals[:current_content] = "archivedlist"
+  locals[:pathtobase] = ""
   if @@auth_module
     locals[:show_back] = true
     result = @@storage_module.archived_list()
