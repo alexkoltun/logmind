@@ -47,6 +47,10 @@
                 group.remove();
             });
         });
+
+        $("#name_field").change(function() {
+            $("#name_field").css("color", "#858585");
+        });
     });
 </script>
 
@@ -75,14 +79,14 @@
 
         <% if locals[:mode] == "new" %>
           <div class="control-group">
-            <label class="control-label" for="<%= locals[:type] %>name"><%= locals[:type] %> Name</label>
+            <label class="control-label" for="<%= locals[:type] %>name"><%= locals[:type] %> Name<br /><span style="font-size: 10px; color: #777777">3 characters minimum</span></label>
             <div class="controls">
-              <input name="<%= locals[:type] %>name" type="text" class="span4" placeholder="name" />
+              <input id="name_field" name="<%= locals[:type] %>name" type="text" class="span4" placeholder="name" />
             </div>
           </div>
         <% else %>
           <div style="display: none;" class="control-group">
-            <input name="<%= locals[:type] %>name" type="hidden" value="<%= locals[:user_data][:username] %>" />
+            <input id="name_field" name="<%= locals[:type] %>name" type="hidden" value="<%= locals[:user_data][:username] %>" />
           </div>
         <% end %>
 
@@ -232,6 +236,16 @@
           <% end %>
         });
         $('#userdata').submit(function() {
+
+            var name = $("#name_field").val();
+            if (name.length < 3) {
+                alert("Name must consist of at least 3 characters!");
+                $("#name_field").css("color", "red");
+
+                return false;
+            }
+
+
             $('#curr_tags li').each(function() {
                 var tag = $(this).text();
                 $("#usertags").append("<option value=\"" + tag + "\">" + tag + "</option>");
@@ -239,11 +253,11 @@
             $('#curr_members li').each(function() {
                 var member = $(this).text();
                 $("#members").append("<option value=\"" + member + "\">" + member + "</option>");
-            });;
+            });
             $('#curr_groups li').each(function() {
                 var group = $(this).text();
                 $("#user_groups").append("<option value=\"" + group + "\">" + group + "</option>");
-            });;
+            });
         });
       });
       </script>
