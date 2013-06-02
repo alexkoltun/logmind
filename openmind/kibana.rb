@@ -560,7 +560,7 @@ get '/export/:hash/?:count?' do
   result  = KelasticMulti.new(query,indices)
   flat    = KelasticResponse.flatten_response(result.response,req.fields)
 
-  headers "Content-Disposition" => "attachment;filename=Kibana_#{Time.now.to_i}.csv",
+  headers "Content-Disposition" => "attachment;filename=logmind_#{Time.now.to_i}.csv",
     "Content-Type" => "application/octet-stream"
 
   if RUBY_VERSION < "1.9"
