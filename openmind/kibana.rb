@@ -82,6 +82,7 @@ helpers do
 end
 
 before do
+
   if request.path.end_with?(".js")
     content_type 'text/javascript'
   end

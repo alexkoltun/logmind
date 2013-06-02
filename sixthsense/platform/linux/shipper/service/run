@@ -2,7 +2,7 @@
 exec 2>&1
 
 # remove open fds limit
-ulimit -n 65536
+ulimit -n 131072
 
 
-exec softlimit -o 65536 /usr/local/logmind/sixthsense/sixthsense.sh /usr/local/logmind/sixthsense/config/shipper.conf
+exec softlimit -o 131072 /usr/local/logmind/sixthsense/sixthsense.sh /usr/local/logmind/sixthsense/config/shipper.conf

@@ -30,25 +30,28 @@ appender:
       conversionPattern: "[%d{ISO8601}][%-5p][%-25c] %m%n"
 
   file:
-    type: dailyRollingFile
+    type: rollingFile
     file: ${path.logs}/${cluster.name}.log
-    datePattern: "'.'yyyy-MM-dd"
+    maxBackupIndex: 1
+    maxFileSize: 100MB
     layout:
       type: pattern
       conversionPattern: "[%d{ISO8601}][%-5p][%-25c] %m%n"
 
   index_search_slow_log_file:
-    type: dailyRollingFile
+    type: rollingFile
     file: ${path.logs}/${cluster.name}_index_search_slowlog.log
-    datePattern: "'.'yyyy-MM-dd"
+    maxBackupIndex: 1
+    maxFileSize: 100MB
     layout:
       type: pattern
       conversionPattern: "[%d{ISO8601}][%-5p][%-25c] %m%n"
 
   index_indexing_slow_log_file:
-    type: dailyRollingFile
+    type: rollingFile
     file: ${path.logs}/${cluster.name}_index_indexing_slowlog.log
-    datePattern: "'.'yyyy-MM-dd"
+    maxBackupIndex: 1
+    maxFileSize: 100MB
     layout:
       type: pattern
       conversionPattern: "[%d{ISO8601}][%-5p][%-25c] %m%n"

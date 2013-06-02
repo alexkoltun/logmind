@@ -115,6 +115,7 @@ def set_permissions():
         os.chmod(LOGMIND_PATH + "/redis/service/run", 0755)
         os.chmod(LOGMIND_PATH + "/redis/service/log/run", 0755)
         os.chmod(LOGMIND_PATH + "/redis/redis-server", 0755)
+        os.chmod(LOGMIND_PATH + "/redis/redis-cli", 0755)
         os.chmod(LOGMIND_PATH + "/openmind/service/run", 0755)
         os.chmod(LOGMIND_PATH + "/openmind/service/log/run", 0755)
         os.chmod(LOGMIND_PATH + "/sixthsense/sixthsense.sh", 0755)
