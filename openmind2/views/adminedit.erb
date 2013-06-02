@@ -102,6 +102,7 @@
           </thead>
           <tr>
             <td style="width: 48%">
+              <div class="select-list-div">
                 <ol class="select-list" id="avail_tags">
                   <% if locals[:alltags] %>
                       <% locals[:alltags].each do |tag| %>
@@ -111,19 +112,22 @@
                       <% end %>
                   <% end %>
                 </ol>
+              </div>
             </td>
             <td style="width: 4%; valign: middle;">
               <button type="button" style="margin: auto;" id="btn-tag-move-right"><i class="icon-circle-arrow-right"></i></button><br />
               <button type="button" id="btn-tag-move-left"><i class="icon-circle-arrow-left"></i></button>
             </td>
             <td style="width: 48%">
-              <ol class="select-list" id="curr_tags" name="curr_tags[]">
-                <% if locals[:mode] == "edit" && locals[:user_data][:tags] %>
-                    <% locals[:user_data][:tags].each do |tag| %>
-                        <li class="select-item" value="<%= tag %>"><%= tag %></li>
+              <div class="select-list-div">
+                  <ol class="select-list" id="curr_tags" name="curr_tags[]">
+                    <% if locals[:mode] == "edit" && locals[:user_data][:tags] %>
+                        <% locals[:user_data][:tags].each do |tag| %>
+                            <li class="select-item" value="<%= tag %>"><%= tag %></li>
+                        <% end %>
                     <% end %>
-                <% end %>
-              </ol>
+                  </ol>
+              </div>
             </td>
           </tr>
         </table>
@@ -143,28 +147,32 @@
               </thead>
               <tr>
                 <td style="width: 48%">
-                  <ol class="select-list" id="avail_members">
-                    <% if locals[:allusers] %>
-                        <% locals[:allusers].each do |user| %>
-                            <% if locals[:group_members] == nil or not locals[:group_members].include?(user) %>
-                                <li class="select-item" value="<%= user %>"><%= user %></li>
+                  <div class="select-list-div">
+                      <ol class="select-list" id="avail_members">
+                        <% if locals[:allusers] %>
+                            <% locals[:allusers].each do |user| %>
+                                <% if locals[:group_members] == nil or not locals[:group_members].include?(user) %>
+                                    <li class="select-item" value="<%= user %>"><%= user %></li>
+                                <% end %>
                             <% end %>
                         <% end %>
-                    <% end %>
-                  </ol>
+                      </ol>
+                  </div>
                 </td>
                 <td style="width: 4%; valign: middle;">
                   <button type="button" style="margin: auto;" id="btn-member-move-right"><i class="icon-circle-arrow-right"></i></button><br />
                   <button type="button" id="btn-member-move-left"><i class="icon-circle-arrow-left"></i></button>
                 </td>
                 <td style="width: 48%">
-                  <ol class="select-list" id="curr_members" name="curr_members[]">
-                    <% if locals[:mode] == "edit" && locals[:group_members] %>
-                        <% locals[:group_members].each do |username| %>
-                            <li class="select-item" value="<%= username %>"><%= username %></li>
+                  <div class="select-list-div">
+                      <ol class="select-list" id="curr_members" name="curr_members[]">
+                        <% if locals[:mode] == "edit" && locals[:group_members] %>
+                            <% locals[:group_members].each do |username| %>
+                                <li class="select-item" value="<%= username %>"><%= username %></li>
+                            <% end %>
                         <% end %>
-                    <% end %>
-                  </ol>
+                      </ol>
+                  </div>
                 </td>
               </tr>
             </table>
@@ -182,28 +190,32 @@
               </thead>
               <tr>
                 <td style="width: 48%">
-                  <ol class="select-list" id="avail_groups">
-                    <% if locals[:allgroups] %>
-                        <% locals[:allgroups].each do |group| %>
-                            <% if locals[:user_groups] == nil or not locals[:user_groups].include?(group) %>
-                                <li class="select-item" value="<%= group %>"><%= group %></li>
+                  <div class="select-list-div">
+                      <ol class="select-list" id="avail_groups">
+                        <% if locals[:allgroups] %>
+                            <% locals[:allgroups].each do |group| %>
+                                <% if locals[:user_groups] == nil or not locals[:user_groups].include?(group) %>
+                                    <li class="select-item" value="<%= group %>"><%= group %></li>
+                                <% end %>
                             <% end %>
                         <% end %>
-                    <% end %>
-                  </ol>
+                      </ol>
+                  </div>
                 </td>
                 <td style="width: 4%; valign: middle;">
                   <button type="button" style="margin: auto;" id="btn-group-move-right"><i class="icon-circle-arrow-right"></i></button><br />
                   <button type="button" id="btn-group-move-left"><i class="icon-circle-arrow-left"></i></button>
                 </td>
                 <td style="width: 48%">
-                  <ol class="select-list" id="curr_groups" name="curr_groups[]">
-                    <% if locals[:mode] == "edit" && locals[:user_groups] %>
-                        <% locals[:user_groups].each do |group| %>
-                            <li class="select-item" value="<%= group %>"><%= group %></li>
+                  <div class="select-list-div">
+                      <ol class="select-list" id="curr_groups" name="curr_groups[]">
+                        <% if locals[:mode] == "edit" && locals[:user_groups] %>
+                            <% locals[:user_groups].each do |group| %>
+                                <li class="select-item" value="<%= group %>"><%= group %></li>
+                            <% end %>
                         <% end %>
-                    <% end %>
-                  </ol>
+                      </ol>
+                  </div>
                 </td>
               </tr>
             </table>

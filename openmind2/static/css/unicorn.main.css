@@ -1637,7 +1637,7 @@ form {
     /*border: 1px solid;*/
     list-style-type: none;
     margin: 0px;
-    min-height: 250px;
+    min-height: 240px;
 }
 
 
@@ -1665,6 +1665,12 @@ form {
 .select-list .ui-selected {
     background: #77b1dd;
     color: #fff;
+}
+
+.select-list-div {
+    height: 250px;
+    max-height: 250px;
+    overflow: auto;
 }
 
 /*.select-item {
