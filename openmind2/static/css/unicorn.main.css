@@ -1633,20 +1633,41 @@ form {
 }
 
 .select-list {
-    border: 1px solid;
+    /*border: 1px solid;*/
     list-style-type: none;
     margin: 0px;
     min-height: 250px;
 }
+
+
+
+.select-list li {
+    background-color: #F5F5F5;
+    border: 1px solid #DDDDDD;
+    color: #0d0d0d;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 0 0 5px;
+    padding: 4px 20px 4px;
+    position: relative;
+}
+
+.select-list li:hover {
+    background-color: #EDEDED;
+    color: #0d0d0d;
+}
+
 .select-list .ui-selecting {
-    background: #FECA40;
+    background: #F5F5F5;
+    color: #0d0d0d;
 }
 .select-list .ui-selected {
-    background: #F39814; color: white;
+    background: #77b1dd;
+    color: #fff;
 }
-.select-item {
-    font-size: 14px;
+
+/*.select-item {
     border: 1px solid #aaaaaa;
     margin: 5px;
     padding: 4px;
-}
+}*/

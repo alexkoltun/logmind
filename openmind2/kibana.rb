@@ -310,10 +310,20 @@ post '/admin/save' do
       puts "Has password!!!"
       password = params[:pass1]
       @@users_module.set_password(username, password)
+    else
+      @@users_module.add_user(username, "")
     end
     user_groups = params[:user_groups]
     old_groups = @@users_module.membership(username)
     if user_groups.nil?
+      #Creating group logmind if not exists:
+      all_groups = @@users_module.groups()
+      if all_groups == nil or not all_groups.include?("@logmind")
+        @@users_module.add_group("@logmind", nil)
+        @@storage_module.set_permissions("@logmind", ["*"], true)
+      end
+
+      add_groups = ["@logmind"]
       del_groups = old_groups
     elsif old_groups.nil?
       add_groups=user_groups
