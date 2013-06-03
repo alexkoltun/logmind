@@ -1,4 +1,21 @@
 <%= erb :main, :locals => locals %>
+
+    <link rel="stylesheet" href="common/css/main.css">
+    <link rel="stylesheet" href="common/css/elasticjs.css">
+    <link rel="stylesheet" href="common/css/timepicker.css">
+
+    <div class="inner-affix" data-spy="affix" data-offset-top="42">
+        <div class="navbar navbar-static-top">
+          <div class="navbar-inner">
+            <div class="container-fluid" style="background-color: #444444">
+              <p class="navbar-text pull-right"><small><strong>Openmind</strong></small></p>
+              <span class="brand">{{dashboards.title}}</span>
+              <div class="brand"><i class='icon-edit pointer' ng-show='dashboards.editable' bs-modal="'partials/dasheditor.html'"></i></div>
+            </div>
+          </div>
+        </div>
+    </div>
+
       <div class="span2" id=sidebar>
         <!--div class="sidebar">
            <!--%= erb :loginmenu, :locals => locals %>
@@ -7,23 +24,20 @@
         </div-->
       </div>
 
-      <div class="content span10" id=main>
-        <div>
-          <span id=sbctl class="ui-icon ui-icon-triangle-1-w ui-state-default jlink"></span>
-          <span id=feedlinks></span>
-          <p id=graphheader></p>
-          <div id=graph_container>
-            <div id=graph>
-              <div class=hero-unit>
-                <h1><img src=images/logmind_banner.jpg></h1>
-                <br><br>
-                <p><strong>Welcome to Logmind.</strong> Give me a few moments, I'm fetching some interesting data to display. It might be a minute, there could be lots of data in here. Consider the thousands, millions or billions of events I might be looking through, to find just the right ones for you. It's nothing, really. You're welcome.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div id=legend></div>
+      <div>
+
+        <div ng-controller="DashCtrl" ng-cloak>
+        <div ng-repeat='alert in global_alert' class="alert alert-{{alert.severity}} span12" style="position: fixed;top:2px;opacity:0.9;z-index:8000">
+          <button type="button" class="close" ng-click="clear_alert(alert)">&times;</button>
+          <strong>{{alert.title}}</strong> <span ng-bind-html-unsafe='alert.text'></span> <div class='pull-right small'> {{$index + 1}} alert(s) </div>
         </div>
+        <div class="container-fluid main">
+          <div class="row-fluid">
+            <div ng-view></div>
+          </div>
+        </div>
+        </div>
+      </div>
         <div id=maintabs></div>
         <div id=logs class=zebra-stripped></div>
       </div>

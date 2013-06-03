@@ -20,6 +20,13 @@
   <script src="<%= locals[:pathtobase] %>js/fullcalendar.min.js"></script>
   <script src="<%= locals[:pathtobase] %>js/unicorn.js"></script>
   <script src="<%= locals[:pathtobase] %>js/unicorn.dashboard.js"></script>
+
+  <!-- project dependency libs -->
+  <script src="common/lib/LAB.min.js"></script>
+  <script src="common/lib/underscore.min.js"></script>
+  <script src="common/lib/settings.js"></script>
+  <script src="config.js"></script>
+  <script src="dashjs/app.js"></script>
 </head>
 <body>
 
@@ -48,7 +55,7 @@
           </ul>
         </li>
         <li class="btn btn-inverse"><a title="" href="index.html#"><i class="icon icon-cog"></i> <span class="text">Settings</span></a></li>
-        <li class="btn btn-inverse"><a title="" href="login.html"><i class="icon icon-share-alt"></i> <span class="text">Logout</span></a></li>
+        <li class="btn btn-inverse"><a title="" href="/auth/logout"><i class="icon icon-share-alt"></i> <span class="text">Logout</span></a></li>
       </ul>
     </div>
 </div>

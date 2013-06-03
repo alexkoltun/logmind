@@ -41,6 +41,12 @@ a:hover {
     top: -9px;
 }
 
+.affix.inner-affix {
+    z-index: 9999;
+    height: 42px;
+    top: 40px;
+}
+
 #header {
     /*height: 77px;*/
     overflow: hidden;
