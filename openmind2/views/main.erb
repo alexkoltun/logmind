@@ -32,7 +32,7 @@
 
 
 <div id="header" data-spy="affix" data-offset-top="77">
-  <h1><a href="#">Logmind Dashboard</a></h1>
+  <h1><a href="/">Logmind Dashboard</a></h1>
 
     <div id="search">
       <input type="text" placeholder="Search here..."/><button type="submit" class="tip-right" title="Search"><i class="icon-search icon-white"></i></button>
@@ -61,16 +61,10 @@
 </div>
 
 <div id="sidebar">
-  <div style="box-shadow: 0px 1px 0px #393939; border-bottom: 1px solid #4E4E4E;">
-      <div class="sidebar" style="margin-left: 15px;">
-          <%= erb :loginmenu, :locals => locals %>
-          <div id=fields></div>
-          <div id=analyze></div>
-      </div>
-  </div>
-  <a href="index.html#" class="visible-phone"><i class="icon icon-home"></i> Dashboard</a>
+  <a href="/" class="visible-phone"><i class="icon icon-home"></i> Dashboard</a>
   <h5 style="margin-left: 15px;"><i class="icon-user icon-list"></i>&nbsp;&nbsp;<b>Menu</b><a style="float: right; margin-right: 10px;" class="icon icon-arrow-down" data-toggle="collapse" data-target="#dashboard-menu-list"></a></h5>
   <ul id="dashboard-menu-list" class="collapse in">
+    <%= erb :loginmenu, :locals => locals %>
     <li class="active"><a href="index.html"><i class="icon icon-home"></i> <span>Dashboard</span></a></li>
     <li class="submenu">
       <a href="index.html#"><i class="icon icon-th-list"></i> <span>Form elements</span> <span class="label">3</span></a>

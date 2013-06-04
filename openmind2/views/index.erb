@@ -8,7 +8,7 @@
         <div class="navbar navbar-static-top">
           <div class="navbar-inner">
             <div class="container-fluid" style="background-color: #444444">
-              <p class="navbar-text pull-right"><small><strong>Openmind</strong></small></p>
+              <div style="margin-top: 0px; float: right" ng-include="'panels/dashcontrol/module.html'"></div>
               <span class="brand">{{dashboards.title}}</span>
               <div class="brand"><i class='icon-edit pointer' ng-show='dashboards.editable' bs-modal="'partials/dasheditor.html'"></i></div>
             </div>
