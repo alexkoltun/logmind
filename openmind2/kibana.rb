@@ -782,3 +782,17 @@ put %r{/napi/es/(.*)} do
 
   c.body_str
 end
+
+
+delete %r{/napi/es/(.*)} do
+  q = params[:captures].first
+  raw = request.env["rack.input"].read
+
+  c = Curl::Easy.http_delete("http://" + KibanaConfig::Elasticsearch + "/" + q
+  ) do |curl|
+    curl.headers['Accept'] = 'application/json'
+    curl.headers['Content-Type'] = 'application/json'
+  end
+
+  c.body_str
+end
