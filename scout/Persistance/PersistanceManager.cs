@@ -27,6 +27,9 @@ namespace Logmind.Persistance
 
         private static bool TryConvert(string val, Type objType, out object retVal)
         {
+            // REVIEW by AK
+            // Wouldn't it be better to use Converter.ToString(val) ?
+
             TypeConverter tc = TypeDescriptor.GetConverter(objType);
 
             if (tc.IsValid(val))
@@ -54,6 +57,8 @@ namespace Logmind.Persistance
 
         public static void SaveConfigObject(Domain.ModulesTypes module, BaseConfig instance)
         {
+            // REVIEW by AK
+            // Might be better to use: throw new ArgumentNullException("instance", "config object instance can't be null");
             if (instance == null)
                 throw new ArgumentNullException("config object instance can't be null");
 
