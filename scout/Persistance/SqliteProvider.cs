@@ -11,6 +11,12 @@ namespace Logmind.Persistance
 {
     public class SqliteProvider : IPersistenceProvider
     {
+        // REVIEW by AK
+        // Please use Command.Parameters instead of string substitutions
+        // Like this: 
+        // SQLiteCommand cmd = new SQLiteCommand(query, connection);
+        // cmd.Parameters.Add(new SQLiteParameter("@key", value);
+
         private const string DB_NAME = "scoutDb.db3";
         private const string CONN_TEMPLATE = "Data Source={0};FailIfMissing=False;Version=3";
         private const string CREATE_SETTING_TABLE = "CREATE TABLE IF NOT EXISTS [SettingConfig]([Module] NVARCHAR(2048) NOT NULL ,[Key] NVARCHAR(2048) NOT NULL ,[Value] NVARCHAR(2048) NULL); CREATE UNIQUE INDEX pk_SettingConfig ON [SettingConfig] ([Module],[Key]);";
@@ -65,6 +71,11 @@ namespace Logmind.Persistance
 
         public void InsertOrUpdate(string module, string key, string val)
         {
+            // REVIEW by AK
+            // Do we handle thredy safety over here, m_Connection might be not thread safe (not sure if it is)
+            // If its no thread safe let's just avoid premature optimization and create a new connection each time we query, make sure to put it in useing() if you do
+            // Like that: using(SQLiteConnection conn = GetConnection()) { ... queries here ... }
+            
             string sql = string.Format(INSERT_REPLACE, module, key, val);
 
             SQLiteCommand command = new SQLiteCommand(sql, m_Connection);
