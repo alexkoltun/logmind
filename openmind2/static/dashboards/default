@@ -2,12 +2,31 @@
   "title": "Logmind",
   "rows": [
     {
-      "title": "Options",
+      "title": "Query",
       "height": "50px",
       "editable": true,
       "collapse": false,
       "collapsable": true,
       "panels": [
+        {
+          "loading": false,
+          "error": false,
+          "span": 7,
+          "editable": true,
+          "group": [
+            "default"
+          ],
+          "type": "stringquery",
+          "label": "Search",
+          "query": "*",
+          "size": 100,
+          "sort": [
+            "_score",
+            "desc"
+          ],
+          "multi": false,
+          "multi_arrange": "horizontal"
+        },
         {
           "loading": false,
           "error": false,
@@ -38,53 +57,6 @@
             "interval": 30,
             "min": 3
           }
-        },
-        {
-          "loading": false,
-          "error": false,
-          "span": 3,
-          "editable": true,
-          "group": [
-            "default"
-          ],
-          "load": {
-            "gist": true,
-            "elasticsearch": true,
-            "local": true
-          },
-          "hide_control": false,
-          "elasticsearch_size": 20,
-          "elasticsearch_saveto": "openmind-int",
-          "temp": true,
-          "temp_ttl": "30d"
-        }
-      ]
-    },
-    {
-      "title": "Query",
-      "height": "50px",
-      "editable": true,
-      "collapse": false,
-      "collapsable": true,
-      "panels": [
-        {
-          "loading": false,
-          "error": false,
-          "span": 12,
-          "editable": true,
-          "group": [
-            "default"
-          ],
-          "type": "stringquery",
-          "label": "Search",
-          "query": "*",
-          "size": 100,
-          "sort": [
-            "_score",
-            "desc"
-          ],
-          "multi": false,
-          "multi_arrange": "horizontal"
         }
       ]
     },

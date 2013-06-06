@@ -41,7 +41,7 @@ angular.module('openmind.timepicker', [])
     index_interval: "none",
     group         : "default",
     refresh       : {
-      enable  : false, 
+      enable  : false,
       interval: 30,
       min     : 3
     }
@@ -52,68 +52,68 @@ angular.module('openmind.timepicker', [])
     $scope.panel.group : [$scope.panel.group];
 
   $scope.init = function() {
-    // Private refresh interval that we can use for view display without causing
-    // unnecessary refreshes during changes
-    $scope.refresh_interval = $scope.panel.refresh.interval
+      // Private refresh interval that we can use for view display without causing
+      // unnecessary refreshes during changes
+      $scope.refresh_interval = $scope.panel.refresh.interval
 
-    // Init a private time object with Date() objects depending on mode
-    switch($scope.panel.mode) {
-      case 'absolute':
-        $scope.time = {
-          from : new Date(Date.parse($scope.panel.time.from)) || time_ago($scope.panel.timespan),
-          to   : new Date(Date.parse($scope.panel.time.to)) || new Date()
-        }
-        break;
-      case 'since':
-        $scope.time = {
-          from : new Date(Date.parse($scope.panel.time.from)) || time_ago($scope.panel.timespan),
-          to   : new Date() || new Date()
-        }
-        break;
-      case 'relative':
-        $scope.time = {
-          from : time_ago($scope.panel.timespan),
-          to   : new Date()
-        }
-        break;
-    }
-    $scope.time.field = $scope.panel.timefield;
-    $scope.time_apply();
-
-    // Start refresh timer if enabled
-    if ($scope.panel.refresh.enable)
-      $scope.set_interval($scope.panel.refresh.interval);
-
-    // In the case that a panel is not ready to receive a time event, it may
-    // request one be sent by broadcasting a 'get_time' with its _id to its group
-    // This panel can handle multiple groups
-    eventBus.register($scope,"get_time", function(event,id) {
-      eventBus.broadcast($scope.$id,id,'time',$scope.time)
-    });
-
-    // In case some other panel broadcasts a time, set us to an absolute range
-    eventBus.register($scope,"set_time", function(event,time) {
-      $scope.panel.mode = 'absolute';
-      set_timepicker(time.from,time.to)
-      $scope.time_apply()
-    });
-    
-    eventBus.register($scope,"zoom", function(event,factor) {
-      var _timespan = ($scope.time.to.getTime() - $scope.time.from.getTime());
-      try {
-        if($scope.panel.mode != 'absolute') {
-          $scope.panel.mode = 'since'
-          set_timepicker(new Date($scope.time.to.getTime() - _timespan*factor),$scope.time.to)
-        } else {
-          var _center = $scope.time.to - _timespan/2
-          set_timepicker(new Date(_center - (_timespan*factor)/2),
-                         new Date(_center + (_timespan*factor)/2))        
-        }
-      } catch (e) {
-        console.log(e)
-      }     
+      // Init a private time object with Date() objects depending on mode
+      switch($scope.panel.mode) {
+          case 'absolute':
+              $scope.time = {
+                  from : new Date(Date.parse($scope.panel.time.from)) || time_ago($scope.panel.timespan),
+                  to   : new Date(Date.parse($scope.panel.time.to)) || new Date()
+              }
+              break;
+          case 'since':
+              $scope.time = {
+                  from : new Date(Date.parse($scope.panel.time.from)) || time_ago($scope.panel.timespan),
+                  to   : new Date() || new Date()
+              }
+              break;
+          case 'relative':
+              $scope.time = {
+                  from : time_ago($scope.panel.timespan),
+                  to   : new Date()
+              }
+              break;
+      }
+      $scope.time.field = $scope.panel.timefield;
       $scope.time_apply();
-    });
+
+      // Start refresh timer if enabled
+      if ($scope.panel.refresh.enable)
+          $scope.set_interval($scope.panel.refresh.interval);
+
+      // In the case that a panel is not ready to receive a time event, it may
+      // request one be sent by broadcasting a 'get_time' with its _id to its group
+      // This panel can handle multiple groups
+      eventBus.register($scope,"get_time", function(event,id) {
+          eventBus.broadcast($scope.$id,id,'time',$scope.time)
+      });
+
+      // In case some other panel broadcasts a time, set us to an absolute range
+      eventBus.register($scope,"set_time", function(event,time) {
+          $scope.panel.mode = 'absolute';
+          set_timepicker(time.from,time.to)
+          $scope.time_apply()
+      });
+
+      eventBus.register($scope,"zoom", function(event,factor) {
+          var _timespan = ($scope.time.to.getTime() - $scope.time.from.getTime());
+          try {
+              if($scope.panel.mode != 'absolute') {
+                  $scope.panel.mode = 'since'
+                  set_timepicker(new Date($scope.time.to.getTime() - _timespan*factor),$scope.time.to)
+              } else {
+                  var _center = $scope.time.to - _timespan/2
+                  set_timepicker(new Date(_center - (_timespan*factor)/2),
+                      new Date(_center + (_timespan*factor)/2))
+              }
+          } catch (e) {
+              console.log(e)
+          }
+          $scope.time_apply();
+      });
   }
 
   $scope.set_interval = function (refresh_interval) {
