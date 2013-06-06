@@ -43,7 +43,7 @@ angular.module('openmind.dashcontrol', [])
       'default': true
     },
     load : {
-      gist: true,
+      gist: false,
       elasticsearch: true,
       local: true
     },
