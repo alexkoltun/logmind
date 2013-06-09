@@ -27,8 +27,8 @@
 
 */
 
-angular.module('openmind.dashcontrol', [])
-.controller('dashcontrol', function($scope, $routeParams, $http, eventBus, timer) {
+angular.module('openmind.dashboards', [])
+.controller('dashboards', function($scope, $routeParams, $http, eventBus, timer) {
   $scope.panel = $scope.panel || {};
   // Set and populate defaults
   var _d = {
@@ -60,6 +60,7 @@ angular.module('openmind.dashcontrol', [])
   }
 
   $scope.init = function() {
+    $scope.elasticsearch_dblist("")
     // Long ugly if statement for figuring out which dashboard to load on init
     // If there is no dashboard defined, find one
     if(_.isUndefined($scope.dashboards)) {

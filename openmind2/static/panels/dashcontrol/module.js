@@ -33,6 +33,9 @@ angular.module('openmind.dashcontrol', [])
   // Set and populate defaults
   var _d = {
     group   : "default",
+    new: {
+      new: true
+    },
     save : {
       gist: false,
       elasticsearch: true,
@@ -150,6 +153,24 @@ angular.module('openmind.dashcontrol', [])
     }).error(function(data, status, headers, config) {
       $scope.alert('Default dashboard missing!','Could not locate dashboards/'+file,'error')
     });
+  }
+
+  $scope.new_dashboard = function(title) {
+    $http({
+        url: "dashboards/default",
+        method: "GET"
+    }).success(function(data, status, headers, config) {
+            var dashboard = data
+            _.defaults(dashboard,_dash);
+
+            if ((title != undefined) && (title != "")) {
+                dashboard.title = title;
+            }
+
+            $scope.dash_load(JSON.stringify(dashboard))
+        }).error(function(data, status, headers, config) {
+            $scope.alert('Default dashboard missing!','Could not locate dashboards/'+file,'error')
+        });
   }
 
   $scope.elasticsearch_save = function(type) {
