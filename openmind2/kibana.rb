@@ -6,7 +6,6 @@ require 'date'
 require 'rss/maker'
 require 'yaml'
 require 'tzinfo'
-require 'curb'
 
 $LOAD_PATH << '.'
 $LOAD_PATH << './lib'
