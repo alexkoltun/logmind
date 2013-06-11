@@ -118,6 +118,10 @@ class Application < Sinatra::Base
     haml :'discover'
   end
 
+  get '/analysis' do
+    haml :analysis
+  end
+
   get '/patterns' do
     @arr = get_files("./public/patterns/")
     haml :'patterns'
