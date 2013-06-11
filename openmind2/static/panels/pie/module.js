@@ -48,6 +48,7 @@ angular.module('openmind.pie', [])
     group   : "default",
     default_field : 'DEFAULT',
     spyable : true,
+	include_other : true
   }
   _.defaults($scope.panel,_d)
 
@@ -135,6 +136,9 @@ angular.module('openmind.pie', [])
           $scope.data.push(slice)
           k = k + 1;
         });
+		
+		$scope.panel.include_other && $scope.data.push({ label : 'Other', data : results.facets.pie.other });
+		
         $scope.$emit('render');
       });
     // Goal mode
@@ -227,7 +231,13 @@ angular.module('openmind.pie', [])
             show: scope.panel.labels,
             radius: 2/3,
             formatter: function(label, series){
-              return '<div ng-click="build_search(panel.query.field,\''+label+'\') "style="font-size:8pt;text-align:center;padding:2px;color:white;">'+
+			
+				if(label != 'Other') {
+					return '<div ng-click="build_search(panel.query.field,\''+label+'\') "style="font-size:8pt;text-align:center;padding:2px;color:white;">'+
+						label+'<br/>'+Math.round(series.percent)+'%</div>';
+				}
+
+				return '<div "style="font-size:8pt;text-align:center;padding:2px;color:white;">'+
                 label+'<br/>'+Math.round(series.percent)+'%</div>';
             },
             threshold: 0.1 
@@ -281,7 +291,7 @@ angular.module('openmind.pie', [])
         if (!object)
           return;
         if(scope.panel.mode === 'terms')
-          scope.build_search(scope.panel.query.field,object.series.label);
+          object.series.label != 'Other' && scope.build_search(scope.panel.query.field,object.series.label);
       });
 
       elem.bind("plothover", function (event, pos, item) {

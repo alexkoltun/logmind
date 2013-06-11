@@ -19,3 +19,6 @@
 <% if locals[:current_content] == "adminedit" %>
     <%= erb :adminedit, :locals => locals %>
 <% end %>
+<% if locals[:current_content] == "grocker" %>
+    <%= erb locals[:grocker_template], :locals => locals %>
+<% end %>
