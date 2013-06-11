@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Logmind.Domain.Config;
+using System.IO;
+using System.Runtime.Serialization.Json;
 
 namespace Logmind.Domain
 {
@@ -22,6 +24,45 @@ namespace Logmind.Domain
             config.ServerEndpoint = uri.LocalPath;
 
             return config;
+        }
+
+        public static byte[] Serialize<T>(T objInstance) where T : class
+        {
+            using (var ms = new MemoryStream())
+            {
+                var serializer = new DataContractJsonSerializer(typeof(T));
+                serializer.WriteObject(ms, objInstance);
+
+                return ms.ToArray();
+            }
+        }
+
+        public static T Deserialize<T>(byte[] objBuffer) where T : class
+        {
+            if (objBuffer != null)
+            {
+                using (var stream = new MemoryStream(objBuffer))
+                {
+                    var serializer = new DataContractJsonSerializer(typeof(T));
+                    return (T)serializer.ReadObject(stream);
+                }
+            }
+
+            return default(T);
+        }
+
+        public static T Deserialize<T>(byte[] objBuffer,int index,int count) where T : class
+        {
+            if (objBuffer != null)
+            {
+                using (var stream = new MemoryStream(objBuffer,index,count))
+                {
+                    var serializer = new DataContractJsonSerializer(typeof(T));
+                    return (T)serializer.ReadObject(stream);
+                }
+            }
+
+            return default(T);
         }
     }
 }

@@ -24,12 +24,20 @@ namespace Logmind.ConfigurationManager
             {
                 try
                 {
-                    var newConfig = m_Runner.Commander.GetConfig();
+                    DateTime lastConfigured = m_Runner.Persistence.GetKey<DateTime>(ModulesTypes.General, Constants.ConfigKeys.LastConfigured);
+
+                    if (lastConfigured == DateTime.MinValue) // avoid json serilization errors
+                    {
+                        lastConfigured = DateTime.MinValue.ToUniversalTime();
+                    }
+
+                    var newConfig = m_Runner.Commander.GetConfig(lastConfigured);
+
                     if (newConfig != null)
                     {
                         LastConfig = newConfig;
 
-                        // TODO, persist
+                        m_Runner.Persistence.SaveConfigObject(ModulesTypes.General, newConfig.General);
 
                         if (ConfigurationReceived != null)
                         {

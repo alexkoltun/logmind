@@ -55,7 +55,7 @@ namespace Logmind.Persistance
         public void SaveConfigObject(Domain.ModulesTypes module, BaseConfig instance)
         {
             if (instance == null)
-                throw new ArgumentNullException("config object instance can't be null");
+                throw new ArgumentNullException("instance", "config object instance can't be null");
 
             string moduleName = module.ToString();
             var t = instance.GetType();

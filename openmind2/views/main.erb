@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Logmind Dashboard</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="<%= locals[:pathtobase] %>css/bootstrap.min.css" />
+  <link rel="stylesheet" href="<%= locals[:pathtobase] %>css/bootstrap-responsive.min.css" />
+  <link rel="stylesheet" href="<%= locals[:pathtobase] %>css/fullcalendar.css" />
+  <link rel="stylesheet" href="<%= locals[:pathtobase] %>css/unicorn.main.css" />
+  <link rel="stylesheet" href="<%= locals[:pathtobase] %>css/unicorn.grey.css" class="skin-color" />
+
+  <script src="<%= locals[:pathtobase] %>js/excanvas.min.js"></script>
+  <script src="<%= locals[:pathtobase] %>js/jquery.min.js"></script>
+  <script src="<%= locals[:pathtobase] %>js/jquery.ui.custom.js"></script>
+  <script src="<%= locals[:pathtobase] %>js/bootstrap.min.js"></script>
+  <script src="<%= locals[:pathtobase] %>js/jquery.flot.min.js"></script>
+  <script src="<%= locals[:pathtobase] %>js/jquery.flot.resize.min.js"></script>
+  <script src="<%= locals[:pathtobase] %>js/jquery.peity.min.js"></script>
+  <script src="<%= locals[:pathtobase] %>js/fullcalendar.min.js"></script>
+  <script src="<%= locals[:pathtobase] %>js/unicorn.js"></script>
+  <script src="<%= locals[:pathtobase] %>js/unicorn.dashboard.js"></script>
+
+  <!-- project dependency libs -->
+  <script src="common/lib/LAB.min.js"></script>
+  <script src="common/lib/underscore.min.js"></script>
+  <script src="common/lib/settings.js"></script>
+  <script src="config.js"></script>
+  <script src="dashjs/app.js"></script>
+</head>
+<body>
+
+
+<div id="header" data-spy="affix" data-offset-top="77">
+  <h1><a href="/">Logmind Dashboard</a></h1>
+
+    <div id="search">
+      <input type="text" placeholder="Search here..."/><button type="submit" class="tip-right" title="Search"><i class="icon-search icon-white"></i></button>
+    </div>
+    <div id="user-nav" class="navbar navbar-inverse">
+      <ul class="nav btn-group">
+        <li class="btn btn-inverse dropdown" id="top-menu-admin"><a title="" href="index.html#" data-toggle="dropdown" data-target="#top-menu-admin" class="dropdown-toggle"><i class="icon icon-user"></i> <span class="text"><%= locals[:username] %></span>&nbsp;&nbsp;<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <% if locals[:is_admin] %>
+              <%= erb :adminmenu, :locals => locals %>
+          <% end %>
+        </ul>
+        </li>
+        <li class="btn btn-inverse dropdown" id="menu-messages"><a href="index.html#" data-toggle="dropdown" data-target="#menu-messages" class="dropdown-toggle"><i class="icon icon-envelope"></i> <span class="text">Messages</span> <span class="label label-important">5</span> <b class="caret"></b></a>
+          <ul class="dropdown-menu">
+            <li><a class="sAdd" title="" href="index.html#">new message</a></li>
+            <li><a class="sInbox" title="" href="index.html#">inbox</a></li>
+            <li><a class="sOutbox" title="" href="index.html#">outbox</a></li>
+            <li><a class="sTrash" title="" href="index.html#">trash</a></li>
+          </ul>
+        </li>
+        <li class="btn btn-inverse"><a title="" href="index.html#"><i class="icon icon-cog"></i> <span class="text">Settings</span></a></li>
+        <li class="btn btn-inverse"><a title="" href="/auth/logout"><i class="icon icon-share-alt"></i> <span class="text">Logout</span></a></li>
+      </ul>
+    </div>
+</div>
+
+<div id="sidebar">
+
+  <a href="/" class="visible-phone"><i class="icon icon-home"></i> Dashboard</a>
+  <h5 style="margin-left: 15px;"><i class="icon-user icon-list"></i>&nbsp;&nbsp;<b>Menu</b><a style="float: right; margin-right: 10px;" class="icon icon-arrow-down" data-toggle="collapse" data-target="#dashboard-menu-list"></a></h5>
+  <ul id="dashboard-menu-list" class="collapse in">
+    <%= erb :loginmenu, :locals => locals %>
+    <li class="active submenu">
+      <a href="index.html"><i class="icon icon-home"></i> <span>Dashboards</span><i class="icon-chevron-down" style="float: right; margin-right: 20px;"></i></a>
+      <ul ng-include="'panels/dashboards/module.html'"></ul>
+    </li>
+    <li class="submenu">
+      <a href="index.html#"><i class="icon icon-th-list"></i> <span>Form elements</span> <span class="label">3</span></a>
+      <ul>
+        <li><a href="form-common.html">Common elements</a></li>
+        <li><a href="form-validation.html">Validation</a></li>
+        <li><a href="form-wizard.html">Wizard</a></li>
+      </ul>
+    </li>
+    <li><a href="buttons.html"><i class="icon icon-tint"></i> <span>Buttons &amp; icons</span></a></li>
+    <li><a href="interface.html"><i class="icon icon-pencil"></i> <span>Interface elements</span></a></li>
+    <li><a href="tables.html"><i class="icon icon-th"></i> <span>Tables</span></a></li>
+    <li><a href="grid.html"><i class="icon icon-th-list"></i> <span>Grid Layout</span></a></li>
+    <li class="submenu">
+      <a href="index.html#"><i class="icon icon-file"></i> <span>Sample pages</span> <span class="label">4</span></a>
+      <ul>
+        <li><a href="invoice.html">Invoice</a></li>
+        <li><a href="chat.html">Support chat</a></li>
+        <li><a href="calendar.html">Calendar</a></li>
+        <li><a href="gallery.html">Gallery</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="charts.html"><i class="icon icon-signal"></i> <span>Charts &amp; graphs</span></a>
+    </li>
+    <li>
+      <a href="widgets.html"><i class="icon icon-inbox"></i> <span>Widgets</span></a>
+    </li>
+  </ul>
+
+</div>
+
+<div id="content" style="position: absolute; left: 0px; top: 78px; bottom: 0px; right: 0px; background-color: #eeeeee;">
+  <div class="container-fluid">
+    <div class=row-fluid>
+    <!-- begin content -->
+    <% if locals[:internal_content] %>
+          <%= erb :internalcontent, :locals => locals %>
+    <% end %>

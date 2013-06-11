@@ -8,6 +8,6 @@ namespace Logmind.Interfaces
 {
     public interface ICommandAndControl : IRunable
     {
-        ConfigurationHolder GetConfig();
+        ConfigurationHolder GetConfig(DateTime lastConfigured);
     }
 }

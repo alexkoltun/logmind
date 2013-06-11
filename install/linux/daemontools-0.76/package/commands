@@ -2,8 +2,12 @@ svscan
 svscanboot
 supervise
 svc
+svcs-u
+svcs-d
+svcs-t
 svok
 svstat
+svstats
 fghack
 pgrphack
 readproctitle
@@ -15,3 +19,4 @@ setuidgid
 envuidgid
 envdir
 setlock
+limits

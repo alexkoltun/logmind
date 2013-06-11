@@ -25,7 +25,7 @@ namespace Logmind.CommunicationLayer
 
 
 
-        public ICommunicationChannel CreateChannel(BaseCommunicationConfig config)
+        public static ICommunicationChannel CreateChannel(BaseCommunicationConfig config)
         {
             ICommunicationChannel newChannel = null;
 

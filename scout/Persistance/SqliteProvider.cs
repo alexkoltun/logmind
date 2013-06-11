@@ -11,6 +11,12 @@ namespace Logmind.Persistance
 {
     public class SqliteProvider : IPersistenceProvider
     {
+        // REVIEW by AK
+        // Please use Command.Parameters instead of string substitutions
+        // Like this: 
+        // SQLiteCommand cmd = new SQLiteCommand(query, connection);
+        // cmd.Parameters.Add(new SQLiteParameter("@key", value);
+
         private const string DB_NAME = "scoutDb.db3";
         private const string CONN_TEMPLATE = "Data Source={0};FailIfMissing=False;Version=3";
         private const string CREATE_SETTING_TABLE = "CREATE TABLE IF NOT EXISTS [SettingConfig]([Module] NVARCHAR(100) NOT NULL ,[Key] NVARCHAR(255) NOT NULL ,[Value] NVARCHAR(2048) NULL); CREATE UNIQUE INDEX pk_SettingConfig ON [SettingConfig] ([Module],[Key]);";
@@ -21,8 +27,7 @@ namespace Logmind.Persistance
         private const string VAL_COl_NAME = "Value";
         private const string KEY_COl_NAME = "Key";
 
-        private SQLiteConnection m_Connection;
-
+        //private SQLiteConnection m_Connection;
 
         private string GetDbFile()
         {
@@ -47,43 +52,51 @@ namespace Logmind.Persistance
             {
                 SQLiteConnection.CreateFile(dbFile);
 
-                SQLiteCommand command = new SQLiteCommand(CREATE_SETTING_TABLE, m_Connection);
-                command.ExecuteNonQuery();
+                using (var con = GetConnection())
+                {
+                    SQLiteCommand command = new SQLiteCommand(CREATE_SETTING_TABLE, con);
+                    command.ExecuteNonQuery();
+                }
             }
         }
 
         public void Init()
         {
-            m_Connection = GetConnection();
-            m_Connection.Open();
-
             CreateDB();
         }
         public void Shutdown()
         {
-            if (m_Connection != null && m_Connection.State != System.Data.ConnectionState.Closed)
-            {
-                m_Connection.Close();
-                m_Connection = null;
-            }
+            //if (m_Connection != null && m_Connection.State != System.Data.ConnectionState.Closed)
+            //{
+            //    m_Connection.Close();
+            //    m_Connection = null;
+            //}
         }
 
         public void InsertOrUpdate(string module, string key, string val)
         {
+          
             string sql = string.Format(INSERT_REPLACE, module, key, val);
 
-            SQLiteCommand command = new SQLiteCommand(sql, m_Connection);
-            command.ExecuteNonQuery();
+            using (var con = GetConnection())
+            {
+                con.Open();
+                SQLiteCommand command = new SQLiteCommand(sql, con);
+                command.ExecuteNonQuery();
+            }
         }
 
         public DataTable GetModuleKeys(string module)
         {
             string sql = string.Format(SELECT_MODULE_CONFIG,module);
-
-            SQLiteDataAdapter adapter = new SQLiteDataAdapter(sql,m_Connection);
-
             DataSet ds = new DataSet();
-            adapter.Fill(ds);
+
+            using (var con = GetConnection())
+            {
+                con.Open();
+                SQLiteDataAdapter adapter = new SQLiteDataAdapter(sql, con);
+                adapter.Fill(ds);
+            }
 
             // check that DB returned something..
             if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
@@ -105,15 +118,19 @@ namespace Logmind.Persistance
         {
             string sql = string.Format(SELECT_SPECIFIC_KEY, module,key);
 
-            SQLiteCommand command = new SQLiteCommand(sql, m_Connection);
-            var reader = command.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SequentialAccess);
-
-            if (reader != null && reader.HasRows)
+            using (var con = GetConnection())
             {
-                var res = reader.GetString(0);
+                con.Open();
+                SQLiteCommand command = new SQLiteCommand(sql, con);
+                var reader = command.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SequentialAccess);
 
-                reader.Close();
-                return res;
+                if (reader != null && reader.HasRows)
+                {
+                    var res = reader.GetString(0);
+
+                    reader.Close();
+                    return res;
+                }
             }
 
             return null;

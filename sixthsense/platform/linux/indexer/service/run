@@ -1,3 +1,7 @@
 #!/bin/bash
 exec 2>&1
-exec /usr/local/logmind/sixthsense/sixthsense.sh /usr/local/logmind/sixthsense/config/indexer.conf
+
+# remove open fds limit
+ulimit -n 131072
+
+exec softlimit -o 131072 /usr/local/logmind/sixthsense/sixthsense.sh /usr/local/logmind/sixthsense/config/indexer.conf

@@ -14,10 +14,10 @@ echo 'Creating /service...'
 mkdir /service
 
 
-if [[ -n $(uname -v | grep Ubuntu) ]]; then 
-	echo "Using Ubuntu Linux OS";
-	package/run-ubuntu 
+if [[ -n $(uname -a | egrep "Ubuntu|CentOS-6|el6") ]]; then 
+	echo "Using Upstart";
+	package/run-upstart 
 else 
-	echo "Using Generic Linux OS"; 
-	package/run-generic
+	echo "Using Inittab"; 
+	package/run-inittab
 fi

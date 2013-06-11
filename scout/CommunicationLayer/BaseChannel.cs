@@ -19,11 +19,11 @@ namespace Logmind.CommunicationLayer
         public virtual void Init(Domain.Config.BaseCommunicationConfig config)
         {
             m_Config = config;
-
             m_StopEvent = new ManualResetEvent(false);
         }
         
         public abstract void ShutDown();
+        public abstract void Send(byte[] packetData);
 
         public string Url { get;set;}
         public bool IsTwoWay { get;set;}

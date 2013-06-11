@@ -1,5 +1,0 @@
-#!/bin/sh -e
-
-echo "Installing service for Ubuntu Linux OS"
-
-cp -f package/daemontools.conf /etc/init

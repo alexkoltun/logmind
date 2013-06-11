@@ -23,7 +23,16 @@ namespace Logmind.Domain
             /// command and control
             /// </summary>
             public const string CCUri = "CC.Uri";
+
             public const string IsConfigured = "IsConfigured";
+            public const string LastConfigured = "LastConfigured";
+
+        }
+
+        public class Requests
+        {
+            public const string GetConfig = "GetConfig";
+            public const string SendData = "SendData";
         }
     }
 }

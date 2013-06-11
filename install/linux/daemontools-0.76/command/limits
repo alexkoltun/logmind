@@ -1,0 +1,3 @@
+#!/bin/bash
+
+for pid in `pidof java`; do echo "$(< /proc/$pid/cmdline)"; egrep 'files|Limit' /proc/$pid/limits; echo "Currently open files: $(ls -1 /proc/$pid/fd | wc -l)"; echo; done

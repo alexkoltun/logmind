@@ -15,11 +15,11 @@ var config = new Settings(
   // By default this will attempt to reach ES at the same host you have
   // elasticsearch installed on. You probably want to set it to the FQDN of your
   // elasticsearch host
-  // elasticsearch:    "http://"+window.location.hostname+":9200",   
-  elasticsearch: 'http://192.168.1.14:9200',
+  elasticsearch:    "http://"+window.location.hostname+"/napi/es/",   
+  //elasticsearch: 'http://192.168.1.14:9200',
   openmind_index:     "openmind-int", 
   modules:          ['histogram','map','pie','table','stringquery','sort',
                     'timepicker','text','fields','hits','dashcontrol',
-                    'column'],
+                    'column','derivequeries'],
   }
 );
