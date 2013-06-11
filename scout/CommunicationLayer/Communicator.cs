@@ -4,14 +4,15 @@ using System.Linq;
 using System.Text;
 using Logmind.Domain.Config;
 using Logmind.Interfaces;
+using Logmind.Domain;
 
-namespace CommunicationLayer
+namespace Logmind.CommunicationLayer
 {
     public class Communicator
     {
         ICommunicationChannel m_Channel = null;
 
-        public void Init(CommunicationConfig config)
+        public void Init(BaseCommunicationConfig config)
         {
             // create and init com channel..
 
@@ -22,9 +23,24 @@ namespace CommunicationLayer
             m_Channel.ShutDown();
         }
 
-        public ICommunicationChannel Channel
+
+
+        public static ICommunicationChannel CreateChannel(BaseCommunicationConfig config)
         {
-            get { return m_Channel; }
+            ICommunicationChannel newChannel = null;
+
+            switch (config.ChannelType)
+            {
+                case Constants.ChannelType.Tcp:
+                    newChannel = new TcpChannel();
+                    break;
+                default:
+                    throw new ArgumentException(string.Format("unknown channel type: {0}",config.ChannelType));
+            }
+
+            newChannel.Init(config);
+
+            return newChannel;
         }
     }
 }

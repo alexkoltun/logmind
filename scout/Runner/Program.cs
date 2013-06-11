@@ -11,6 +11,7 @@ namespace Logmind.Runner
 
         static void Main(string[] args)
         {
+
             m_Ctrl = new ProcessController();
             m_Ctrl.Run();
 

@@ -10,7 +10,8 @@ namespace Logmind.Interfaces
 
     public interface ICommunicationChannel
     {
-        void Init(CommunicationConfig config);
+        void Init(BaseCommunicationConfig config);
+        void Send(byte[] packetData);
         void ShutDown();
 
         string Url { get; set; }

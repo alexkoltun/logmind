@@ -40,7 +40,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commander.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommandEngine\CommandEngine.csproj">
+      <Project>{9E42FC98-8D8C-4846-9ECC-AE10189173A9}</Project>
+      <Name>CommandEngine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CommunicationLayer\CommunicationLayer.csproj">
+      <Project>{A39E38C1-031D-4A3B-8727-4D1A437CE296}</Project>
+      <Name>CommunicationLayer</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Domain\Domain.csproj">
+      <Project>{DCB7A8D6-B631-401B-BEEE-190D3A1F226A}</Project>
+      <Name>Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Interfaces\Interfaces.csproj">
+      <Project>{AC91E578-E219-4E51-8D3E-27E543A87EF9}</Project>
+      <Name>Interfaces</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

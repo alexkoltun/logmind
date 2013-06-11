@@ -7,8 +7,8 @@ namespace Logmind.Domain.Config
 {
     public class ConfigurationHolder
     {
+        public GeneralConfig General { get; set; }
         public PostmanConfig PostMan { get; set; }
-        public CommunicationConfig Communicaiton { get; set; }
-
+        public BaseCommunicationConfig Communicaiton { get; set; }
     }
 }

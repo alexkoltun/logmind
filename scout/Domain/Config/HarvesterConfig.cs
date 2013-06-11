@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Domain;
 
-namespace Logmind.Domain
+namespace Logmind.Domain.Config
 {
-    public class Package<T> : Base
+    public class HarvesterConfig : BaseConfig
     {
         public string Id { get; set; }
         public string Type { get; set; }
 
-        public T Payload { get; set; }
+        public List<ConfigKey> Parameters { get; set; }
     }
 }
