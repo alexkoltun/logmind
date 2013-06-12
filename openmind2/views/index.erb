@@ -4,25 +4,8 @@
     <link rel="stylesheet" href="common/css/elasticjs.css">
     <link rel="stylesheet" href="common/css/timepicker.css">
 
-    <div class="inner-affix" data-spy="affix" data-offset-top="42">
-        <div class="navbar navbar-static-top">
-          <div class="navbar-inner">
-            <div class="container-fluid" style="background-color: #444444">
-              <div style="margin-top: 0px; float: right" ng-include="'panels/dashcontrol/module.html'"></div>
-              <span class="brand">{{dashboards.title}}</span>
-              <div class="brand"><i class='icon-edit pointer' ng-show='dashboards.editable' bs-modal="'partials/dasheditor.html'"></i></div>
-            </div>
-          </div>
-        </div>
-    </div>
 
-      <div class="span2" id=sidebar>
-        <!--div class="sidebar">
-           <!--%= erb :loginmenu, :locals => locals %>
-          <div id=fields></div>
-          <div id=analyze></div>
-        </div-->
-      </div>
+    <div style="margin-top: 0px; float: right; position: fixed; top: 5px; left: 45%; z-index: 10000;" ng-include="'panels/dashcontrol/module.html'"></div>
 
       <div>
 

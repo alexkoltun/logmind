@@ -34,9 +34,11 @@
 <div id="header" data-spy="affix" data-offset-top="77">
   <h1><a href="/">Logmind Dashboard</a></h1>
 
-    <div id="search">
-      <input type="text" placeholder="Search here..."/><button type="submit" class="tip-right" title="Search"><i class="icon-search icon-white"></i></button>
-    </div>
+  <span class="dashtitle">{{dashboards.title}}</span>
+
+  <!--div id="search">
+    <input type="text" placeholder="Search here..."/><button type="submit" class="tip-right" title="Search"><i class="icon-search icon-white"></i></button>
+  </div-->
     <div id="user-nav" class="navbar navbar-inverse">
       <ul class="nav btn-group">
         <li class="btn btn-inverse dropdown" id="top-menu-admin"><a title="" href="index.html#" data-toggle="dropdown" data-target="#top-menu-admin" class="dropdown-toggle"><i class="icon icon-user"></i> <span class="text"><%= locals[:username] %></span>&nbsp;&nbsp;<b class="caret"></b></a>
@@ -98,6 +100,8 @@
       <a href="widgets.html"><i class="icon icon-inbox"></i> <span>Widgets</span></a>
     </li>
   </ul>
+
+  <!--div style="margin-top: 500px;" ng-include="'panels/dynamicmenu/module.html'"></div-->
 
 </div>
 

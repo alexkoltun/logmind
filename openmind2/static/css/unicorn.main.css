@@ -51,6 +51,32 @@ a:hover {
     height: 42px;
 }
 
+.dashtitle {
+    position: fixed;
+    left: 219px;
+    font-size: 16pt;
+    font-weight: bold;
+    z-index: 10000;
+    border: 1px solid #777;
+    border-bottom: none;
+    border-radius: 24px 24px 0 0;
+    padding-right: 20px;
+    padding-top: 10px;
+    padding-bottom: 7px;
+    padding-left: 20px;
+    background-color: #eee;
+    color: #444;
+}
+
+.affix-top .dashtitle {
+    top: 40px;
+}
+
+.affix .dashtitle {
+    top: 5px;
+}
+
+
 #header {
     /*height: 77px;*/
     overflow: hidden;
@@ -298,7 +324,7 @@ a:hover {
 }
 
 .container-fluid .row-fluid:first-child {
-	margin-top: 20px;
+	/*OMER margin-top: 20px; */
 }
 /* Breadcrumb */
 #breadcrumb {
