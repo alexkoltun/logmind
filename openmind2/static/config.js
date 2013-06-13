@@ -21,6 +21,6 @@ var config = new Settings(
   openmind_index:     "openmind-int", 
   modules:          ['histogram','map','pie','table','stringquery','sort',
                     'timepicker','text','fields','hits','dashcontrol',
-                    'column','derivequeries', 'dashboards'],
+                    'column','derivequeries', 'dashboards', 'dynamicmenu'],
   }
 );

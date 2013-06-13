@@ -265,13 +265,15 @@ angular.module('openmind.table', [])
 })
 .filter('highlight', function() {
   return function(text) {
-    if (text.toString().length) {
-      return text.toString().
-        replace(/&/g, '&amp;').
-        replace(/</g, '&lt;').
-        replace(/>/g, '&gt;').
-        replace(/@start-highlight@/g, '<code class="highlight">').
-        replace(/@end-highlight@/g, '</code>')
+    if (text != undefined) {
+        if (text.toString().length) {
+          return text.toString().
+            replace(/&/g, '&amp;').
+            replace(/</g, '&lt;').
+            replace(/>/g, '&gt;').
+            replace(/@start-highlight@/g, '<code class="highlight">').
+            replace(/@end-highlight@/g, '</code>')
+        }
     }
     return '';
   }

@@ -1,0 +1,9 @@
+<ul has-header="false" ng-controller='dynamicmenu' id="dashboard-menu-list" class="collapse in" ng-init="init()" ng-bind-html-unsafe="generate_menu()">
+    <li ></li>
+    <!--label>{{generate_menu()}}</label-->
+    <!--label ng-init="menu_html=generate_menu();">{{menu_html}}</label>
+    <li><a href="/"><i class="icon icon-home"></i> <span>Default</span></a></li>
+    <li ng-show='panel.load.elasticsearch' ng-repeat="dashboard in elasticsearch.dashboards">
+        <a href="#/dashboard/elasticsearch/{{dashboard._id}}">{{dashboard._id}}</a>
+    </li-->
+</ul>

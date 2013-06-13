@@ -63,14 +63,12 @@
 </div>
 
 <div id="sidebar">
-
-  <a href="/" class="visible-phone"><i class="icon icon-home"></i> Dashboard</a>
-  <h5 style="margin-left: 15px;"><i class="icon-user icon-list"></i>&nbsp;&nbsp;<b>Menu</b><a style="float: right; margin-right: 10px;" class="icon icon-arrow-down" data-toggle="collapse" data-target="#dashboard-menu-list"></a></h5>
   <ul id="dashboard-menu-list" class="collapse in">
     <%= erb :loginmenu, :locals => locals %>
+
     <li class="active submenu">
       <a href="index.html"><i class="icon icon-home"></i> <span>Dashboards</span><i class="icon-chevron-down" style="float: right; margin-right: 20px;"></i></a>
-      <ul ng-include="'panels/dashboards/module.html'"></ul>
+      <ul ng-include="'panels/dynamicmenu/module.html'"></ul>
     </li>
     <li class="submenu">
       <a href="index.html#"><i class="icon icon-th-list"></i> <span>Form elements</span> <span class="label">3</span></a>
