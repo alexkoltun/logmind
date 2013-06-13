@@ -18,7 +18,12 @@
           <button class="btn" ng-click="get_data()"><i class="icon-search"></i></button>
         </form>
       </div>
+	<div class="span3">
+		<label class="small">Show Other</label><input type="checkbox" ng-model="panel.include_other" ng-checked="panel.include_other" ng-change="get_data()">
+	</div>
+
     </div>  
+
     <div class="row-fluid">
       <div class="span3">
         <label class="small">Length</label>

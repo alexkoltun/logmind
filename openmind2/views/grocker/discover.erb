@@ -1,0 +1,36 @@
+<div class="well">
+  <div class="control-group">
+    <div class="controls">
+      <form action="#" class="form-horizontal" id="grok-form">
+        <p>
+          <textarea id="input" rows="20" action="#" class="span12">
+          </textarea>
+          <button type="submit" class="btn btn-primary">Analyse</button>
+          <button type="button" class="btn btn-danger" id="resetall">Reset</button>
+        </p>
+      </form>
+    </div>
+  </div>
+  <div class="well">
+    <pre class="span9" id="grok"></pre>
+  </div>
+</div>
+
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+	var match = function() {
+		var input = $('#input').val();
+		$.post('/grocker/discover?#', {"input":input}, function(data){
+			$('#grok').text(data);
+		});
+	return 1;
+	};
+	$("#grok-form").submit(match);
+	$("#resetall").click(function () {
+		$("#input").val("");
+		$("#grok").text("");
+	});
+</script>

@@ -10,5 +10,7 @@ namespace Logmind.Domain.Config
     {
         public int SizeThreshold { get; set; }
         public int TimeThreshold { get; set; }
+
+        public List<HarvesterConfig> Harvesters { get; set; }
     }
 }

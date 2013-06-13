@@ -8,9 +8,9 @@ namespace Logmind.Interfaces
 {
     //public delegate void OnConfigurationReceived(object sender,);
 
-    public interface IConfigurationManager
+    public interface IConfigurationManager : IRunable
     {
         event EventHandler<ConfigEventArgs> ConfigurationReceived;
-        ConfigurationHolder GetConfiguration { get; }
+        ConfigurationHolder LastConfig { get; }
     }
 }

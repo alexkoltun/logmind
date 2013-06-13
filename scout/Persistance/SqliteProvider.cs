@@ -19,11 +19,15 @@ namespace Logmind.Persistance
 
         private const string DB_NAME = "scoutDb.db3";
         private const string CONN_TEMPLATE = "Data Source={0};FailIfMissing=False;Version=3";
-        private const string CREATE_SETTING_TABLE = "CREATE TABLE IF NOT EXISTS [SettingConfig]([Module] NVARCHAR(2048) NOT NULL ,[Key] NVARCHAR(2048) NOT NULL ,[Value] NVARCHAR(2048) NULL); CREATE UNIQUE INDEX pk_SettingConfig ON [SettingConfig] ([Module],[Key]);";
+        private const string CREATE_SETTING_TABLE = "CREATE TABLE IF NOT EXISTS [SettingConfig]([Module] NVARCHAR(100) NOT NULL ,[Key] NVARCHAR(255) NOT NULL ,[Value] NVARCHAR(2048) NULL); CREATE UNIQUE INDEX pk_SettingConfig ON [SettingConfig] ([Module],[Key]);";
         private const string INSERT_REPLACE = "INSERT OR REPLACE INTO [SettingConfig] ([Module],[Key],[Value]) VALUES ('{0}','{1}','{2}');";
-        private const string SELECT_MODULE_CONFIG = "SELECT * FROM [SettingConfig] WHERE [Module] = '{0}'";
+        private const string SELECT_MODULE_CONFIG = "SELECT * FROM [SettingConfig] WHERE [Module] = '{0}';";
+        private const string SELECT_SPECIFIC_KEY = "SELECT [Value] FROM [SettingConfig] WHERE [Module] = '{0}' AND [Key] = '{1}';";
+
         private const string VAL_COl_NAME = "Value";
         private const string KEY_COl_NAME = "Key";
+
+        //private SQLiteConnection m_Connection;
 
         private string GetDbFile()
         {
@@ -32,7 +36,7 @@ namespace Logmind.Persistance
             return Path.Combine(folder, DB_NAME);
         }
 
-        private SQLiteConnection m_Connection;
+        
 
         private SQLiteConnection GetConnection()
         {
@@ -48,48 +52,51 @@ namespace Logmind.Persistance
             {
                 SQLiteConnection.CreateFile(dbFile);
 
-                SQLiteCommand command = new SQLiteCommand(CREATE_SETTING_TABLE, m_Connection);
-                command.ExecuteNonQuery();
+                using (var con = GetConnection())
+                {
+                    SQLiteCommand command = new SQLiteCommand(CREATE_SETTING_TABLE, con);
+                    command.ExecuteNonQuery();
+                }
             }
         }
 
         public void Init()
         {
-            m_Connection = GetConnection();
-            m_Connection.Open();
-
             CreateDB();
         }
         public void Shutdown()
         {
-            if (m_Connection != null && m_Connection.State != System.Data.ConnectionState.Closed)
-            {
-                m_Connection.Close();
-                m_Connection = null;
-            }
+            //if (m_Connection != null && m_Connection.State != System.Data.ConnectionState.Closed)
+            //{
+            //    m_Connection.Close();
+            //    m_Connection = null;
+            //}
         }
 
         public void InsertOrUpdate(string module, string key, string val)
         {
-            // REVIEW by AK
-            // Do we handle thredy safety over here, m_Connection might be not thread safe (not sure if it is)
-            // If its no thread safe let's just avoid premature optimization and create a new connection each time we query, make sure to put it in useing() if you do
-            // Like that: using(SQLiteConnection conn = GetConnection()) { ... queries here ... }
-            
+          
             string sql = string.Format(INSERT_REPLACE, module, key, val);
 
-            SQLiteCommand command = new SQLiteCommand(sql, m_Connection);
-            command.ExecuteNonQuery();
+            using (var con = GetConnection())
+            {
+                con.Open();
+                SQLiteCommand command = new SQLiteCommand(sql, con);
+                command.ExecuteNonQuery();
+            }
         }
 
         public DataTable GetModuleKeys(string module)
         {
             string sql = string.Format(SELECT_MODULE_CONFIG,module);
-
-            SQLiteDataAdapter adapter = new SQLiteDataAdapter(sql,m_Connection);
-
             DataSet ds = new DataSet();
-            adapter.Fill(ds);
+
+            using (var con = GetConnection())
+            {
+                con.Open();
+                SQLiteDataAdapter adapter = new SQLiteDataAdapter(sql, con);
+                adapter.Fill(ds);
+            }
 
             // check that DB returned something..
             if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
@@ -97,10 +104,6 @@ namespace Logmind.Persistance
 
             return null;
         }
-
-
-        #region IPersistanceProvider Members
-
 
         public string ValueColumnName
         {
@@ -110,6 +113,28 @@ namespace Logmind.Persistance
         {
             get { return KEY_COl_NAME; }
         }
-        #endregion
+
+        public string GetModuleKey(string module, string key)
+        {
+            string sql = string.Format(SELECT_SPECIFIC_KEY, module,key);
+
+            using (var con = GetConnection())
+            {
+                con.Open();
+                SQLiteCommand command = new SQLiteCommand(sql, con);
+                var reader = command.ExecuteReader(CommandBehavior.SingleRow | CommandBehavior.SequentialAccess);
+
+                if (reader != null && reader.HasRows)
+                {
+                    var res = reader.GetString(0);
+
+                    reader.Close();
+                    return res;
+                }
+            }
+
+            return null;
+            
+        }
     }
 }

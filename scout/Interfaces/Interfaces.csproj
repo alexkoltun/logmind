@@ -40,9 +40,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ICommandAndControl.cs" />
     <Compile Include="ICommunicationChannel.cs" />
     <Compile Include="IConfigurationManager.cs" />
+    <Compile Include="IPersistence.cs" />
     <Compile Include="IPersistenceProvider.cs" />
+    <Compile Include="IRunable.cs" />
+    <Compile Include="IRunner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

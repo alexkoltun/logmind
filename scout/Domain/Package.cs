@@ -6,10 +6,11 @@ using Domain;
 
 namespace Logmind.Domain
 {
-    public class Package : Base
+    public class Package<T> : Base
     {
         public string Id { get; set; }
         public string Type { get; set; }
-        public byte[] Payload { get; set; }
+
+        public T Payload { get; set; }
     }
 }
