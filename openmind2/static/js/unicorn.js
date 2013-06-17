@@ -7,8 +7,8 @@ $(document).ready(function(){
 	
 	
 	// === Sidebar navigation === //
-	
-	$('.submenu > a').click(function(e)
+
+    $("#sidebar").on('click', '.submenu > .menulink', function(e)
 	{
 		e.preventDefault();
 		var submenu = $(this).siblings('ul');
@@ -39,7 +39,7 @@ $(document).ready(function(){
 	
 	var ul = $('#sidebar > ul');
 	
-	$('#sidebar > a').click(function(e)
+	$('#sidebar > .menulink').click(function(e)
 	{
 		e.preventDefault();
 		var sidebar = $('#sidebar');

@@ -62,7 +62,10 @@
     </div>
 </div>
 
-<div id="sidebar">
+<div id="sidebar" ng-include="'panels/dynamicmenu/module.html'"></div>
+
+<!-- Old Menu
+<div style="margin-top: 500px;" id="sidebar">
   <ul id="dashboard-menu-list" class="collapse in">
     <%= erb :loginmenu, :locals => locals %>
 
@@ -99,9 +102,7 @@
     </li>
   </ul>
 
-  <!--div style="margin-top: 500px;" ng-include="'panels/dynamicmenu/module.html'"></div-->
-
-</div>
+</div-->
 
 <div id="content" style="position: absolute; left: 0px; top: 78px; bottom: 0px; right: 0px; background-color: #eeeeee;">
   <div class="container-fluid">
