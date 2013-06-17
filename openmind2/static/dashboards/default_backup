@@ -62,7 +62,7 @@
     },
     {
       "title": "Graph",
-      "height": "150px",
+      "height": "350px",
       "editable": true,
       "collapse": false,
       "collapsable": true,
@@ -101,6 +101,29 @@
           "legend": true,
           "x-axis": true,
           "y-axis": true
+        },
+        {
+          "loading": false,
+          "span": 0,
+          "editable": true,
+          "group": [
+            "default"
+          ],
+          "type": "hits",
+          "query": [
+            {
+              "query": "*",
+              "label": "*"
+            }
+          ],
+          "style": {
+            "font-size": "9pt"
+          },
+          "aggregate": false,
+          "arrangement": "horizontal",
+          "chart": true,
+          "counters": true,
+          "count_pos": "above"
         }
       ]
     },

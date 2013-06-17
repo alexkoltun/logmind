@@ -8,7 +8,7 @@ angular.module('openmind.directives', [])
     restrict: 'E',
     link: function(scope, elem, attrs) {
       var template = "";
-      if (!attrs.hasHeader == "false") {
+      if (!(attrs.hasHeader == "false")) {
           template = '<img src="common/img/load.gif" class="panel-loading" ng-show="panel.loading == true">{{panel.title}}'+
               '<span class="editlink panelextra pointer" style="right:15px;top:0px" bs-modal="\'partials/paneleditor.html\'" ng-show="panel.editable != false">'+
               '<span class="small">{{panel.type}}</span> <i class="icon-edit pointer"></i>'+

@@ -34,9 +34,11 @@
 <div id="header" data-spy="affix" data-offset-top="77">
   <h1><a href="/">Logmind Dashboard</a></h1>
 
-    <div id="search">
-      <input type="text" placeholder="Search here..."/><button type="submit" class="tip-right" title="Search"><i class="icon-search icon-white"></i></button>
-    </div>
+  <span class="dashtitle">{{dashboards.title}}</span>
+
+  <!--div id="search">
+    <input type="text" placeholder="Search here..."/><button type="submit" class="tip-right" title="Search"><i class="icon-search icon-white"></i></button>
+  </div-->
     <div id="user-nav" class="navbar navbar-inverse">
       <ul class="nav btn-group">
         <li class="btn btn-inverse dropdown" id="top-menu-admin"><a title="" href="index.html#" data-toggle="dropdown" data-target="#top-menu-admin" class="dropdown-toggle"><i class="icon icon-user"></i> <span class="text"><%= locals[:username] %></span>&nbsp;&nbsp;<b class="caret"></b></a>
@@ -60,15 +62,16 @@
     </div>
 </div>
 
-<div id="sidebar">
+<div id="sidebar" ng-include="'panels/dynamicmenu/module.html'"></div>
 
-  <a href="/" class="visible-phone"><i class="icon icon-home"></i> Dashboard</a>
-  <h5 style="margin-left: 15px;"><i class="icon-user icon-list"></i>&nbsp;&nbsp;<b>Menu</b><a style="float: right; margin-right: 10px;" class="icon icon-arrow-down" data-toggle="collapse" data-target="#dashboard-menu-list"></a></h5>
+<!-- Old Menu
+<div style="margin-top: 500px;" id="sidebar">
   <ul id="dashboard-menu-list" class="collapse in">
     <%= erb :loginmenu, :locals => locals %>
+
     <li class="active submenu">
       <a href="index.html"><i class="icon icon-home"></i> <span>Dashboards</span><i class="icon-chevron-down" style="float: right; margin-right: 20px;"></i></a>
-      <ul ng-include="'panels/dashboards/module.html'"></ul>
+      <ul ng-include="'panels/dynamicmenu/module.html'"></ul>
     </li>
     <li class="submenu">
       <a href="index.html#"><i class="icon icon-th-list"></i> <span>Form elements</span> <span class="label">3</span></a>
@@ -99,7 +102,7 @@
     </li>
   </ul>
 
-</div>
+</div-->
 
 <div id="content" style="position: absolute; left: 0px; top: 78px; bottom: 0px; right: 0px; background-color: #eeeeee;">
   <div class="container-fluid">

@@ -8,6 +8,7 @@ require 'yaml'
 require 'tzinfo'
 require 'grok-pure'
 require 'find'
+require 'curl'
 
 $LOAD_PATH << '.'
 $LOAD_PATH << './lib'

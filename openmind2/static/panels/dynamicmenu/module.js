@@ -27,15 +27,12 @@
 
 */
 
-angular.module('openmind.dashcontrol', [])
-.controller('dashcontrol', function($scope, $routeParams, $http, eventBus, timer) {
+angular.module('openmind.dynamicmenu', [])
+.controller('dynamicmenu', function($scope, $routeParams, $http, eventBus, timer) {
   $scope.panel = $scope.panel || {};
   // Set and populate defaults
   var _d = {
     group   : "default",
-    new: {
-      new: true
-    },
     save : {
       gist: false,
       elasticsearch: true,
@@ -43,7 +40,7 @@ angular.module('openmind.dashcontrol', [])
       'default': true
     },
     load : {
-      gist: false,
+      gist: true,
       elasticsearch: true,
       local: true
     },
@@ -62,7 +59,130 @@ angular.module('openmind.dashcontrol', [])
     rows: []
   }
 
+    var _default_menu = [
+        {
+            title: "Home",
+            type: "static",
+            link: "/",
+            icon: "icon-home"
+        },
+        {
+            title: "<span style='font-weight: bold;'>{{ userinfo.username }}</span>",
+            type: "container",
+            icon: "icon-user icon-large",
+            items: [
+                {
+                    title: "User Administration",
+                    type: "static",
+                    link: "/admin",
+                    icon: "icon-user",
+                    tags: ["admin"]
+                },
+                {
+                    title: "Last Events",
+                    type: "static",
+                    link: "/lastevents",
+                    icon: "icon-time",
+                    tags: ["admin"]
+                },
+                {
+                    title: "Live Indices",
+                    type: "static",
+                    link: "/indiceslist",
+                    icon: "icon-eye-open",
+                    tags: ["admin"]
+                },
+                {
+                    title: "Archived Indices",
+                    type: "static",
+                    link: "/archivedlist",
+                    icon: "icon-eye-close",
+                    tags: ["admin"]
+                },
+                {
+                    title: "(Logout)",
+                    type: "static",
+                    link: "/auth/logout",
+                    icon: "icon-off",
+                    tags: ["admin"]
+                }
+            ]
+        },
+        {
+            title: "Dashboards",
+            type: "container",
+            icon: "icon-th-large",
+            items: [
+                {
+                    title: "Default",
+                    type: "static",
+                    link: "/",
+                    icon: "icon-home"
+                },
+                {
+                    type: "dynamic",
+                    icon: "icon-star",
+                    link_base: "/#/dashboard/elasticsearch/",
+                    title_column: "_id",
+                    link_column: "_id",
+                    es_index: "openmind-int",
+                    es_type: "dashboard",
+                    es_query: "*"
+                }
+            ]
+        }
+    ]
+
+
+  $scope._menu = null;
+
+  $scope.userinfo = {
+      username: "this is user"
+  };
+
+
+  $scope.load_dynamic_data = function(item) {
+
+      if (item.type === "container") {
+          // Items
+          $.each(item.items, function() {
+              $scope.load_dynamic_data(this);
+          });
+
+      } else if (item.type === "dynamic") {
+          var res = $scope.ejs.Request().indices(item.es_index).types(item.es_type).query(
+              $scope.ejs.QueryStringQuery(item.es_query)).doSearch();
+
+          res.then(function(res) {
+              if(_.isUndefined(res.hits)) {
+                  return;
+              }
+              item.items = res.hits.hits;
+          });
+      }
+  }
+
   $scope.init = function() {
+
+    $scope.ejs.Document("logmind-management", "openmind-menu", "default").doGet(function(a) {
+        if (!a.exists) {
+            a = $scope.ejs.Document("logmind-management", "openmind-menu", "default").source({
+                name: "default",
+                tags: ["tag1, tag2"],
+                menu_json: angular.toJson(_default_menu)
+            }).doIndex();
+        }
+
+        $scope._menu = angular.fromJson(a._source.menu_json);
+
+        // Loading dynamic data.
+        $.each($scope._menu, function() {
+            $scope.load_dynamic_data(this);
+        });
+    });
+    //var menu_obj = $scope.ejs.Request().query($scope.ejs.QueryStringQuery("/logmind-management/openmind-menu/default")).doSearch();
+
+    $scope.elasticsearch_dblist("")
     // Long ugly if statement for figuring out which dashboard to load on init
     // If there is no dashboard defined, find one
     if(_.isUndefined($scope.dashboards)) {
@@ -153,24 +273,6 @@ angular.module('openmind.dashcontrol', [])
     }).error(function(data, status, headers, config) {
       $scope.alert('Default dashboard missing!','Could not locate dashboards/'+file,'error')
     });
-  }
-
-  $scope.new_dashboard = function(title) {
-    $http({
-        url: "dashboards/default",
-        method: "GET"
-    }).success(function(data, status, headers, config) {
-            var dashboard = data
-            _.defaults(dashboard,_dash);
-
-            if ((title != undefined) && (title != "")) {
-                dashboard.title = title;
-            }
-
-            $scope.dash_load(JSON.stringify(dashboard))
-        }).error(function(data, status, headers, config) {
-            $scope.alert('Default dashboard missing!','Could not locate dashboards/'+file,'error')
-        });
   }
 
   $scope.elasticsearch_save = function(type) {
@@ -311,7 +413,72 @@ angular.module('openmind.dashcontrol', [])
       return false
   }
 })
-.directive('dashUpload', function(timer, eventBus){
+.directive("dynmenu", function($compile) {
+    return {
+        restrict: 'EA',
+        link: function (scope, element, attrs) {
+            scope.$watch('_menu', function(menu) {
+                if (menu) {
+                    scope.render_menu();
+                }
+            }, true);
+
+            scope.generate_menu = function() {
+
+                if (scope._menu == null) {
+                    return "";
+                }
+
+                var ret = "";
+                $.each(scope._menu, function() {
+                    if (this.type != undefined) {
+                        ret += scope.generate_sub(this);
+                    }
+                });
+
+                return ret;
+            }
+
+            scope.generate_sub = function(item) {
+                var ret = "";
+                if (item.type === "container") {
+                    ret = "<li class=\"submenu\">"
+                    ret += "<a class='menulink' href=\"#\"><i class=\"icon " + item.icon + "\"></i> <span>" + item.title + "</span><i class=\"icon-chevron-down\" style=\"float: right; margin-right: 20px;\"></i></a>";
+                    ret += "<ul>";
+
+                    // Items
+                    $.each(item.items, function() {
+                        ret += scope.generate_sub(this);
+                    });
+
+                    ret += "</ul></li>"
+
+                } else if (item.type === "static") {
+                    ret += "<li><a class='menulink' href=\"" + item.link + "\"><i class=\"icon " + item.icon + "\"></i> <span>" + item.title + "</span></a></li>";
+
+                } else if (item.type === "dynamic") {
+                    if (item.items != undefined) {
+                        $.each(item.items, function() {
+                            ret += "<li><a class='menulink' href=\"" + item.link_base + this[item.link_column] + "\"><i class=\"icon " + item.icon + "\"></i> <span>" + this[item.title_column] + "</span></a></li>";
+                        });
+                    }
+                }
+
+                return ret;
+            }
+
+            scope.render_menu = function() {
+                var template = scope.generate_menu();
+                var newElement = angular.element(template);
+                $compile(newElement)(scope);
+                element.html("").append(newElement);
+            }
+
+            scope.render_menu();
+        }
+    }
+})
+    .directive('dashUpload', function(timer, eventBus){
   return {
     restrict: 'A',
     link: function(scope, elem, attrs) {
@@ -341,7 +508,8 @@ angular.module('openmind.dashcontrol', [])
       }
     }
   }
-}).filter('gistid', function() {
+})
+    .filter('gistid', function() {
     var gist_pattern = /(\d{5,})|([a-z0-9]{10,})|(gist.github.com(\/*.*)\/[a-z0-9]{5,}\/*$)/;
     return function(input, scope) {
         //return input+"boners"
