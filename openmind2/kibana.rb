@@ -837,6 +837,7 @@ get '/grocker' do
   locals[:current_content] = "grocker"
   locals[:grocker_template] = :'grocker/index'
   locals[:pathtobase] = "../"
+  locals[:header_title] = "Message Parsing Editor"
   erb :main, :locals => locals
 end
 
@@ -917,6 +918,7 @@ get '/grocker/discover' do
   locals[:internal_content] = true
   locals[:current_content] = "grocker"
   locals[:grocker_template] = :'grocker/discover'
+  locals[:header_title] = "Message Parsing Editor"
   erb :main, :locals => locals
 end
 
@@ -926,6 +928,7 @@ get '/grocker/analysis' do
   locals[:internal_content] = true
   locals[:current_content] = "grocker"
   locals[:grocker_template] = :'grocker/analysis'
+  locals[:header_title] = "Message Parsing Editor"
   erb :main, :locals => locals
 end
 
@@ -936,6 +939,7 @@ get '/grocker/patterns' do
   locals[:internal_content] = true
   locals[:current_content] = "grocker"
   locals[:grocker_template] = :'grocker/patterns'
+  locals[:header_title] = "Message Parsing Editor"
   erb :main, :locals => locals
 
 end

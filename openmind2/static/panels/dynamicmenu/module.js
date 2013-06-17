@@ -130,6 +130,12 @@ angular.module('openmind.dynamicmenu', [])
                     es_query: "*"
                 }
             ]
+        },
+        {
+            title: "Message Parsing Editor",
+            type: "static",
+            link: "/grocker",
+            icon: "icon-certificate"
         }
     ]
 
