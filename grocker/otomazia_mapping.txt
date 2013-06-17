@@ -1,72 +1,84 @@
-curl -XPUT 'http://localhost:9200/kimchy,elasticsearch/tweet/_mapping' -d '
-         { "lm-syslog" : {
-            "properties" : {
-              "@fields" : {
-                "dynamic" : "true",
-                "properties" : {
-                  "syslog_facility_code" : {
-                    "type" : "long"
-                  },
-                  "received_at" : {
-                    "format" : "dateOptionalTime",
-                    "type" : "date"
-                  },
-                  "syslog_severity" : {
+curl -XPUT localhost:9200/_template/logmind_logs -d '
+{
+    "template" : "logstash*",
+    "settings" : {
+        "number_of_shards" : 1
+    },
+    "mappings" : {
+
+		"lm-syslog" : {
+				"properties" : {
+				  "@fields" : {
+					"dynamic" : "true",
+					"properties" : {
+					  "syslog_facility_code" : {
+						"type" : "long"
+					  },
+					  "received_at" : {
+						"format" : "dateOptionalTime",
+						"type" : "date"
+					  },
+					  "syslog_severity" : {
+						"index" : "not_analyzed",
+						"type" : "string"
+					  },
+					  "syslog_pri" : {
+						"index" : "not_analyzed",
+						"type" : "string"
+					  },
+					  "syslog_facility" : {
+						"index" : "not_analyzed",
+						"type" : "string"
+					  },
+					  "syslog_severity_code" : {
+						"type" : "long"
+					  },
+ 					  "source_name" : {
+						"index" : "not_analyzed",
+						"type" : "string"
+					  },
+					  "src" : {
+						"type" : "ip"
+					  },
+					  "dst" : {
+						"type" : "ip"
+					  },
+					  "received_from" : {
+						"index" : "not_analyzed",
+						"type" : "string"
+					  }
+					}
+				  },
+				  "@timestamp" : {
+					"format" : "dateOptionalTime",
+					"type" : "date"
+				  },
+				  "@message" : {
 					"index" : "not_analyzed",
-                    "type" : "string"
-                  },
-                  "syslog_pri" : {
+					"type" : "string"
+				  },
+				  "@source" : {
 					"index" : "not_analyzed",
-                    "type" : "string"
-                  },
-                  "syslog_facility" : {
+					"type" : "string"
+				  },
+				  "@type" : {
 					"index" : "not_analyzed",
-                    "type" : "string"
-                  },
-                  "syslog_severity_code" : {
-                    "type" : "long"
-                  },
-                  "src" : {
-                    "type" : "ip"
-                  },
-                  "dst" : {
-                    "type" : "ip"
-                  },
-                  "received_from" : {
+					"type" : "string"
+				  },
+				  "@tags" : {
 					"index" : "not_analyzed",
-                    "type" : "string"
-                  }
-                }
-              },
-              "@timestamp" : {
-                "format" : "dateOptionalTime",
-                "type" : "date"
-              },
-              "@message" : {
-				"index" : "not_analyzed",
-                "type" : "string"
-              },
-              "@source" : {
-				"index" : "not_analyzed",
-                "type" : "string"
-              },
-              "@type" : {
-				"index" : "not_analyzed",
-                "type" : "string"
-              },
-              "@tags" : {
-				"index" : "not_analyzed",
-                "type" : "string"
-              },
-              "@source_host" : {
-				"index" : "not_analyzed",
-                "type" : "string"
-              },
-              "@source_path" : {
-			    "index" : "not_analyzed",
-                "type" : "string"
-              }
-            }
-		} }
-		'
+					"type" : "string"
+				  },
+				  "@source_host" : {
+					"index" : "not_analyzed",
+					"type" : "string"
+				  },
+				  "@source_path" : {
+					"index" : "not_analyzed",
+					"type" : "string"
+				  }
+				}
+			} 
+		}
+	}'
           
