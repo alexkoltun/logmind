@@ -34,7 +34,8 @@
 <div id="header" data-spy="affix" data-offset-top="77">
   <h1><a href="/">Logmind Dashboard</a></h1>
 
-  <span class="dashtitle">{{dashboards.title}}</span>
+  <span class="dashtitle" ng-include="'panels/dashcontrol/module.html'">
+  </span>
 
   <!--div id="search">
     <input type="text" placeholder="Search here..."/><button type="submit" class="tip-right" title="Search"><i class="icon-search icon-white"></i></button>
