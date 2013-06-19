@@ -1724,17 +1724,17 @@ form {
 .btn-dash-menu {
     color: #ffffff;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-    background-color: #49afcd;
-    background-image: -moz-linear-gradient(top, #5bc0de, #2f96b4);
-    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#5bc0de), to(#2f96b4));
-    background-image: -webkit-linear-gradient(top, #5bc0de, #2f96b4);
-    background-image: -o-linear-gradient(top, #5bc0de, #2f96b4);
-    background-image: linear-gradient(to bottom, #5bc0de, #2f96b4);
+    background-color: #449900;
+    background-image: -moz-linear-gradient(top, #55bb11, #559933);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#55bb11), to(#559933));
+    background-image: -webkit-linear-gradient(top, #55bb11, #559933);
+    background-image: -o-linear-gradient(top, #55bb11, #559933);
+    background-image: linear-gradient(to bottom, #55bb11, #559933);
     background-repeat: repeat-x;
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff5bc0de', endColorstr='#ff2f96b4', GradientType=0);
-    border-color: #2f96b4 #2f96b4 #1f6377;
+    border-color: #559933 #559933 #228844;
     border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-    *background-color: #2f96b4;
+    *background-color: #559933;
     /* Darken IE7 buttons by default so they stand out more given they won't have borders */
 
     filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
@@ -1745,10 +1745,18 @@ form {
 .btn-dash-menu.disabled,
 .btn-dash-menu[disabled] {
     color: #ffffff;
-    background-color: #2f96b4;
-    *background-color: #2a85a0;
+    background-color: #559933;
+    *background-color: #55bb44;
 }
 .btn-dash-menu:active,
 .btn-dash-menu.active {
-    background-color: #24748c \9;
+    background-color: #228844;
+}
+
+.btn .caret {
+    border-top: 4px solid #ffffff;
+}
+
+[class^="icon-"],[class*=" icon-"] {
+    background-image:url("../img/glyphicons-halflings-white.png");
 }
