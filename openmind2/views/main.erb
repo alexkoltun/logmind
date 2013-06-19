@@ -34,14 +34,16 @@
 <div id="header" data-spy="affix" data-offset-top="77">
   <h1><a href="/">Logmind Dashboard</a></h1>
 
-  <span class="dashtitle" ng-include="'panels/dashcontrol/module.html'">
+  <span style="display: none;" class="dashtitle" ng-include="'panels/dashcontrol/module.html'">
   </span>
 
   <!--div id="search">
     <input type="text" placeholder="Search here..."/><button type="submit" class="tip-right" title="Search"><i class="icon-search icon-white"></i></button>
   </div-->
-    <div id="user-nav" class="navbar navbar-inverse">
-      <ul class="nav btn-group">
+  <span style="position: absolute; right: 10px; top: 50px; font-size: 8px; color: #999;">Version 7.1</span>
+
+  <div id="user-nav" class="navbar navbar-inverse" ng-include="'panels/dynamictopmenu/module.html'">
+      <!--ul class="nav btn-group">
         <li class="btn btn-inverse dropdown" id="top-menu-admin"><a title="" href="index.html#" data-toggle="dropdown" data-target="#top-menu-admin" class="dropdown-toggle"><i class="icon icon-user"></i> <span class="text"><%= locals[:username] %></span>&nbsp;&nbsp;<b class="caret"></b></a>
         <ul class="dropdown-menu">
           <% if locals[:is_admin] %>
@@ -59,7 +61,7 @@
         </li>
         <li class="btn btn-inverse"><a title="" href="index.html#"><i class="icon icon-cog"></i> <span class="text">Settings</span></a></li>
         <li class="btn btn-inverse"><a title="" href="/auth/logout"><i class="icon icon-share-alt"></i> <span class="text">Logout</span></a></li>
-      </ul>
+      </ul-->
     </div>
 </div>
 
