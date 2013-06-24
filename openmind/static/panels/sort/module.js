@@ -25,6 +25,7 @@ angular.module('openmind.sort', [])
 
   // Set and populate defaults
   var _d = {
+    status  : "Stable",
     label   : "Sort",
     sort    : ['_score','desc'],
     group   : "default"

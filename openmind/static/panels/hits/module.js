@@ -26,6 +26,7 @@ angular.module('openmind.hits', [])
 
   // Set and populate defaults
   var _d = {
+    status  : "Experimental",
     query   : ["*"],
     group   : "default",
     style   : { "font-size": '10pt'},
@@ -141,6 +142,17 @@ angular.module('openmind.hits', [])
     $scope.get_data();
   }
 
+  $scope.set_refresh = function (state) { 
+    $scope.refresh = state; 
+  }
+
+  $scope.close_edit = function() {
+    if($scope.refresh)
+      $scope.get_data();
+    $scope.refresh =  false;
+    $scope.$emit('render');
+  }
+
   function set_time(time) {
     $scope.time = time;
     $scope.index = _.isUndefined(time.index) ? $scope.index : time.index
@@ -165,7 +177,7 @@ angular.module('openmind.hits', [])
       // Function for rendering panel
       function render_panel() {
 
-        var scripts = $LAB.script("common/lib/panels/jquery.flot.js")
+        var scripts = $LAB.script("common/lib/panels/jquery.flot.js").wait()
                           .script("common/lib/panels/jquery.flot.pie.js")
 
         // Populate element.
@@ -204,6 +216,10 @@ angular.module('openmind.hits', [])
                     combine: {
                       color: '#999',
                       label: 'The Rest'
+                    },
+                    stroke: {
+                      color: '#fff',
+                      width: 0
                     },
                     label: { 
                       show: scope.panel.labels,
@@ -244,12 +260,11 @@ angular.module('openmind.hits', [])
           top     : y + 5,
           left    : x + 5,
           color   : "#000",
-          border  : '2px solid #000',
           padding : '10px',
           'font-size': '11pt',
           'font-weight' : 200,
           'background-color': '#FFF',
-          'border-radius': '10px',
+          'border-radius': '5px',
         }).appendTo("body");
       }
 

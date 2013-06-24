@@ -22,6 +22,7 @@ angular.module('openmind.fields', [])
 
   // Set and populate defaults
   var _d = {
+    status  : "Experimental",
     group   : "default",
     style   : {},
     arrange : 'vertical',

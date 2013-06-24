@@ -28,10 +28,11 @@
 */
 
 angular.module('openmind.timepicker', [])
-.controller('timepicker', function($scope, eventBus, $timeout, timer, $http) {
+.controller('timepicker', function($scope, eventBus, $timeout, timer, $http, kbnIndex) {
 
   // Set and populate defaults
   var _d = {
+    status        : "Stable",
     mode          : "relative",
     time_options  : ['5m','15m','1h','6h','12h','24h','2d','7d','30d'],
     timespan      : '15m',
@@ -39,9 +40,10 @@ angular.module('openmind.timepicker', [])
     index         : '_all',
     defaultindex  : "_all",
     index_interval: "none",
+    timeformat    : "",
     group         : "default",
     refresh       : {
-      enable  : false,
+      enable  : false, 
       interval: 30,
       min     : 3
     }
@@ -52,68 +54,68 @@ angular.module('openmind.timepicker', [])
     $scope.panel.group : [$scope.panel.group];
 
   $scope.init = function() {
-      // Private refresh interval that we can use for view display without causing
-      // unnecessary refreshes during changes
-      $scope.refresh_interval = $scope.panel.refresh.interval
+    // Private refresh interval that we can use for view display without causing
+    // unnecessary refreshes during changes
+    $scope.refresh_interval = $scope.panel.refresh.interval
 
-      // Init a private time object with Date() objects depending on mode
-      switch($scope.panel.mode) {
-          case 'absolute':
-              $scope.time = {
-                  from : new Date(Date.parse($scope.panel.time.from)) || time_ago($scope.panel.timespan),
-                  to   : new Date(Date.parse($scope.panel.time.to)) || new Date()
-              }
-              break;
-          case 'since':
-              $scope.time = {
-                  from : new Date(Date.parse($scope.panel.time.from)) || time_ago($scope.panel.timespan),
-                  to   : new Date() || new Date()
-              }
-              break;
-          case 'relative':
-              $scope.time = {
-                  from : time_ago($scope.panel.timespan),
-                  to   : new Date()
-              }
-              break;
-      }
-      $scope.time.field = $scope.panel.timefield;
+    // Init a private time object with Date() objects depending on mode
+    switch($scope.panel.mode) {
+      case 'absolute':
+        $scope.time = {
+          from : moment($scope.panel.time.from,'MM/DD/YYYY HH:mm:ss') || moment(time_ago($scope.panel.timespan)),
+          to   : moment($scope.panel.time.to,'MM/DD/YYYY HH:mm:ss') || moment()
+        }
+        break;
+      case 'since':
+        $scope.time = {
+          from : moment($scope.panel.time.from,'MM/DD/YYYY HH:mm:ss') || moment(time_ago($scope.panel.timespan)),
+          to   : moment()
+        }
+        break;
+      case 'relative':
+        $scope.time = {
+          from : moment(time_ago($scope.panel.timespan)),
+          to   : moment()
+        }
+        break;
+    }
+    $scope.time.field = $scope.panel.timefield;
+    $scope.time_apply();
+
+    // Start refresh timer if enabled
+    if ($scope.panel.refresh.enable)
+      $scope.set_interval($scope.panel.refresh.interval);
+
+    // In the case that a panel is not ready to receive a time event, it may
+    // request one be sent by broadcasting a 'get_time' with its _id to its group
+    // This panel can handle multiple groups
+    eventBus.register($scope,"get_time", function(event,id) {
+      eventBus.broadcast($scope.$id,id,'time',compile_time($scope.time))
+    });
+
+    // In case some other panel broadcasts a time, set us to an absolute range
+    eventBus.register($scope,"set_time", function(event,time) {
+      $scope.panel.mode = 'absolute';
+      set_timepicker(moment(time.from),moment(time.to))
+      $scope.time_apply()
+    });
+    
+    eventBus.register($scope,"zoom", function(event,factor) {
+      var _timespan = ($scope.time.to.valueOf() - $scope.time.from.valueOf());
+      try {
+        if($scope.panel.mode != 'absolute') {
+          $scope.panel.mode = 'since'
+          set_timepicker(moment($scope.time.to.valueOf() - _timespan*factor),$scope.time.to)
+        } else {
+          var _center = $scope.time.to.valueOf() - _timespan/2
+          set_timepicker(moment(_center - (_timespan*factor)/2),
+                         moment(_center + (_timespan*factor)/2))        
+        }
+      } catch (e) {
+        console.log(e)
+      }     
       $scope.time_apply();
-
-      // Start refresh timer if enabled
-      if ($scope.panel.refresh.enable)
-          $scope.set_interval($scope.panel.refresh.interval);
-
-      // In the case that a panel is not ready to receive a time event, it may
-      // request one be sent by broadcasting a 'get_time' with its _id to its group
-      // This panel can handle multiple groups
-      eventBus.register($scope,"get_time", function(event,id) {
-          eventBus.broadcast($scope.$id,id,'time',$scope.time)
-      });
-
-      // In case some other panel broadcasts a time, set us to an absolute range
-      eventBus.register($scope,"set_time", function(event,time) {
-          $scope.panel.mode = 'absolute';
-          set_timepicker(time.from,time.to)
-          $scope.time_apply()
-      });
-
-      eventBus.register($scope,"zoom", function(event,factor) {
-          var _timespan = ($scope.time.to.getTime() - $scope.time.from.getTime());
-          try {
-              if($scope.panel.mode != 'absolute') {
-                  $scope.panel.mode = 'since'
-                  set_timepicker(new Date($scope.time.to.getTime() - _timespan*factor),$scope.time.to)
-              } else {
-                  var _center = $scope.time.to - _timespan/2
-                  set_timepicker(new Date(_center - (_timespan*factor)/2),
-                      new Date(_center + (_timespan*factor)/2))
-              }
-          } catch (e) {
-              console.log(e)
-          }
-          $scope.time_apply();
-      });
+    });
   }
 
   $scope.set_interval = function (refresh_interval) {
@@ -152,16 +154,16 @@ angular.module('openmind.timepicker', [])
 
   $scope.to_now = function() {
     $scope.timepicker.to = {
-      time : new Date().format("HH:MM:ss"),
-      date : new Date().format("mm/dd/yyyy")
+      time : moment().format("HH:mm:ss"),
+      date : moment().format("MM/DD/YYYY")
     }
   }
 
   $scope.set_timespan = function(timespan) {
     $scope.panel.timespan = timespan;
     $scope.timepicker.from = {
-      time : time_ago(timespan).format("HH:MM:ss"),
-      date : time_ago(timespan).format("mm/dd/yyyy")
+      time : moment(time_ago(timespan)).format("HH:mm:ss"),
+      date : moment(time_ago(timespan)).format("MM/DD/YYYY")
     }
     $scope.time_apply();
   }
@@ -172,22 +174,22 @@ angular.module('openmind.timepicker', [])
 
   // 
   $scope.time_calc = function(){
-    // If time picker is defined (on initialization)
+    // If time picker is defined (usually is)
     if(!(_.isUndefined($scope.timepicker))) {
-      var from = $scope.panel.mode === 'relative' ? time_ago($scope.panel.timespan) :
-        new Date(Date.parse($scope.timepicker.from.date + " " + $scope.timepicker.from.time))
-      var to = $scope.panel.mode !== 'absolute' ? new Date() :
-        new Date(Date.parse($scope.timepicker.to.date + " " + $scope.timepicker.to.time))
-    // Otherwise 
+      var from = $scope.panel.mode === 'relative' ? moment(time_ago($scope.panel.timespan)) :
+        moment($scope.timepicker.from.date + " " + $scope.timepicker.from.time,'MM/DD/YYYY HH:mm:ss')
+      var to = $scope.panel.mode !== 'absolute' ? moment() :
+        moment($scope.timepicker.to.date + " " + $scope.timepicker.to.time,'MM/DD/YYYY HH:mm:ss')
+    // Otherwise (probably initialization)
     } else {
-      var from = $scope.panel.mode === 'relative' ? time_ago($scope.panel.timespan) :
+      var from = $scope.panel.mode === 'relative' ? moment(time_ago($scope.panel.timespan)) :
         $scope.time.from;
-      var to = $scope.panel.mode !== 'absolute' ? new Date() :
+      var to = $scope.panel.mode !== 'absolute' ? moment() :
         $scope.time.to;
     }
 
-    if (from.getTime() >= to.getTime())
-      from = new Date(to.getTime() - 1000)
+    if (from.valueOf() >= to.valueOf())
+      from = moment(to.valueOf() - 1000)
 
     $timeout(function(){
       set_timepicker(from,to)
@@ -199,7 +201,8 @@ angular.module('openmind.timepicker', [])
     };
   }
 
-  $scope.time_apply = function() {      
+  $scope.time_apply = function() {   
+    $scope.panel.error = "";   
     // Update internal time object
     $scope.time = $scope.time_calc();
     $scope.time.field = $scope.panel.timefield
@@ -207,13 +210,21 @@ angular.module('openmind.timepicker', [])
     // Get indices for the time period, then broadcast time range and index list
     // in a single object. Not sure if I like this.
     if($scope.panel.index_interval !== 'none') {
-      indices($scope.time.from,$scope.time.to).then(function (p) {
-        $scope.time.index = p;
-        eventBus.broadcast($scope.$id,$scope.panel.group,'time',$scope.time)
+      kbnIndex.indices($scope.time.from,
+        $scope.time.to,
+        $scope.panel.index,
+        $scope.panel.index_interval
+      ).then(function (p) {
+        if(p.length > 0) {
+          $scope.time.index = p;
+          eventBus.broadcast($scope.$id,$scope.panel.group,'time',compile_time($scope.time))
+        } else {
+          $scope.panel.error = "Could not match index pattern to any ElasticSearch indices"
+        }
       });
     } else {
       $scope.time.index = [$scope.panel.index];
-      eventBus.broadcast($scope.$id,$scope.panel.group,'time',$scope.time)
+      eventBus.broadcast($scope.$id,$scope.panel.group,'time',compile_time($scope.time))
     }
 
     // Update panel's string representation of the time object.Don't update if
@@ -221,8 +232,8 @@ angular.module('openmind.timepicker', [])
     // json for relative periods
     if($scope.panel.mode !== 'relative') {
       $scope.panel.time = { 
-        from : $scope.time.from.format("mm/dd/yyyy HH:MM:ss"),
-        to : $scope.time.to.format("mm/dd/yyyy HH:MM:ss"),
+        from : $scope.time.from.format("MM/DD/YYYY HH:mm:ss"),
+        to : $scope.time.to.format("MM/DD/YYYY HH:mm:ss"),
         index : $scope.time.index,
       };
     } else {
@@ -230,92 +241,28 @@ angular.module('openmind.timepicker', [])
     }
   };
 
+  // Prefer to pass around Date() objects in the EventBus since interacting with
+  // moment objects in libraries that are expecting Date()s can be tricky
+  function compile_time(time) {
+    time = _.clone(time)
+    time.from = time.from.toDate()
+    time.to   = time.to.toDate()
+    time.interval = $scope.panel.index_interval
+    time.pattern = $scope.panel.index 
+    return time;
+  }
+
   function set_timepicker(from,to) {
     // Janky 0s timeout to get around $scope queue processing view issue
     $scope.timepicker = {
       from : {
-        time : from.format("HH:MM:ss"),
-        date : from.format("mm/dd/yyyy")
+        time : from.format("HH:mm:ss"),
+        date : from.format("MM/DD/YYYY")
       },
       to : {
-        time : to.format("HH:MM:ss"),
-        date : to.format("mm/dd/yyyy")
+        time : to.format("HH:mm:ss"),
+        date : to.format("MM/DD/YYYY")
       } 
-    }
-  }
-
-  // returns a promise containing an array of all indices matching the index
-  // pattern that exist in a given range
-  function indices(from,to) {
-    var possible = [];
-    _.each(expand_range(fake_utc(from),fake_utc(to),$scope.panel.index_interval),function(d){
-      possible.push(d.format($scope.panel.index));
-    });
-
-    return all_indices().then(function(p) {
-      var indices = _.intersection(possible,p);
-      indices.reverse();
-      return indices.length == 0 ? [$scope.panel.defaultindex] : indices;
-    })
-  };
-
-  // returns a promise containing an array of all indices in an elasticsearch
-  // cluster
-  function all_indices() {
-    var something = $http({
-      url: config.elasticsearch + "/_aliases",
-      method: "GET"
-    }).error(function(data, status, headers, config) {
-      $scope.error = status;
-    });
-
-    return something.then(function(p) {
-      var indices = [];
-      _.each(p.data, function(v,k) {
-        indices.push(k)
-      });
-      return indices;
-    });
-  }
-
-  // this is stupid, but there is otherwise no good way to ensure that when
-  // I extract the date from an object that I'm get the UTC date. Stupid js.
-  // I die a little inside every time I call this function.
-  // Update: I just read this again. I died a little more inside.
-  function fake_utc(date) {
-    return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
-  }
-
-  // Create an array of date objects by a given interval
-  function expand_range(start, end, interval) {
-    if(_.contains(['hour','day','week','month','year'],interval)) {
-      var range;
-      start = start.clone();
-      range = [];
-      while (start.isBefore(end)) {
-        range.push(start.clone());
-        switch (interval) {
-        case 'hour':
-          start.addHours(1)
-          break
-        case 'day':
-          start.addDays(1)
-          break
-        case 'week':
-          start.addWeeks(1)
-          break
-        case 'month':
-          start.addMonths(1)
-          break
-        case 'year':
-          start.addYears(1)
-          break
-        }
-      }
-      range.push(end.clone());
-      return range;
-    } else {
-      return false;
     }
   }
 

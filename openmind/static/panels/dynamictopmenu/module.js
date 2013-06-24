@@ -207,8 +207,8 @@ angular.module('openmind.dynamictopmenu', [])
                 var ret = "";
                 if (item.type === "container") {
                     ret = "<li class=\"btn btn-inverse dropdown\" id=\"" + item.id + "\">"
-                    ret += "<a data-toggle='dropdown' data-target='" + item.id + "' class='dropdown-toggle' href=\"#\"><i class=\"icon " + item.icon + "\"></i> <span class='text'>" + item.title + "</span>&nbsp;&nbsp;<b class='caret'></b></a>";
-                    ret += "<ul class='dropdown-menu'>";
+                    ret += "<a data-toggle='dropdown' data-target='#' class='dropdown-toggle' href=\"#\"><i class=\"icon " + item.icon + "\"></i> <span class='text'>" + item.title + "</span>&nbsp;&nbsp;<b class='caret'></b></a>";
+                    ret += "<ul class='dropdown-menu' role='menu'>";
 
                     // Items
                     $.each(item.items, function() {

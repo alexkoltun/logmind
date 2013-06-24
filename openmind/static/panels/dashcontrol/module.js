@@ -32,6 +32,7 @@ angular.module('openmind.dashcontrol', [])
   $scope.panel = $scope.panel || {};
   // Set and populate defaults
   var _d = {
+    status  : "Stable",
     group   : "default",
     new: {
       new: true

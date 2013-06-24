@@ -13,6 +13,8 @@
   * sort :: An array with 2 elements. sort[0]: field, sort[1]: direction ('asc' or 'desc')
   * style :: hash of css properties
   * fields :: columns to show in table
+  * overflow :: 'height' or 'min-height' controls wether the row will expand (min-height) to
+                to fit the table, or if the table will scroll to fit the row (height) 
   * sortable :: Allow sorting?
   * spyable :: Show the 'eye' icon that reveals the last ES query for this panel
   ### Group Events
@@ -31,6 +33,7 @@ angular.module('openmind.table', [])
 
   // Set and populate defaults
   var _d = {
+    status  : "Stable",
     query   : "*",
     size    : 100, // Per page
     pages   : 5,   // Pages available
@@ -38,6 +41,7 @@ angular.module('openmind.table', [])
     sort    : ['@timestamp','desc'],
     group   : "default",
     style   : {'font-size': '9pt'},
+    overflow: 'height',
     fields  : [],
     highlight : [],
     sortable: true,
@@ -50,6 +54,7 @@ angular.module('openmind.table', [])
   $scope.init = function () {
 
     $scope.set_listeners($scope.panel.group)
+
     // Now that we're all setup, request the time from our group
     eventBus.broadcast($scope.$id,$scope.panel.group,"get_time")
   }
@@ -114,7 +119,7 @@ angular.module('openmind.table', [])
     $scope.panel.query = add_to_query($scope.panel.query,field,value,negate)
     $scope.panel.offset = 0;
     $scope.get_data();
-    eventBus.broadcast($scope.$id,$scope.panel.group,'query',$scope.panel.query);
+    eventBus.broadcast($scope.$id,$scope.panel.group,'query',[$scope.panel.query]);
   }
 
   $scope.get_data = function(segment,query_id) {
@@ -265,15 +270,14 @@ angular.module('openmind.table', [])
 })
 .filter('highlight', function() {
   return function(text) {
-    if (text != undefined) {
-        if (text.toString().length) {
-          return text.toString().
-            replace(/&/g, '&amp;').
-            replace(/</g, '&lt;').
-            replace(/>/g, '&gt;').
-            replace(/@start-highlight@/g, '<code class="highlight">').
-            replace(/@end-highlight@/g, '</code>')
-        }
+    if (!_.isUndefined(text) && !_.isNull(text) && text.toString().length > 0) {
+      return text.toString().
+        replace(/&/g, '&amp;').
+        replace(/</g, '&lt;').
+        replace(/>/g, '&gt;').
+        replace(/\r?\n/g, '<br/>').
+        replace(/@start-highlight@/g, '<code class="highlight">').
+        replace(/@end-highlight@/g, '</code>')
     }
     return '';
   }

@@ -6,6 +6,7 @@ angular.module('openmind.parallelcoordinates', [])
 
     // Set and populate defaults
     var _d = {
+      status  : "Development",
       query   : "*",
       size    : 100, // Per page
       pages   : 5,   // Pages available

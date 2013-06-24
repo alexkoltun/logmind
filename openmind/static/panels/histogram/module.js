@@ -31,6 +31,7 @@
   * legend :: Show the legend?
   * x-axis :: Show x-axis labels and grid lines
   * y-axis :: Show y-axis labels and grid lines
+  * interactive :: Allow drag to select time range
   ### Group Events
   #### Receives
   * time :: An object containing the time range to use and the index(es) to query
@@ -45,6 +46,7 @@ angular.module('openmind.histogram', [])
 
   // Set and populate defaults
   var _d = {
+    status      : "Stable",
     group       : "default",
     query       : [ {query: "*", label:"Query"} ],
     mode        : 'count',
@@ -64,6 +66,8 @@ angular.module('openmind.histogram', [])
     legend      : true,
     'x-axis'    : true,
     'y-axis'    : true,
+    percentage  : false,
+    interactive : true,
   }
   _.defaults($scope.panel,_d)
 
@@ -115,7 +119,7 @@ angular.module('openmind.histogram', [])
     $scope.panel.loading = true;
     var _segment = _.isUndefined(segment) ? 0 : segment
     var request = $scope.ejs.Request().indices($scope.index[_segment]);
-    
+
     // Build the question part of the query
     var queries = [];
     _.each($scope.panel.query, function(v) {
@@ -249,11 +253,7 @@ angular.module('openmind.histogram', [])
 
   $scope.set_time = function(time) {
     $scope.time = time;
-    // Should I be storing the index on the panel? It causes errors if the index
-    // goes away. Hmmm.
-    $scope.index = time.index || $scope.index
-    // Only calculate interval if auto_int is set, otherwise don't touch it
-    
+    $scope.index = time.index || $scope.index    
     $scope.get_data();
   }
 
@@ -279,7 +279,7 @@ angular.module('openmind.histogram', [])
         // Set barwidth based on specified interval
         var barwidth = interval_to_seconds(scope.panel.interval)*1000
 
-        var scripts = $LAB.script("common/lib/panels/jquery.flot.js")
+        var scripts = $LAB.script("common/lib/panels/jquery.flot.js").wait()
           .script("common/lib/panels/jquery.flot.time.js")
           .script("common/lib/panels/jquery.flot.stack.js")
           .script("common/lib/panels/jquery.flot.selection.js")
@@ -291,10 +291,11 @@ angular.module('openmind.histogram', [])
 
           // Populate element
           try { 
-            scope.plot = $.plot(elem, scope.data, {
+            var options = {
               legend: { show: false },
               series: {
-                stack:  stack,
+                stackpercent: scope.panel.stack ? scope.panel.percentage : false,
+                stack: scope.panel.percentage ? null : stack,
                 lines:  { 
                   show: scope.panel.lines, 
                   fill: scope.panel.fill/10, 
@@ -305,7 +306,12 @@ angular.module('openmind.histogram', [])
                 points: { show: scope.panel.points, fill: 1, fillColor: false, radius: 5},
                 shadowSize: 1
               },
-              yaxis: { show: scope.panel['y-axis'], min: 0, color: "#000" },
+              yaxis: { 
+                show: scope.panel['y-axis'], 
+                min: 0, 
+                max: scope.panel.percentage && scope.panel.stack ? 100 : null, 
+                color: "#000" 
+              },
               xaxis: {
                 timezone: scope.panel.timezone,
                 show: scope.panel['x-axis'],
@@ -313,10 +319,6 @@ angular.module('openmind.histogram', [])
                 timeformat: time_format(scope.panel.interval),
                 label: "Datetime",
                 color: "#000",
-              },
-              selection: {
-                mode: "x",
-                color: '#ccc'
               },
               grid: {
                 backgroundColor: '#fff',
@@ -326,7 +328,12 @@ angular.module('openmind.histogram', [])
                 hoverable: true,
               },
               colors: ['#86B22D','#BF6730','#1D7373','#BFB930','#BF3030','#77207D']
-            })
+            }
+
+            if(scope.panel.interactive)
+              options.selection = { mode: "x", color: '#aaa' };
+
+            scope.plot = $.plot(elem, scope.data, options)
             
             // Work around for missing legend at initialization
             if(!scope.$$phase)
@@ -360,29 +367,29 @@ angular.module('openmind.histogram', [])
           top     : y + 5,
           left    : x + 5,
           color   : "#000",
-          border  : '1px solid #000',
           padding : '10px',
           'font-size': '11pt',
           'font-weight' : 200,
           'background-color': '#FFF',
-          'border-radius': '10px',
+          'border-radius': '5px',
         }).appendTo("body");
       }
 
       elem.bind("plothover", function (event, pos, item) {
         if (item) {
           tt(pos.pageX, pos.pageY,
-            "<div style='vertical-align:middle;display:inline-block;background:"+item.series.color+";height:15px;width:15px;border-radius:10px;'></div> "+
+            "<div style='vertical-align:middle;display:inline-block;background:"+
+            item.series.color+";height:15px;width:15px;border-radius:10px;'></div> "+
             item.datapoint[1].toFixed(0) + " @ " + 
-            new Date(item.datapoint[0]).format('mm/dd HH:MM:ss'));
+            moment(item.datapoint[0]).format('MM/DD HH:mm:ss'));
         } else {
           $("#pie-tooltip").remove();
         }
       });
 
       elem.bind("plotselected", function (event, ranges) {
-        scope.time.from = new Date(ranges.xaxis.from);
-        scope.time.to   = new Date(ranges.xaxis.to)
+        scope.time.from = moment(ranges.xaxis.from);
+        scope.time.to   = moment(ranges.xaxis.to)
         eventBus.broadcast(scope.$id,scope.panel.group,'set_time',scope.time)
       });
     }

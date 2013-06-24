@@ -19,6 +19,7 @@ angular.module('openmind.column', [])
 .controller('column', function($scope, $rootScope) {
   // Set and populate defaults
   var _d = {
+    status: "Stable",
     panels : [
       ]
   }
