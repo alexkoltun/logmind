@@ -6,9 +6,9 @@ require 'date'
 require 'rss/maker'
 require 'yaml'
 require 'tzinfo'
-require 'curb'
 require 'grok-pure'
 require 'find'
+require 'curl'
 
 $LOAD_PATH << '.'
 $LOAD_PATH << './lib'
@@ -88,11 +88,9 @@ helpers do
 end
 
 before do
-
   if request.path.end_with?(".js")
     content_type 'text/javascript'
   end
-
   if @@auth_module
     unless session[:username]
       if request.path.start_with?("/api")
@@ -134,7 +132,7 @@ before do
           end
         end
 
-        if request.path.start_with?("/auth/admin")
+        if request.path.start_with?("/admin")
           # only admins get to go here
           if !@user_perms[:is_admin]
             halt 401, "You are not authorized to be here"
@@ -198,7 +196,7 @@ get '/auth/logout' do
 end
 
 # User/permission administration
-get '/auth/admin' do
+get '/admin' do
   locals = {}
   if @@auth_module
     locals[:username] = session[:username]
@@ -207,6 +205,12 @@ get '/auth/admin' do
 
     locals[:users] = []
     locals[:groups] = []
+
+    locals[:header_title] = "Administration"
+    locals[:internal_content] = true
+    locals[:current_content] = "admin"
+    locals[:pathtobase] = ""
+
     @@storage_module.get_all_permissions().each do |perm|
       if perm.username.start_with?("@")
         locals[:groups].push(perm)
@@ -215,11 +219,17 @@ get '/auth/admin' do
       end
     end
   end
-  erb :admin, :locals => locals
+  erb :main, :locals => locals
 end
 
-get %r{/auth/admin/([\w]+)(/[@% \w]+)?} do
+get %r{/admin/([\w]+)(/[@% \w]+)?} do
   locals = {}
+
+  locals[:header_title] = "Administration"
+  locals[:internal_content] = true
+  locals[:current_content] = "adminedit"
+  locals[:pathtobase] = "../"
+
   mode = params[:captures].first
   if @@auth_module
     locals[:username] = session[:username]
@@ -229,6 +239,7 @@ get %r{/auth/admin/([\w]+)(/[@% \w]+)?} do
     # TODO: Dynamically populate alltags
     locals[:alltags] = ['*', '_grokparsefailure']
     if mode == "edit"
+      locals[:pathtobase] = "../../"
       # the second match contains the '/' at the start,
       # so we take the substring starting at position 1
       locals[:user_data] = @@storage_module.get_permissions(params[:captures][1][1..-1])
@@ -260,10 +271,10 @@ get %r{/auth/admin/([\w]+)(/[@% \w]+)?} do
       halt 404, "Invalid action"
     end
   end
-  erb :adminedit, :locals => locals
+  erb :main, :locals => locals
 end
 
-post '/auth/admin/save' do
+post '/admin/save' do
   if params[:Groupname] != nil
     # prefix group name with only one @
     params[:Username]= params[:Groupname].gsub(/^@*(.*)$/, '@\1') 
@@ -275,7 +286,7 @@ post '/auth/admin/save' do
   username = params[:Username].gsub(/[^@0-9A-Za-z_\\.-]/, '')
   if username.length < 3
     sleep(1)
-    redirect '/auth/admin'
+    redirect '/admin'
   end
   usertags = params[:usertags]
   if params[:delete] != nil
@@ -305,10 +316,20 @@ post '/auth/admin/save' do
       puts "Has password!!!"
       password = params[:pass1]
       @@users_module.set_password(username, password)
+    else
+      @@users_module.add_user(username, "")
     end
     user_groups = params[:user_groups]
     old_groups = @@users_module.membership(username)
     if user_groups.nil?
+      #Creating group logmind if not exists:
+      all_groups = @@users_module.groups()
+      if all_groups == nil or not all_groups.include?("@logmind")
+        @@users_module.add_group("@logmind", nil)
+        @@storage_module.set_permissions("@logmind", ["*"], true)
+      end
+
+      add_groups = ["@logmind"]
       del_groups = old_groups
     elsif old_groups.nil?
       add_groups=user_groups
@@ -329,7 +350,7 @@ post '/auth/admin/save' do
   end
   # FIXME: Find a better way to make sure the changes will show on page load
   sleep(1)
-  redirect '/auth/admin'
+  redirect '/admin'
 end
 
 # Returns
@@ -566,7 +587,7 @@ get '/export/:hash/?:count?' do
   result  = KelasticMulti.new(query,indices)
   flat    = KelasticResponse.flatten_response(result.response,req.fields)
 
-  headers "Content-Disposition" => "attachment;filename=logmind_#{Time.now.to_i}.csv",
+  headers "Content-Disposition" => "attachment;filename=Kibana_#{Time.now.to_i}.csv",
     "Content-Type" => "application/octet-stream"
 
   if RUBY_VERSION < "1.9"
@@ -642,6 +663,9 @@ get '/lastevents' do
   locals[:username] = session[:username]
   locals[:is_admin] = @user_perms[:is_admin]
   locals[:header_title] = "Last Events"
+  locals[:internal_content] = true
+  locals[:current_content] = "lastevents"
+  locals[:pathtobase] = ""
   if @@auth_module
     locals[:show_back] = true
 
@@ -653,7 +677,7 @@ get '/lastevents' do
     #end
 
   end
-  erb :lastevents, :locals => locals
+  erb :main, :locals => locals
 end
 
 delete '/lastevents' do
@@ -675,13 +699,17 @@ get '/indiceslist' do
   locals[:username] = session[:username]
   locals[:is_admin] = @user_perms[:is_admin]
   locals[:header_title] = "Live Indices"
+  locals[:internal_content] = true
+  locals[:current_content] = "indiceslist"
+  locals[:pathtobase] = ""
   if @@auth_module
     locals[:show_back] = true
     result = Kelastic.just_logstash_indices()
     locals[:result] = result
   end
-  erb :indiceslist, :locals => locals
+  erb :main, :locals => locals
 end
+
 
 post '/indexController' do
   locals = {}
@@ -710,14 +738,16 @@ get '/archivedlist' do
   locals[:username] = session[:username]
   locals[:is_admin] = @user_perms[:is_admin]
   locals[:header_title] = "Archived Indices"
+  locals[:internal_content] = true
+  locals[:current_content] = "archivedlist"
+  locals[:pathtobase] = ""
   if @@auth_module
     locals[:show_back] = true
     result = @@storage_module.archived_list()
     locals[:result] = result
   end
-  erb :archivedlist, :locals => locals
+  erb :main, :locals => locals
 end
-
 
 get %r{/napi/es/(.*)} do
   q = params[:captures].first
@@ -759,6 +789,20 @@ put %r{/napi/es/(.*)} do
   c.body_str
 end
 
+
+delete %r{/napi/es/(.*)} do
+  q = params[:captures].first
+  raw = request.env["rack.input"].read
+
+  c = Curl::Easy.http_delete("http://" + KibanaConfig::Elasticsearch + "/" + q
+  ) do |curl|
+    curl.headers['Accept'] = 'application/json'
+    curl.headers['Content-Type'] = 'application/json'
+  end
+
+  c.body_str
+end
+
 def grok
   if @grok.nil?
     @grok = Grok.new
@@ -782,8 +826,22 @@ def get_files path
   return dir_array
 end
 
-post '/grocker/grok' do
+get '/grocker' do
+  @tags = []
+  grok.patterns.each do |x,y|
+    @tags << "%{#{x}"
+  end
 
+  locals = {}
+  locals[:internal_content] = true
+  locals[:current_content] = "grocker"
+  locals[:grocker_template] = :'grocker/index'
+  locals[:pathtobase] = "../"
+  locals[:header_title] = "Message Parsing Editor"
+  erb :main, :locals => locals
+end
+
+post '/grocker/grok' do
   input = params[:input]
   pattern = params[:pattern]
   named_captures_only = (params[:named_captures_only] == "true")
@@ -853,26 +911,39 @@ post '/grocker/discover' do
   grok.discover(params[:input])
 end
 
-get '/grocker' do
-  @tags = []
-  grok.patterns.each do |x,y|
-    @tags << "%{#{x}"
-  end
-  haml :'grocker/index'
-end
 
 get '/grocker/discover' do
-  haml :'grocker/discover'
+  locals = {}
+  locals[:pathtobase] = "../"
+  locals[:internal_content] = true
+  locals[:current_content] = "grocker"
+  locals[:grocker_template] = :'grocker/discover'
+  locals[:header_title] = "Message Parsing Editor"
+  erb :main, :locals => locals
 end
 
 get '/grocker/analysis' do
-  haml :analysis
+  locals = {}
+  locals[:pathtobase] = "../"
+  locals[:internal_content] = true
+  locals[:current_content] = "grocker"
+  locals[:grocker_template] = :'grocker/analysis'
+  locals[:header_title] = "Message Parsing Editor"
+  erb :main, :locals => locals
 end
 
 get '/grocker/patterns' do
-  @arr = get_files("./public/patterns/")
-  haml :'grocker/patterns'
+  @arr = get_files("../sixthsense/patterns/")
+  locals = {}
+  locals[:pathtobase] = "../"
+  locals[:internal_content] = true
+  locals[:current_content] = "grocker"
+  locals[:grocker_template] = :'grocker/patterns'
+  locals[:header_title] = "Message Parsing Editor"
+  erb :main, :locals => locals
+
 end
+
 get '/grocker/patterns/*' do
   send_file(params[:spat]) unless params[:spat].nil?
 end

@@ -1,3 +1,4 @@
 .idea
 KibanaConfig.rbackup.rb
 *.DS_Store
+/Gemfile.lock
