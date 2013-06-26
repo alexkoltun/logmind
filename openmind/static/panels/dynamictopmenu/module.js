@@ -225,7 +225,15 @@ angular.module('openmind.dynamictopmenu', [])
                         ret += "<li class='btn btn-inverse'>";
                     }
 
-                    ret += "<a href=\"" + item.link + "\"><i class=\"icon " + item.icon + "\"></i> <span class='text'>" + item.title + "</span></a></li>";
+                    ret += "<a href=\"" + item.link + "\">";
+
+                    if (is_sub) {
+                        ret += "<i class=\"icon " + item.icon + " sub-icon \">";
+                    } else {
+                        ret += "<i class=\"icon " + item.icon + "\">";
+                    }
+
+                    ret += "</i> <span class='text'>" + item.title + "</span></a></li>";
 
                 /*} else if (item.type === "dynamic") {
                     if (item.items != undefined) {

@@ -1760,3 +1760,29 @@ form {
 [class^="icon-"],[class*=" icon-"] {
     background-image:url("../img/glyphicons-halflings-white.png");
 }
+
+.sub-icon {
+    background-image:url("../img/glyphicons-halflings.png");
+}
+
+.small-icon {
+    background-image:url("../img/glyphicons-halflings.png");
+}
+
+.nav-list > li > a {
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.nav-list > li > a > i {
+    background-image:url("../img/glyphicons-halflings.png");
+}
+
+.table-menu > td > a {
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.table-menu > td > a > i {
+    background-image:url("../img/glyphicons-halflings.png");
+}

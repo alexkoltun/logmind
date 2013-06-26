@@ -25,13 +25,13 @@
     <h5>Elasticsearch</h5>
     <form class="input-append">
       <input type="text" ng-model="elasticsearch.query"/>
-      <button ng-click="elasticsearch_dblist(elasticsearch.query)" class='btn'><i class='icon-search'></i></button>
+      <button ng-click="elasticsearch_dblist(elasticsearch.query)" class='btn btn-info'><i class='icon-search'></i></button>
     </form>
     <h6 ng-show="elasticsearch.dashboards.length">Elasticsearch stored dashboards</h6>
     <h6 ng-hide="elasticsearch.dashboards.length">No dashboards matching your query found</h6>
     <div style="max-height: 175px; overflow: auto;">
         <table class="table table-condensed table-striped">
-          <tr ng-repeat="dashboard in elasticsearch.dashboards">
+          <tr class="table-menu" ng-repeat="dashboard in elasticsearch.dashboards">
             <td><a ng-click="elasticsearch_delete(dashboard)"><i class="icon-remove"></i></a></td>
             <td><a href="#/dashboard/elasticsearch/{{dashboard._id}}">{{dashboard._id}}</a></td>
             <td><a><i class="icon-share" ng-click="share_link(dashboard._id,'elasticsearch',dashboard._id)" bs-modal="'panels/dashcontrol/share.html'"></i></a></td>
