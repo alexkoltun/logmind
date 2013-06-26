@@ -16,7 +16,7 @@
     <h5>Gist</h5>
     <form class="input-append">
       <input class='input-medium' placeholder='Title' type="text" ng-model="gist.title"/>
-      <button class="btn" ng-click="save_gist()"><i class="icon-github-alt"></i></button>
+      <button class="btn btn-info" ng-click="save_gist()"><i class="icon-github-alt"></i></button>
     </form><br>
     <small ng-show="gist.last">Last gist: <a target="_blank" href="{{gist.last}}">{{gist.last}}</a></small>
   </div>
@@ -24,7 +24,7 @@
     <h5>Elasticsearch</h5>
     <form class="input-append">
       <input class='input-medium' placeholder='Title' type="text" ng-model="elasticsearch.title"/>
-      <button class="btn" ng-click="elasticsearch_save('dashboard'); dismiss()"><i class="icon-ok"></i></button>
+      <button class="btn btn-info" ng-click="elasticsearch_save('dashboard'); dismiss()"><i class="icon-ok"></i></button>
     </form>
   </div>
 </div>
