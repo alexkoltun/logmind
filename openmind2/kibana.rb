@@ -803,6 +803,13 @@ delete %r{/napi/es/(.*)} do
   c.body_str
 end
 
+get '/test_auth' do
+  auth = Authorization.new('http://localhost:9200')
+  user = auth.load_user('alex')
+  scope = user.get_scope "view_data"
+  allowed = user.allowed?('edit_dashboard', '#campus2_dashboards')
+end
+
 def grok
   if @grok.nil?
     @grok = Grok.new

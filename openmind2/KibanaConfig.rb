@@ -125,10 +125,10 @@ module KibanaConfig
   Allow_iframed = false
 
   # Authentication Module
-  Auth_module = 'elasticsearch'
+  Auth_module = ''
 
   # Users and groups management Module
-  Users_module = 'elasticsearch'
+  Users_module = ''
 
   Auth_Admin_User  = 'admin'
   Auth_Admin_Pass  = 'password'
