@@ -6,6 +6,8 @@ using System.Diagnostics.Eventing.Reader;
 using System.Diagnostics;
 using System.Xml;
 using System.Security.Principal;
+using System.Globalization;
+using System.Threading;
 
 namespace Logmind.EventLogStreamer
 {
@@ -16,6 +18,8 @@ namespace Logmind.EventLogStreamer
 
         public void StreamEvents(OnEventDelegate callback, string logName, DateTime startFrom)
         {
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+
             if (callback == null)
             {
                 throw new ArgumentException("callback cannot be null", "callback");
