@@ -247,7 +247,8 @@
           window.location = '../admin';
           <% end %>
         });
-        $('#userdata').submit(function() {
+        $('#userdata').submit(function(event) {
+            event.preventDefault();
 
             var name = $("#name_field").val();
             if (name.length < 3) {
@@ -270,6 +271,10 @@
                 var group = $(this).text();
                 $("#user_groups").append("<option value=\"" + group + "\">" + group + "</option>");
             });
+
+            console.log( $(this).serialize() );
+
+            return false;
         });
       });
       </script>

@@ -7,10 +7,10 @@ class User
   end
 
   def get_scope(action)
-    permissons[action]
+    permissons && permissons[action]
   end
 
   def allowed?(action, scope)
-    (permissions[action] ||= []).include? scope
+    permissions && (permissions[action] ||= []).include?(scope)
   end
 end

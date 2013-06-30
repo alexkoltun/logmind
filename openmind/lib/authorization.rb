@@ -4,35 +4,90 @@ require 'tire'
 
 class Authorization
 
-  def initialize(url)
-    @url = url
-    @policies =  [
-        {
-            :name => "Allow Alex, members of TopManagers group, and all users and groups with the tag 'ny_boss' to create new dashboards and remove users that are tagged 'newyork'",
-            :who => ['Alex', '@TopManagers', '#ny_boss'],
-            :what => ['view_data', 'new_dashboard', 'remove_user'],
-            :on => ['Alex', '#newyork'],
-            :when => ['10:00Z-12:00Z']
-        }
-    ]
+  def initialize()
+  end
 
+  def setup_defaults_if_needed()
+    set_password('admin', 'password')
+  end
+
+  def remove_user(username)
+    # name is always lower case
+    username.downcase!
+
+    Tire.index('authorization') do
+      remove :user, username
+    end
+    # TODO: remove the user from all of the related policies
+  end
+
+  def remove_group(name)
+    # name is always lower case
+    name.downcase!
+
+    Tire.index('authorization') do
+      remove :group, name
+    end
+    # TODO: remove the group from all of the related policies and from all users that have it
+  end
+
+  def remove_policy(name)
+    # name is always lower case
+    name.downcase!
+
+    Tire.index('authorization') do
+      remove :policy, name
+    end
+  end
+
+  def save_user(username, groups = [], tags = [])
+    # username is always lower case
+    username.downcase!
+
+    Tire.index 'authorization' do
+      store :id => username, :type => 'user', :name => username, :groups => groups, :tags => tags
+    end
+  end
+
+  def save_group(name, tags)
+    # name is always lower case
+    name.downcase!
+
+    Tire.index 'authorization' do
+      store :id => name, :type => 'group', :name => name, :tags => tags
+    end
+  end
+
+  def save_policy(name, who, what = [], on = [], tags = [])
+
+    # name is always lower case
+    name.downcase!
+
+    Tire.index 'authorization' do
+      store :id => name, :type => 'policy', :name => name, :who => who, :what => what, :on => on, :tags => tags
+    end
+  end
+
+  def set_password(username, password)
+
+    # username is always lower case
+    username.downcase!
+
+    salt = rand(65536)
+    salt = salt.to_s(16)
+    hashpass = Digest::SHA256.hexdigest(salt + password)
+
+    Tire.index 'authorization' do
+      store  :id => username, :type => 'user', :name => username, :password => hashpass, :salt => salt
+    end
   end
 
   def load_user(username)
 
+    # username is always lower case
     username.downcase!
 
-    # 1. get all of the user's groups
-    # 2. get all of the user's tags
-    # 3. get all the policies that have the user or the group or the tag in their "who" definition
-    # 4. create a hash structure as following: what => on/when, by aggregating the policies
-    # 5. method: get_scope(what) => returns the 'on' array
-    # 6. method: allowed?(what, on-name, on-tags) / allowed?(what, object) => returns a boolean indicating if the operation is allowed on the object
-
-    Tire.configure do
-      url @url
-    end
-
+    # fetch the user
     user_query = Tire.search('authorization/user') do
       query do
         term :name, username
@@ -61,7 +116,7 @@ class Authorization
     end
 
     # build a list of all relevant identifiers to look in the "who" field of the policy
-    who_list = [username] + user.tags + user.groups
+    who_list = [username] + (user.tags || []) + (user.groups || [])
 
     # get all policies that apply to us
     policies_query = Tire.search('authorization/policy') do
@@ -106,5 +161,17 @@ class Authorization
     permissions.delete_if { |key,value| key.start_with?("#") }
 
     User.new(user.name, permissions)
+  end
+
+  def get_users
+    users_query = Tire.search('authorization/user')
+
+    users_query.results
+  end
+
+  def get_groups
+    groups_query = Tire.search('authorization/group')
+
+    groups_query.results
   end
 end

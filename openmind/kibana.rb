@@ -23,6 +23,10 @@ Dir['./lib/*.rb'].each{ |f| require f }
 ruby_18 { require 'fastercsv' }
 ruby_19 { require 'csv' }
 
+Tire.configure do
+  url 'http://localhost:9200'
+end
+
 configure do
   set :bind, defined?(KibanaConfig::KibanaHost) ? KibanaConfig::KibanaHost : '0.0.0.0'
   set :port, KibanaConfig::KibanaPort
@@ -33,33 +37,8 @@ configure do
       :secret => 'logmind_prime1!',
       :httponly => false
 
-  @@users_module = nil
-  begin
-    if KibanaConfig::Users_module != ""
-      require "./lib/modules/users_#{KibanaConfig::Users_module}"
-      @@users_module = get_users_module(KibanaConfig)
-    end
-  rescue
-    puts "Failed to load the users module: #{KibanaConfig::Users_module}"
-  end
-
-  @@auth_module = nil
-  begin
-    if KibanaConfig::Auth_module != ""
-      require "./lib/modules/auth_#{KibanaConfig::Auth_module}"
-      @@auth_module = get_auth_module(KibanaConfig)
-    end
-  rescue
-    puts "Failed to load the auth module: #{KibanaConfig::Auth_module}"
-  end
-
-  @@storage_module = nil
-  begin
-    require "./lib/modules/storage_#{KibanaConfig::Storage_module}"
-    @@storage_module = get_storage_module(KibanaConfig)
-  rescue
-    puts "Failed to load the storage module: #{KibanaConfig::Storage_module}"
-  end
+  auth = Authorization.new
+  auth.setup_defaults_if_needed
 end
 
 helpers do
@@ -91,66 +70,26 @@ before do
   if request.path.end_with?(".js")
     content_type 'text/javascript'
   end
-  if @@auth_module
-    unless session[:username]
-      if request.path.start_with?("/api")
-        # ajax api call, just return an error
-        halt 401, JSON.generate({"error" => "Not logged in"})
-      elsif !request.path.start_with?("/auth")
-        # normal web call, redirect to login
-        halt redirect '/auth/login'
-      end
-    else
-      @user_perms = @@storage_module.get_permissions(session[:username])
-      if !@user_perms
-        # User is authenticated, but not authorized. Put them in
-        # a holding state until an admin grants them authorization
-        if request.path.start_with?("/api")
-          halt 401, JSON.generate({"error" => "Not authorized for any security groups"})
-        elsif !request.path.start_with?("/auth/logout")
-          halt 401, "You are not authorized for any search groups. Please contact the kibana administrator to grant you permission."
-        end
-      else
-        if !defined?(@user_perms[:tags]) || !@user_perms[:tags]
-          @user_perms[:tags] = []
-        end
-        if !defined?(@user_perms[:is_admin]) || !@user_perms[:is_admin]
-          @user_perms[:is_admin] = false
-        end
 
-        # check any groups this user belongs to for additional
-        # permissions defined in the storage module
-        @@users_module.membership(session[:username]).each do |group|
-          g_perms = @@storage_module.get_permissions(group)
-          if g_perms
-            if defined?(g_perms[:tags]) and g_perms[:tags]
-              @user_perms[:tags] = (@user_perms[:tags] + g_perms[:tags]).uniq
-            end
-            if defined?(g_perms[:is_admin])
-              @user_perms[:is_admin] ||= g_perms[:is_admin]
-            end
-          end
-        end
+  @user = session[:user]
 
-        if request.path.start_with?("/admin")
-          # only admins get to go here
-          if !@user_perms[:is_admin]
-            halt 401, "You are not authorized to be here"
-          end
-        end
-      end
+  # login only
+  unless @user
+    if request.path.start_with?('/api')
+      # ajax api call, just return an error
+      content_type 'text/javascript'
+      halt 401, JSON.generate({'error' => 'authentication_required'})
+    elsif !request.path.start_with?('/auth')
+      # normal web call, redirect to login
+      halt redirect '/auth/login'
     end
   end
 end
 
 get '/' do
   headers "X-Frame-Options" => "allow","X-XSS-Protection" => "0" if KibanaConfig::Allow_iframed
-
+  @user.allowed?(:frontend_ui_view, nil) || halt(403, 'Unauthorized')
   locals = {}
-  if @@auth_module
-    locals[:username] = session[:username]
-    locals[:is_admin] = @user_perms[:is_admin]
-  end
   erb :index, :locals => locals
 end
 
@@ -160,36 +99,36 @@ end
 
 get '/auth/login' do
   locals = {}
-  if !@@auth_module
-    redirect '/'
-  end
-  if session[:login_message]
-    locals[:login_message] = session[:login_message]
+  login_message = session[:login_message]
+  if login_message
+    locals[:login_message] = login_message
   end
   erb :login, :locals => locals
 end
 
 post '/auth/login' do
-  if !@@auth_module
-    redirect '/'
-  end
+
+  login = Authentication.new
+
   username = params[:username]
   password = params[:password]
-  if @@auth_module.authenticate(username,password)
 
-    session[:username] = username
-    session[:login_message] = ""
-    redirect '/'
+  if login.login(username, password)
+    auth = Authorization.new
+    session[:user] = auth.load_user(username)
+    redirect_url = session[:redirect_url]
+    unless redirect_url
+      redirect_url = '/'
+    end
+
+    redirect redirect_url
   else
-    session[:login_message] = "Invalid username or password"
-    halt redirect '/auth/login'
+    session[:login_message] = 'Invalid username or password'
+    redirect '/auth/login'
   end
 end
 
 get '/auth/logout' do
-  if !@@auth_module
-    redirect '/'
-  end
   session[:username] = nil
   session[:login_message] = "Successfully logged out"
   redirect '/auth/login'
@@ -197,10 +136,10 @@ end
 
 # User/permission administration
 get '/admin' do
-  locals = {}
-  if @@auth_module
+    auth = Authorization.new
+    locals = {}
     locals[:username] = session[:username]
-    locals[:is_admin] = @user_perms[:is_admin]
+    locals[:is_admin] = true
     locals[:show_back] = true
 
     locals[:users] = []
@@ -211,146 +150,64 @@ get '/admin' do
     locals[:current_content] = "admin"
     locals[:pathtobase] = ""
 
-    @@storage_module.get_all_permissions().each do |perm|
-      if perm.username.start_with?("@")
-        locals[:groups].push(perm)
-      else
-        locals[:users].push(perm)
-      end
-    end
-  end
-  erb :main, :locals => locals
+    locals[:groups] += auth.get_groups
+    locals[:users] += auth.get_users
+
+    erb :main, :locals => locals
 end
 
-get %r{/admin/([\w]+)(/[@% \w]+)?} do
+get "/admin/:type/:mode/?:name?" do
   locals = {}
 
   locals[:header_title] = "Administration"
   locals[:internal_content] = true
-  locals[:current_content] = "adminedit"
-  locals[:pathtobase] = "../"
+  locals[:pathtobase] = "../../../"
 
-  mode = params[:captures].first
-  if @@auth_module
-    locals[:username] = session[:username]
-    locals[:is_admin] = @user_perms[:is_admin]
-    locals[:show_back] = true
-    locals[:mode] = mode
-    # TODO: Dynamically populate alltags
-    locals[:alltags] = ['*', '_grokparsefailure']
-    if mode == "edit"
-      locals[:pathtobase] = "../../"
-      # the second match contains the '/' at the start,
-      # so we take the substring starting at position 1
-      locals[:user_data] = @@storage_module.get_permissions(params[:captures][1][1..-1])
-      locals[:can_delete] = (locals[:user_data][:username]==KibanaConfig::Auth_Admin_User) ? false : true
-      locals[:can_change_groups] = @@users_module.respond_to?('add_user_2group')
-      locals[:allgroups] = @@users_module.groups()
-      # If they are a group, set group values
-      if locals[:user_data][:username].start_with?("@")
-        locals[:is_group]=true
-        locals[:group_members] = @@users_module.group_members(locals[:user_data][:username])
-        locals[:allusers] = @@users_module.users()
-	locals[:type] = "Group"
-      else
-        locals[:can_change_pass] = @@users_module.respond_to?('set_password')
-        locals[:user_groups] = @@users_module.membership(locals[:user_data][:username])
-	locals[:type] = "User"
-      end
-    elsif mode == "newuser"
-      locals[:mode] = "new"
-      locals[:type] = "User"
-      locals[:allgroups] = @@users_module.groups()
-      locals[:can_change_pass] = @@users_module.respond_to?('set_password')
-    elsif mode == "newgroup"
-      locals[:mode] = "new"
-      locals[:type] = "Group"
-      locals[:is_group] = true
-      locals[:allusers] = @@users_module.users()
+  type = params[:type]
+  mode = params[:mode]
+
+  locals[:show_back] = true
+  locals[:mode] = mode
+  locals[:alltags] = ['*', '_grokparsefailure']
+
+  if type == 'user'
+    locals[:current_content] = 'edituser'
+
+    if mode == 'new'
     else
-      halt 404, "Invalid action"
+      locals[:username] = params[:name]
+    end
+  elsif type == 'group'
+    if mode == 'new'
+
+    else
+
     end
   end
+
   erb :main, :locals => locals
 end
 
 post '/admin/save' do
-  if params[:Groupname] != nil
-    # prefix group name with only one @
-    params[:Username]= params[:Groupname].gsub(/^@*(.*)$/, '@\1') 
-  else
-    # strip first @ from username
-    params[:Username] = params[:Username].gsub(/^@+/, '')
-  end
-  # strip illegal characters from username/groupname
-  username = params[:Username].gsub(/[^@0-9A-Za-z_\\.-]/, '')
-  if username.length < 3
-    sleep(1)
-    redirect '/admin'
-  end
-  usertags = params[:usertags]
-  if params[:delete] != nil
-    puts "Deleting #{username}"
-    @@storage_module.del_permissions(username)
-    if username.start_with?("@")
-      @@users_module.del_group(username)
-    else
-      @@users_module.del_user(username)
-    end
-  else
-    if @@users_module.lookup_user(username).nil?
-      puts "Creating #{username}"
-      # sets password to "" if password undefined
-      params[:pass1] = "" if params[:pass1].nil?
-    else
-      puts "Updating #{username}"
-    end
-    is_admin = (defined?(params[:is_admin]) && params[:is_admin] == "on") ? true : false
-    @@storage_module.set_permissions(username,usertags,is_admin)
-    # Update the auth group info
-    if username.start_with?("@") and @@users_module.respond_to?('add_group')
-      puts "username.start_with?(@)"
-      members = params[:members]
-      @@users_module.add_group(username, members)
-    elsif params[:pass1] != nil && params[:pass1] != ""
-      puts "Has password!!!"
-      password = params[:pass1]
-      @@users_module.set_password(username, password)
-    else
-      @@users_module.add_user(username, "")
-    end
-    user_groups = params[:user_groups]
-    old_groups = @@users_module.membership(username)
-    if user_groups.nil?
-      #Creating group logmind if not exists:
-      all_groups = @@users_module.groups()
-      if all_groups == nil or not all_groups.include?("@logmind")
-        @@users_module.add_group("@logmind", nil)
-        @@storage_module.set_permissions("@logmind", ["*"], true)
-      end
 
-      add_groups = ["@logmind"]
-      del_groups = old_groups
-    elsif old_groups.nil?
-      add_groups=user_groups
-    else
-      add_groups = user_groups-old_groups
-      del_groups = old_groups-user_groups
-    end
-    if not add_groups.nil?
-      add_groups.each do |group|
-        @@users_module.add_user_2group(username, group)
-      end
-    end
-    if not del_groups.nil?
-      del_groups.each do |group|
-        @@users_module.rm_user_from_group(username, group)
-      end
-    end
+  auth = Authorization.new
+  type = params[:type]
+
+  if type == :user
+    username = params[:username]
+    password = params[:password]
+    groups = params[:groups]
+    tags = params[:tags]
+    auth.save_user(username, groups, tags)
+    password.empty? || auth.set_password(username, password)
+    JSON.generate({ :success => true })
+  elsif type == :group
+    name = params[:name]
+    members = params[:members]
+    tags = params[:tags]
+    auth.save_group(name, tags)
+    JSON.generate({ :success => true })
   end
-  # FIXME: Find a better way to make sure the changes will show on page load
-  sleep(1)
-  redirect '/admin'
 end
 
 # Returns
