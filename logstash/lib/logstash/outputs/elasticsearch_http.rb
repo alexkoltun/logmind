@@ -1,5 +1,6 @@
 require "logstash/namespace"
 require "logstash/outputs/base"
+require 'net/http'
 
 # This output lets you store logs in elasticsearch.
 #
@@ -43,8 +44,9 @@ class LogStash::Outputs::ElasticSearchHTTP < LogStash::Outputs::Base
 
   public
   def register
-    require "ftw" # gem ftw
-    @agent = FTW::Agent.new
+    #require "ftw" # gem ftw
+    #@agent = FTW::Agent.new
+	@http_agent = Net::HTTP.new(@host, @port)
     @queue = []
 
   end # def register
@@ -67,8 +69,8 @@ class LogStash::Outputs::ElasticSearchHTTP < LogStash::Outputs::Base
     success = false
     while !success
       begin
-        response = @agent.post!("http://#{@host}:#{@port}/#{index}/#{type}",
-                                :body => event.to_json)
+        #response = @agent.post!("http://#{@host}:#{@port}/#{index}/#{type}", :body => event.to_json)
+		response = @http_agent.post("/#{index}/#{type}", event.to_json)
       rescue EOFError
         @logger.warn("EOF while writing request or reading response header from elasticsearch",
                      :host => @host, :port => @port)
@@ -76,19 +78,19 @@ class LogStash::Outputs::ElasticSearchHTTP < LogStash::Outputs::Base
       end
 
 
-      begin
-        # We must read the body to free up this connection for reuse.
-        body = "";
-        response.read_body { |chunk| body += chunk }
-      rescue EOFError
-        @logger.warn("EOF while reading response body from elasticsearch",
-                     :host => @host, :port => @port)
-        next # try again
-      end
+    #  begin
+    #    # We must read the body to free up this connection for reuse.
+    #    body = "";
+    #    response.read_body { |chunk| body += chunk }
+    #  rescue EOFError
+    #    @logger.warn("EOF while reading response body from elasticsearch",
+    #                 :host => @host, :port => @port)
+    #    next # try again
+    #  end
 
-      if response.status != 201
+      if response.code != "201"
         @logger.error("Error writing to elasticsearch",
-                      :response => response, :response_body => body)
+                      :response => response, :response_body => response.body())
       else
         success = true
       end
@@ -119,8 +121,8 @@ class LogStash::Outputs::ElasticSearchHTTP < LogStash::Outputs::Base
     # http://www.elasticsearch.org/guide/reference/api/bulk.html
     #  "NOTE: the final line of data must end with a newline character \n."
     begin
-      response = @agent.post!("http://#{@host}:#{@port}/_bulk",
-                              :body => @queue.join("\n") + "\n")
+      #response = @agent.post!("http://#{@host}:#{@port}/_bulk", :body => @queue.join("\n") + "\n")
+		response = @http_agent.post("/_bulk", @queue.join("\n") + "\n")
     rescue EOFError
       @logger.warn("EOF while writing request or reading response header from elasticsearch",
                    :host => @host, :port => @port)
@@ -129,18 +131,18 @@ class LogStash::Outputs::ElasticSearchHTTP < LogStash::Outputs::Base
 
     # Consume the body for error checking
     # This will also free up the connection for reuse.
-    body = ""
-    begin
-      response.read_body { |chunk| body += chunk }
-    rescue EOFError
-      @logger.warn("EOF while reading response body from elasticsearch",
-                   :host => @host, :port => @port)
-      return # abort this flush
-    end
+    #body = ""
+    #begin
+    #  response.read_body { |chunk| body += chunk }
+    #rescue EOFError
+    #  @logger.warn("EOF while reading response body from elasticsearch",
+    #               :host => @host, :port => @port)
+    #  return # abort this flush
+    #end
 
-    if response.status != 200
+    if response.code != "200"
       @logger.error("Error writing (bulk) to elasticsearch",
-                    :response => response, :response_body => body,
+                    :code => response.code, :response => response, :response_body => response.body(),
                     :request_body => @queue.join("\n"))
       return
     end
@@ -176,13 +178,13 @@ class LogStash::Outputs::ElasticSearchHTTP < LogStash::Outputs::Base
     begin
       success = false
       while !success
-        response = @agent.put!("http://#{@host}:#{@port}/_template/#{template_name}",
-                               :body => template_config.to_json)
+        #response = @agent.put!("http://#{@host}:#{@port}/_template/#{template_name}", :body => template_config.to_json)
+		response = nil
         if response.error?
           body = ""
           response.read_body { |c| body << c }
           @logger.warn("Failure setting up elasticsearch index template, will retry...",
-                       :status => response.status, :response => body)
+                       :status => response.code, :response => body)
           sleep(1)
         else
           success = true

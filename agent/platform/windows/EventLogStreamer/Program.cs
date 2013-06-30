@@ -7,6 +7,7 @@ using System.Threading;
 using System.Management;
 using System.Diagnostics.Eventing.Reader;
 using System.ComponentModel;
+using System.Globalization;
 
 
 namespace Logmind.EventLogStreamer
@@ -17,6 +18,8 @@ namespace Logmind.EventLogStreamer
 
         static void Main(string[] args)
         {
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+
             Console.OutputEncoding = Encoding.UTF8;
 
             int pId = GetParentProcessId();
