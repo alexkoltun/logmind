@@ -71,9 +71,9 @@ before do
     content_type 'text/javascript'
   end
 
-    @user = Authorization.new.load_user('admin')
+#    @user = Authorization.new.load_user('admin')
 
-#    @user = session[:user]
+  @user = session[:user]
 
   # login only
   unless @user
@@ -395,13 +395,34 @@ get '/archivedlist' do
   erb :main, :locals => locals
 end
 
-def search_action(data, index)
+def search_action(data, index, esp1, esp2)
   # check if we are allowed to read the index
   if @user.allowed?('index_read', index)
 
     # get the user scope
     # get the items we have a view data permissions to union the items we have any permissions to
     view_scope = (@user.get_scope('view_data') || []) | (@user.get_scope('*') || [])
+
+    url_suffix = '_search'
+
+    # type and id
+    if esp2 && !esp2.start_with?('_')
+      c = Curl::Easy.http_get('http://' + KibanaConfig::Elasticsearch + '/' + index + '/' + esp1 + '/' + esp2) do |curl|
+        curl.headers['Accept'] = 'application/json'
+        curl.headers['Content-Type'] = 'application/json'
+      end
+
+      result = JSON.parse(c.body_str)
+      # check if result permitted
+      if view_scope.include?('*') || view_scope.include?(esp2) || ((view_scope & ((result['_source']['tags'] || []).map { |item| '#' + item })).length > 0)
+        return JSON.generate(result)
+      else
+        return JSON.generate({})
+      end
+      # type only
+    elsif esp2
+      url_suffix = esp1 + '/_search'
+    end
 
     security_filter = nil
 
@@ -414,7 +435,7 @@ def search_action(data, index)
     filtered_query = {
         'query' => {
             'filtered' => {
-                'query' => (data['query'] || {})
+                'query' => (data['query'] || { 'match_all' => {} })
             },
             'highlight' => (data['highlight'] || {}),
             'size' => (data['size'] || 100),
@@ -427,7 +448,7 @@ def search_action(data, index)
       filtered_query['query']['filtered']['filter'] = security_filter
     end
 
-    c = Curl::Easy.http_post('http://' + KibanaConfig::Elasticsearch + '/' + index + '/_search', JSON.generate(filtered_query)) do |curl|
+    c = Curl::Easy.http_post('http://' + KibanaConfig::Elasticsearch + '/' + index + '/' + url_suffix, JSON.generate(filtered_query)) do |curl|
       curl.headers['Accept'] = 'application/json'
       curl.headers['Content-Type'] = 'application/json'
     end
@@ -438,18 +459,23 @@ def search_action(data, index)
   end
 end
 
-post '/api/:action/?:index?' do
+def api_action(method, action, index, esp1, esp2)
   action = params[:action]
 
   raw = request.env["rack.input"].read
-  data = JSON.parse (raw)
+
+  data = nil
+
+  if raw && !raw.empty?
+    data = JSON.parse (raw)
+  end
 
   index = params[:index] || 'logmind-logs'
 
   if @user
     if @user.allowed?(action, nil)
       if  action == "search"
-        search_action data, index
+        search_action data, index, esp1, esp2
       elsif action == "save_dashboard"
       end
     else
@@ -458,6 +484,14 @@ post '/api/:action/?:index?' do
   else
     halt 401, JSON.generate({'error' => 'authentication_required'})
   end
+end
+
+get '/api/:action/?:index?/?:esp1?/?:esp2?' do
+  api_action :get, params[:action], params[:index], params[:esp1], params[:esp2]
+end
+
+post '/api/:action/?:index?/?:esp1?/?:esp2?' do
+  api_action :post, params[:action], params[:index], params[:esp1], params[:esp2]
 end
 
 get %r{/napi/es/(.*)} do

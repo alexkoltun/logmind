@@ -83,41 +83,16 @@ angular.module('openmind.services', [])
   return fields;
 
 })
-.service('kbnIndex',function($http) {
+.service('kbnIndex',function($http, $q) {
   // returns a promise containing an array of all indices matching the index
   // pattern that exist in a given range
   this.indices = function(from,to,pattern,interval) {
-    var possible = [];
-    /*_.each(expand_range(fake_utc(from),fake_utc(to),interval),function(d){
-      possible.push(d.format(pattern));
-    });*/
 
-    return all_indices().then(function(p) {
-      /* var indices = _.intersection(possible,p);
-      indices.reverse();
-      return indices */
-      return ["logstash-*"];
-    })
+    var deffered = $q.defer();
+    deffered.resolve(["logstash-*"]);
+
+   return deffered.promise;
   };
-
-  // returns a promise containing an array of all indices in an elasticsearch
-  // cluster
-  function all_indices() {
-    var something = $http({
-      url: config.elasticsearch + "/_aliases",
-      method: "GET"
-    }).error(function(data, status, headers, config) {
-      // Handle error condition somehow?
-    });
-
-    return something.then(function(p) {
-      var indices = [];
-      _.each(p.data, function(v,k) {
-        indices.push(k)
-      });
-      return indices;
-    });
-  }
 
   // this is stupid, but there is otherwise no good way to ensure that when
   // I extract the date from an object that I'm get the UTC date. Stupid js.
