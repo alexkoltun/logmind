@@ -71,7 +71,9 @@ before do
     content_type 'text/javascript'
   end
 
-  @user = session[:user]
+    @user = Authorization.new.load_user('admin')
+
+#    @user = session[:user]
 
   # login only
   unless @user
@@ -210,188 +212,6 @@ post '/admin/save' do
   end
 end
 
-# Returns
-get '/api/search/:hash/?:segment?' do
-  segment = params[:segment].nil? ? 0 : params[:segment].to_i
-
-  req     = ClientRequest.new(params[:hash])
-  query   = SortedQuery.new(req.search,@user_perms,req.from,req.to,req.offset)
-  indices = Kelastic.index_range(req.from,req.to)
-  result  = KelasticMulti.new(query,indices)
-
-  # Not sure this is required. This should be able to be handled without
-  # server communication
-  result.response['kibana']['time'] = {
-    "from" => req.from.iso8601, "to" => req.to.iso8601}
-  result.response['kibana']['default_fields'] = KibanaConfig::Default_fields
-
-  JSON.generate(result.response)
-end
-
-get '/api/graph/:mode/:interval/:hash/?:segment?' do
-  segment = params[:segment].nil? ? 0 : params[:segment].to_i
-
-  req     = ClientRequest.new(params[:hash])
-  case params[:mode]
-  when "count"
-    query   = DateHistogram.new(req.search,@user_perms,req.from,req.to,params[:interval].to_i)
-  when "mean"
-    query   = StatsHistogram.new(req.search,@user_perms,req.from,req.to,req.analyze,params[:interval].to_i)
-  end
-  indices = Kelastic.index_range(req.from,req.to)
-  result  = KelasticSegment.new(query,indices,segment)
-
-  JSON.generate(result.response)
-end
-
-get '/api/id/:id/:index' do
-  ## TODO: Make this verify that the index matches the smart index pattern.
-  id      = params[:id]
-  index   = "#{params[:index]}"
-  query   = IDQuery.new(id,@user_perms)
-  result  = Kelastic.new(query,index)
-  JSON.generate(result.response)
-end
-
-get '/api/analyze/:field/trend/:hash' do
-  limit = KibanaConfig::Analyze_limit
-  show  = KibanaConfig::Analyze_show
-  req           = ClientRequest.new(params[:hash])
-
-  query_end     = SortedQuery.new(req.search,@user_perms,req.from,req.to,0,limit,'@timestamp','desc')
-  indices_end   = Kelastic.index_range(req.from,req.to)
-  result_end    = KelasticMulti.new(query_end,indices_end)
-
-  # Oh snaps. too few results for full limit analysis, rerun with less
-  if (result_end.response['hits']['hits'].length < limit)
-    limit         = (result_end.response['hits']['hits'].length / 2).to_i
-    query_end     = SortedQuery.new(req.search,@user_perms,req.from,req.to,0,limit,'@timestamp','desc')
-    indices_end   = Kelastic.index_range(req.from,req.to)
-    result_end    = KelasticMulti.new(query_end,indices_end)
-  end
-
-  fields = Array.new
-  fields = params[:field].split(',,')
-  count_end     = KelasticResponse.count_field(result_end.response,fields)
-
-  query_begin   = SortedQuery.new(req.search,@user_perms,req.from,req.to,0,limit,'@timestamp','asc')
-  indices_begin = Kelastic.index_range(req.from,req.to).reverse
-  result_begin  = KelasticMulti.new(query_begin,indices_begin)
-  count_begin   = KelasticResponse.count_field(result_begin.response,fields)
-
-
-
-  # Not sure this is required. This should be able to be handled without
-  # server communication
-  result_end.response['kibana']['time'] = {
-    "from" => req.from.iso8601, "to" => req.to.iso8601}
-
-  final = Array.new(0)
-  count = result_end.response['hits']['hits'].length
-  count_end.each do |key, value|
-    first = count_begin[key].nil? ? 0 : count_begin[key];
-    final << {
-      :id    => key,
-      :count => value,
-      :start => first,
-      :trend => (((value.to_f / count) - (first.to_f / count)) * 100).to_f
-    }
-  end
-  final = final.sort_by{ |hsh| hsh[:trend].abs }.reverse
-
-  result_end.response['hits']['count'] = result_end.response['hits']['hits'].length
-  result_end.response['hits']['hits'] = final[0..(show - 1)]
-  JSON.generate(result_end.response)
-end
-
-get '/api/analyze/:field/terms/:hash' do
-  limit   = KibanaConfig::Analyze_show
-  req     = ClientRequest.new(params[:hash])
-  fields = Array.new
-  fields = params[:field].split(',,')
-  query   = TermsFacet.new(req.search,@user_perms,req.from,req.to,fields)
-  indices = Kelastic.index_range(req.from,req.to,KibanaConfig::Facet_index_limit)
-  result  = KelasticMultiFlat.new(query,indices)
-
-  # Not sure this is required. This should be able to be handled without
-  # server communication
-  result.response['kibana']['time'] = {
-    "from" => req.from.iso8601, "to" => req.to.iso8601}
-
-  JSON.generate(result.response)
-end
-
-get '/api/analyze/:field/score/:hash' do
-  limit = KibanaConfig::Analyze_limit
-  show  = KibanaConfig::Analyze_show
-  req     = ClientRequest.new(params[:hash])
-  query   = SortedQuery.new(req.search,@user_perms,req.from,req.to,0,limit)
-  indices = Kelastic.index_range(req.from,req.to)
-  result  = KelasticMulti.new(query,indices)
-  fields = Array.new
-  fields = params[:field].split(',,')
-  count   = KelasticResponse.count_field(result.response,fields)
-
-  # Not sure this is required. This should be able to be handled without
-  # server communication
-  result.response['kibana']['time'] = {
-    "from" => req.from.iso8601, "to" => req.to.iso8601}
-
-  final = Array.new(0)
-  count.each do |key, value|
-    final << {
-      :id    => key,
-      :count => value,
-    }
-  end
-  final = final.sort_by{ |hsh| hsh[:count].abs }.reverse
-
-  result.response['hits']['count']  = result.response['hits']['hits'].length
-  result.response['hits']['hits']   = final[0..(show - 1)]
-  JSON.generate(result.response)
-end
-
-get '/api/analyze/:field/mean/:hash' do
-  req     = ClientRequest.new(params[:hash])
-  query   = StatsFacet.new(req.search,@user_perms,req.from,req.to,params[:field])
-  indices = Kelastic.index_range(req.from,req.to,KibanaConfig::Facet_index_limit)
-  type    = Kelastic.field_type(indices.first,params[:field])
-  if ['long','integer','double','float'].include? type
-    result  = KelasticMultiFlat.new(query,indices)
-
-    # Not sure this is required. This should be able to be handled without
-    # server communication
-    result.response['kibana']['time'] = {
-      "from" => req.from.iso8601, "to" => req.to.iso8601}
-
-    JSON.generate(result.response)
-  else
-    JSON.generate({"error" => "Statistics not supported for type: #{type}"})
-  end
-end
-
-get '/api/stream/:hash/?:from?' do
-  # This is delayed by 10 seconds to account for indexing time and a small time
-  # difference between us and the ES server.
-  delay = 10
-
-  # Calculate 'from'  and 'to' based on last event in stream.
-  from = params[:from].nil? ? Time.now - (10 + delay) : Time.parse("#{params[:from]}+0:00")
-
-  # ES's range filter is inclusive. delay-1 should give us the correct window. Maybe?
-  to = Time.now - (delay)
-
-  # Build and execute
-  req     = ClientRequest.new(params[:hash])
-  query   = SortedQuery.new(req.search,@user_perms,from,to,0,30)
-  indices = Kelastic.index_range(from,to)
-  result  = KelasticMulti.new(query,indices)
-  output  = JSON.generate(result.response)
-
-  if result.response['hits']['total'] > 0
-    JSON.generate(result.response)
-  end
-end
 
 get '/rss/:hash/?:count?' do
   # TODO: Make the count number above/below functional w/ hard limit setting
@@ -482,37 +302,6 @@ post '/api/favorites' do
       halt 500, "Invalid action"
     end
   end
-end
-
-get '/api/favorites' do
-  if @@auth_module
-    user = session[:username]
-    results = @@storage_module.get_favorites(user)
-    JSON.generate(results)
-  end
-end
-
-delete '/api/favorites' do
-  if @@auth_module
-    id = params[:id]
-    user = session[:username]
-    # check if the user owns the favorite
-    if !id.nil? and id != ""
-      r = @@storage_module.get_favorite(id)
-      if !r.nil? and r[:user] == user
-        result = @@storage_module.del_favorite(id)
-        return JSON.generate( { :success => result, :message => ""} )
-      else
-        return JSON.generate( { :success => false, :message => "Operation not permitted" } )
-      end
-    else
-      halt 500, "Invalid action"
-    end
-  end
-end
-
-get '/js/timezone.js' do
-  erb :timezone
 end
 
 get '/lastevents' do
@@ -606,6 +395,71 @@ get '/archivedlist' do
   erb :main, :locals => locals
 end
 
+def search_action(data, index)
+  # check if we are allowed to read the index
+  if @user.allowed?('index_read', index)
+
+    # get the user scope
+    # get the items we have a view data permissions to union the items we have any permissions to
+    view_scope = (@user.get_scope('view_data') || []) | (@user.get_scope('*') || [])
+
+    security_filter = nil
+
+    # if we have access to everything then no need to filter
+    unless view_scope.include?('*')
+      # build the filter
+      security_filter = { 'terms' => { 'tags' => view_scope } }
+    end
+
+    filtered_query = {
+        'query' => {
+            'filtered' => {
+                'query' => (data['query'] || {})
+            },
+            'highlight' => (data['highlight'] || {}),
+            'size' => (data['size'] || 100),
+            'sort' => (data['sort'] || []),
+            'facets' => (data['facets'] || {})
+        }
+    }
+
+    if security_filter
+      filtered_query['query']['filtered']['filter'] = security_filter
+    end
+
+    c = Curl::Easy.http_post('http://' + KibanaConfig::Elasticsearch + '/' + index + '/_search', JSON.generate(filtered_query)) do |curl|
+      curl.headers['Accept'] = 'application/json'
+      curl.headers['Content-Type'] = 'application/json'
+    end
+
+    c.body_str
+  else
+    halt 403, JSON.generate({'error' => 'not_authorized'})
+  end
+end
+
+post '/api/:action/?:index?' do
+  action = params[:action]
+
+  raw = request.env["rack.input"].read
+  data = JSON.parse (raw)
+
+  index = params[:index] || 'logmind-logs'
+
+  if @user
+    if @user.allowed?(action, nil)
+      if  action == "search"
+        search_action data, index
+      elsif action == "save_dashboard"
+      end
+    else
+      halt 403, JSON.generate({'error' => 'not_authorized'})
+    end
+  else
+    halt 401, JSON.generate({'error' => 'authentication_required'})
+  end
+end
+
 get %r{/napi/es/(.*)} do
   q = params[:captures].first
 
@@ -631,7 +485,6 @@ post %r{/napi/es/(.*)} do
 
   c.body_str
 end
-
 
 put %r{/napi/es/(.*)} do
   q = params[:captures].first

@@ -8,7 +8,17 @@ class Authorization
   end
 
   def setup_defaults_if_needed()
-    set_password('admin', 'password')
+    save_user 'admin', [], []
+    set_password 'admin', 'password'
+    save_policy 'user_default_policy_admin', ['admin'], ['*'], ['*']
+
+    save_user 'viewer', [], []
+    set_password 'viewer', 'password'
+    save_policy 'user_default_policy_viewer', ['viewer'], ['view_data', 'index_read', 'search'], ['logstash-*']
+
+    save_user 'guest', [], []
+    set_password 'guest', 'password'
+    save_policy 'user_default_policy_guest', ['guest'], [], []
   end
 
   def remove_user(username)
