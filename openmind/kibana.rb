@@ -24,7 +24,7 @@ ruby_18 { require 'fastercsv' }
 ruby_19 { require 'csv' }
 
 Tire.configure do
-  url 'http://localhost:9200'
+  url 'http://' + KibanaConfig::Elasticsearch
 end
 
 configure do
@@ -90,7 +90,7 @@ end
 
 get '/' do
   headers "X-Frame-Options" => "allow","X-XSS-Protection" => "0" if KibanaConfig::Allow_iframed
-  @user.allowed?(:frontend_ui_view, nil) || halt(403, 'Unauthorized')
+  @user.allowed?('frontend_ui_view', nil) || halt(403, 'Unauthorized')
   locals = {}
   erb :index, :locals => locals
 end
@@ -428,24 +428,41 @@ def search_action(data, index, esp1, esp2)
 
     # if we have access to everything then no need to filter
     unless view_scope.include?('*')
+      normalized_scope = view_scope.map { |item| item.slice(1..item.length) if item.start_with?('#') }.reject { |r| r == nil }
       # build the filter
-      security_filter = { 'terms' => { 'tags' => view_scope } }
+      security_filter = { 'or' => [{ 'terms' => { '@tags' => normalized_scope } }, { 'terms' => { 'tags' => normalized_scope } } ]}
     end
 
-    filtered_query = {
-        'query' => {
-            'filtered' => {
-                'query' => (data['query'] || { 'match_all' => {} })
-            },
-            'highlight' => (data['highlight'] || {}),
-            'size' => (data['size'] || 100),
-            'sort' => (data['sort'] || []),
-            'facets' => (data['facets'] || {})
-        }
-    }
+    filtered_query = nil
 
     if security_filter
-      filtered_query['query']['filtered']['filter'] = security_filter
+      filtered_query = {'query' => {
+          'filtered' => {
+            'query' => (data['query'] || { 'match_all' => {} }),
+            'filter' => security_filter
+          }
+        }
+      }
+    else
+      filtered_query = {
+          'query' => (data['query'] || { 'match_all' => {} })
+      }
+    end
+
+    if data['facets']
+      filtered_query['facets'] = data['facets']
+    end
+
+    if data['size']
+      filtered_query['size'] = data['size']
+    end
+
+    if data['highlight']
+      filtered_query['highlight'] = data['highlight']
+    end
+
+    if data['sort']
+      filtered_query['sort'] = data['sort']
     end
 
     c = Curl::Easy.http_post('http://' + KibanaConfig::Elasticsearch + '/' + index + '/' + url_suffix, JSON.generate(filtered_query)) do |curl|
@@ -470,7 +487,7 @@ def api_action(method, action, index, esp1, esp2)
     data = JSON.parse (raw)
   end
 
-  index = params[:index] || 'logmind-logs'
+  index = params[:index] || 'logstash-*'
 
   if @user
     if @user.allowed?(action, nil)

@@ -14,7 +14,7 @@ class Authorization
 
     save_user 'viewer', [], []
     set_password 'viewer', 'password'
-    save_policy 'user_default_policy_viewer', ['viewer'], ['view_data', 'index_read', 'search'], ['logstash-*']
+    save_policy 'user_default_policy_viewer', ['viewer'], ['view_data', 'index_read', 'search', 'frontend_ui_view'], ['logstash-*', '#owner-benb@watchdox.com']
 
     save_user 'guest', [], []
     set_password 'guest', 'password'
