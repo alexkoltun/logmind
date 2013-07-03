@@ -417,7 +417,7 @@ def search_action(data, index, esp1, esp2)
       if view_scope.include?('*') || view_scope.include?(esp2) || ((view_scope & ((result['_source']['tags'] || []).map { |item| '#' + item })).length > 0)
         return JSON.generate(result)
       else
-        return JSON.generate({})
+        return halt 403, JSON.generate({'error' => 'not_authorized'})
       end
       # type only
     elsif esp2
