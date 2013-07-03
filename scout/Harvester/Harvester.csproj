@@ -41,13 +41,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseHarvester.cs" />
+    <Compile Include="DummyHarvester.cs" />
     <Compile Include="EventLog.cs" />
+    <Compile Include="HarvesterSickle.cs" />
+    <Compile Include="Pipe.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj">
       <Project>{DCB7A8D6-B631-401B-BEEE-190D3A1F226A}</Project>
       <Name>Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Interfaces\Interfaces.csproj">
+      <Project>{AC91E578-E219-4E51-8D3E-27E543A87EF9}</Project>
+      <Name>Interfaces</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

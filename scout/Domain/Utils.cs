@@ -5,6 +5,7 @@ using System.Text;
 using Logmind.Domain.Config;
 using System.IO;
 using System.Runtime.Serialization.Json;
+using System.Web.Script.Serialization;
 
 namespace Logmind.Domain
 {
@@ -36,7 +37,7 @@ namespace Logmind.Domain
                 return ms.ToArray();
             }
         }
-
+      
         public static T Deserialize<T>(byte[] objBuffer) where T : class
         {
             if (objBuffer != null)
@@ -64,5 +65,11 @@ namespace Logmind.Domain
 
             return default(T);
         }
+
+        //public static byte[] Serialize<List<T>>(List<T> objInstance) //1
+        ////where T :
+        //{
+        //    return null;    
+        //}
     }
 }

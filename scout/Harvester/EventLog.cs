@@ -8,5 +8,11 @@ namespace Logmind.Harvester
     public class EventLog : BaseHarvester
     {
 
+        public override void Do()
+        {
+            // DO your staff and 
+            //m_PostMan.Enqueue();
+            //throw new NotImplementedException();
+        }
     }
 }
