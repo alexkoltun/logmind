@@ -1,0 +1,52 @@
+<%= erb :internalheader, :locals => locals %>
+      <div class="span2" id=sidebar>
+        <%= erb :loginmenu, :locals => locals %>
+      </div>
+
+      <div class="content span10" id=main>
+       <% if locals[:result].has_key?('hits') %>
+            <table class="table logs table-condensed">
+               <tr>
+                <th></th>
+                <th>Type</th>
+                <th>Source</th>
+                <th>Timestamp</th>
+                <th>Host</th>
+                <th>Message</th>
+               </tr>
+              <tbody>
+            <% for index in 0 ... locals[:result]['hits']['hits'].size %>
+                 <tr>
+                    <td><a href="javascript:deleteDoc('<%= locals[:result]['hits']['hits'][index]["_source"]["@type"] %>','<%= locals[:result]['hits']['hits'][index]["_id"] %>');" >delete</a></td>
+                    <td><%= locals[:result]['hits']['hits'][index]["_source"]["@type"] %></td>
+                    <td><%= locals[:result]['hits']['hits'][index]["_source"]["@source"] %></td>
+                    <td><%= locals[:result]['hits']['hits'][index]["_source"]["@timestamp"] %></td>
+                    <td><%= locals[:result]['hits']['hits'][index]["_source"]["@source_host"] %></td>
+                    <td><%= locals[:result]['hits']['hits'][index]["_source"]["@message"] %></td>
+
+                </tr>
+            <% end %>
+        </tbody>
+        </table>
+       <% end %>
+  <script>
+    function deleteDoc(type,id)
+    {
+        var data = { "type" : type, "id" : id  };
+        $.ajax({
+            url: '/lastevents',
+            type: 'delete',
+            cache: false,
+            data: data,
+            success: function (json) {
+                result = JSON.parse(json);
+                if (result.success) {
+                    // refresh page
+                    //alert (json);
+                    window.location.href = window.location.href;
+                }
+            }
+        });
+    }
+  </script>
+<%= erb :footer, :locals => locals %>

@@ -1,11 +1,11 @@
 <% if locals[:username] %>
-        <div class="login">
-          <h5><i class="icon-user icon-large"></i>&nbsp;&nbsp;<b><%= locals[:username] %></b></h5>
-          <ul class="nav">
+        <li class="submenu">
+          <a href="#"><h5 style="margin: 0px;"><i class="icon-user icon-large"></i>&nbsp;&nbsp;<b><%= locals[:username] %></b><i class="icon-chevron-down" style="float: right; margin-right: 20px;"></i></h5></a>
+          <ul id="admin-menu-list">
             <% if locals[:is_admin] %>
             <%= erb :adminmenu, :locals => locals %>
             <% end %>
             <li><a href="/auth/logout"><i class="icon-off"></i> Logout</a></li>
           </ul>
-        </div>
+        </li>
 <% end %>

@@ -1,7 +1,58 @@
-<%= erb :adminheader, :locals => locals %>
-      <div class="span2" id=sidebar>
-        <%= erb :loginmenu, :locals => locals %>
-      </div>
+
+<script language="javascript">
+    $(function() {
+        $( ".select-list" ).selectable();
+
+        $("#btn-tag-move-right").click(function() {
+            $("#avail_tags li.ui-selected").each(function() {
+                var tag = $(this);
+                $("#curr_tags").append("<li class=\"select-item\" value=\"" + tag.text() + "\">" + tag.text() + "</li>");
+                tag.remove();
+            });
+        });
+        $("#btn-tag-move-left").click(function() {
+            $("#curr_tags li.ui-selected").each(function() {
+                var tag = $(this);
+                $("#avail_tags").append("<li class=\"select-item\" value=\"" + tag.text() + "\">" + tag.text() + "</li>");
+                tag.remove();
+            });
+        });
+
+        $("#btn-member-move-right").click(function() {
+            $("#avail_members li.ui-selected").each(function() {
+                var member = $(this);
+                $("#curr_members").append("<li class=\"select-item\" value=\"" + member.text() + "\">" + member.text() + "</li>");
+                member.remove();
+            });
+        });
+        $("#btn-member-move-left").click(function() {
+            $("#curr_members li.ui-selected").each(function() {
+                var member = $(this);
+                $("#avail_members").append("<li class=\"select-item\" value=\"" + member.text() + "\">" + member.text() + "</li>");
+                member.remove();
+            });
+        });
+
+        $("#btn-group-move-right").click(function() {
+            $("#avail_groups li.ui-selected").each(function() {
+                var group = $(this);
+                $("#curr_groups").append("<li class=\"select-item\" value=\"" + group.text() + "\">" + group.text() + "</li>");
+                group.remove();
+            });
+        });
+        $("#btn-group-move-left").click(function() {
+            $("#curr_groups li.ui-selected").each(function() {
+                var group = $(this);
+                $("#avail_groups").append("<li class=\"select-item\" value=\"" + group.text() + "\">" + group.text() + "</li>");
+                group.remove();
+            });
+        });
+
+        $("#name_field").change(function() {
+            $("#name_field").css("color", "#858585");
+        });
+    });
+</script>
 
       <div class="content span10" id=main>
       <% if locals[:mode] == "edit" && !locals[:user_data] %>
@@ -10,107 +61,166 @@
         <p>Please go back and try again.</p>
       </div>
       <% else %>
-       <select id="alltags" size=10 class="nav nav-list">
-       <% if locals[:alltags] %>
-         <% locals[:alltags].each do |tag| %>
-         <option value="<%= tag %>"><%= tag %></option>
-         <% end %>
-       <% end %>
-       </select>
-       <select id="allmembers" size=10 class="nav nav-list">
-       <% if locals[:allusers] %>
-         <% locals[:allusers].each do |user| %>
-         <option value="<%= user %>"><%= user %></option>
-         <% end %>
-       <% end %>
-       </select>
-       <select id="allgroups" size=10 class="nav nav-list">
-       <% if locals[:allgroups] %>
-         <% locals[:allgroups].each do |group| %>
-         <option value="<%= group %>"><%= group %></option>
-         <% end %>
-       <% end %>
-       </select>
       <% if locals[:mode] == "new" %>
       <form id="userdata" class="form-horizontal" method="post" action="save">
       <% else %>
       <form id="userdata" class="form-horizontal" method="post" action="../save">
       <% end %>
-        <% if locals[:mode] == "edit" %>
+
+        <select style="display: none;" id="usertags" name="usertags[]"></select>
+        <select style="display: none;" id="members" name="members[]"></select>
+        <select style="display: none;" id="user_groups" name="user_groups[]"></select>
+
+            <% if locals[:mode] == "edit" %>
         <legend>Editing <%= locals[:user_data][:username] %></legend>
         <% else %>
         <legend>Adding New <%= locals[:type] %></legend>
         <% end %>
-        <div class="control-group">
-          <% if locals[:mode] == "new" %>
-          <label class="control-label" for="<%= locals[:type] %>name"><%= locals[:type] %> Name</label>
-          <div class="controls">
-            <input name="<%= locals[:type] %>name" type="text" class="span4" placeholder="name" />
+
+        <% if locals[:mode] == "new" %>
+          <div class="control-group">
+            <label class="control-label" for="<%= locals[:type] %>name"><%= locals[:type] %> Name<br /><span style="font-size: 10px; color: #777777">3 characters minimum</span></label>
+            <div class="controls">
+              <input id="name_field" name="<%= locals[:type] %>name" type="text" class="span4" placeholder="name" />
+            </div>
           </div>
-          <% else %>
-          <input name="<%= locals[:type] %>name" type="hidden" value="<%= locals[:user_data][:username] %>" />
-          <% end %>
-        </div>
-        <div class="control-group">
-          <input name="mode" type="hidden" value="<%= locals[:mode] %>" />
-          <label class="control-label" for="tag">Allowed Tags</label>
-          <div class="controls">
-            <input id="tag" type="text" class=span4 placeholder="enter a tag..." />
-            <button id="showtags" class="btn btn-small"><i class="icon-chevron-down"></i></button>
-            <button id="addtag" class="btn"><i class="icon-plus"></i></button>
+        <% else %>
+          <div style="display: none;" class="control-group">
+            <input id="name_field" name="<%= locals[:type] %>name" type="hidden" value="<%= locals[:user_data][:username] %>" />
           </div>
-        </div>
-        <div class="control-group">
-          <div class="controls">
-            <select id="usertags" name="usertags[]" multiple="multiple" class="span4">
-            <% if locals[:mode] == "edit" && locals[:user_data][:tags] %>
-              <% locals[:user_data][:tags].each do |tag| %>
-              <option value="<%= tag %>"><%= tag %></option>
-              <% end %>
-            <% end %>
-            </select>
-            <br />
-            <a id="deltags" href="#"><i class="icon-trash icon-white"></i> Remove Selected</a>
-          </div>
+        <% end %>
+
+
+        <label style="margin-right: 20px;" class="control-label" for="tag">Tags</label>
+        <table class="table table-striped table-bordered table-condensed" style="width: 67%; max-width: 600px; min-height: 250px;">
+          <thead>
+          <tr>
+            <th>Available Tags</th>
+            <th></th>
+            <th>Current Tags</th>
+          </tr>
+          </thead>
+          <tr>
+            <td style="width: 48%">
+              <div class="select-list-div">
+                <ol class="select-list" id="avail_tags">
+                  <% if locals[:alltags] %>
+                      <% locals[:alltags].each do |tag| %>
+                          <% if locals[:user_data] == nil or locals[:user_data][:tags] == nil or not locals[:user_data][:tags].include?(tag) %>
+                            <li class="select-item" value="<%= tag %>"><%= tag %></li>
+                          <% end %>
+                      <% end %>
+                  <% end %>
+                </ol>
+              </div>
+            </td>
+            <td style="width: 4%; valign: middle;">
+              <button type="button" style="margin: auto;" id="btn-tag-move-right"><i class="icon-circle-arrow-right"></i></button><br />
+              <button type="button" id="btn-tag-move-left"><i class="icon-circle-arrow-left"></i></button>
+            </td>
+            <td style="width: 48%">
+              <div class="select-list-div">
+                  <ol class="select-list" id="curr_tags" name="curr_tags[]">
+                    <% if locals[:mode] == "edit" && locals[:user_data][:tags] %>
+                        <% locals[:user_data][:tags].each do |tag| %>
+                            <li class="select-item" value="<%= tag %>"><%= tag %></li>
+                        <% end %>
+                    <% end %>
+                  </ol>
+              </div>
+            </td>
+          </tr>
+        </table>
+
           </br>
+
           <% if locals[:is_group] == true %>
-          <label class="control-label" for="group">Group Members</label>
-          <div class="controls">
-            <input id="member" type="text" class=span4 placeholder="Search..." disabled="disabled"/>
-            <button id="showmembers" class="btn btn-small"><i class="icon-chevron-down"></i></button>
-          </div>
-        </div>
-        <div class="control-group">
-          <div class="controls">
-            <select id="members" name="members[]" multiple="multiple" class="span4">
-            <% if locals[:mode] == "edit" && locals[:group_members] %>
-              <% locals[:group_members].each do |username| %>
-              <option value="<%= username %>"><%= username %></option>
-              <% end %>
-            <% end %>
-            </select>
-            <br />
-            <a id="delmember" href="#"><i class="icon-trash icon-white"></i> Remove Selected</a>
+
+            <label style="margin-right: 20px;" class="control-label" for="tag">Members</label>
+            <table class="table table-striped table-bordered table-condensed" style="width: 67%; max-width: 600px; min-height: 250px;">
+              <thead>
+                  <tr>
+                    <th>Available Users</th>
+                    <th></th>
+                    <th>Current Members</th>
+                  </tr>
+              </thead>
+              <tr>
+                <td style="width: 48%">
+                  <div class="select-list-div">
+                      <ol class="select-list" id="avail_members">
+                        <% if locals[:allusers] %>
+                            <% locals[:allusers].each do |user| %>
+                                <% if locals[:group_members] == nil or not locals[:group_members].include?(user) %>
+                                    <li class="select-item" value="<%= user %>"><%= user %></li>
+                                <% end %>
+                            <% end %>
+                        <% end %>
+                      </ol>
+                  </div>
+                </td>
+                <td style="width: 4%; valign: middle;">
+                  <button type="button" style="margin: auto;" id="btn-member-move-right"><i class="icon-circle-arrow-right"></i></button><br />
+                  <button type="button" id="btn-member-move-left"><i class="icon-circle-arrow-left"></i></button>
+                </td>
+                <td style="width: 48%">
+                  <div class="select-list-div">
+                      <ol class="select-list" id="curr_members" name="curr_members[]">
+                        <% if locals[:mode] == "edit" && locals[:group_members] %>
+                            <% locals[:group_members].each do |username| %>
+                                <li class="select-item" value="<%= username %>"><%= username %></li>
+                            <% end %>
+                        <% end %>
+                      </ol>
+                  </div>
+                </td>
+              </tr>
+            </table>
+
           <% else %>
-          <label class="control-label" for="tag">Groups</label>
-          <div class="controls">
-            <input id="group" type="text" class=span4 placeholder="Search..." disabled="disabled"/>
-            <button id="showgroups" class="btn btn-small"><i class="icon-chevron-down"></i></button>
-          </div>
-        </div>
-        <div class="control-group">
-          <div class="controls">
-            <select id="user_groups" name="user_groups[]" multiple="multiple" class="span4">
-            <% if locals[:mode] == "edit" && locals[:user_groups] %>
-              <% locals[:user_groups].each do |group| %>
-              <option value="<%= group %>"><%= group %></option>
-              <% end %>
-            <% end %>
-            </select>
-            <br />
-            <a id="delgroup" href="#"><i class="icon-trash icon-white"></i> Remove Selected</a>
+
+            <label style="margin-right: 20px;" class="control-label" for="tag">Groups</label>
+            <table class="table table-striped table-bordered table-condensed" style="width: 67%; max-width: 600px; min-height: 250px;">
+              <thead>
+              <tr>
+                <th>Available Groups</th>
+                <th></th>
+                <th>Current Groups</th>
+              </tr>
+              </thead>
+              <tr>
+                <td style="width: 48%">
+                  <div class="select-list-div">
+                      <ol class="select-list" id="avail_groups">
+                        <% if locals[:allgroups] %>
+                            <% locals[:allgroups].each do |group| %>
+                                <% if locals[:user_groups] == nil or not locals[:user_groups].include?(group) %>
+                                    <li class="select-item" value="<%= group %>"><%= group %></li>
+                                <% end %>
+                            <% end %>
+                        <% end %>
+                      </ol>
+                  </div>
+                </td>
+                <td style="width: 4%; valign: middle;">
+                  <button type="button" style="margin: auto;" id="btn-group-move-right"><i class="icon-circle-arrow-right"></i></button><br />
+                  <button type="button" id="btn-group-move-left"><i class="icon-circle-arrow-left"></i></button>
+                </td>
+                <td style="width: 48%">
+                  <div class="select-list-div">
+                      <ol class="select-list" id="curr_groups" name="curr_groups[]">
+                        <% if locals[:mode] == "edit" && locals[:user_groups] %>
+                            <% locals[:user_groups].each do |group| %>
+                                <li class="select-item" value="<%= group %>"><%= group %></li>
+                            <% end %>
+                        <% end %>
+                      </ol>
+                  </div>
+                </td>
+              </tr>
+            </table>
           <% end %>
-          </div>
+        <div class="control-group">
           <div class="controls">
             <label class="checkbox">
               <input id="is_admin" name="is_admin" type="checkbox"<% if locals[:mode] == "edit" && locals[:user_data][:is_admin] %> checked<% end %>> Admin</input>
@@ -137,116 +247,36 @@
           window.location = '../admin';
           <% end %>
         });
-        $('#userdata').submit(function() {
-          $('#usertags option').attr('selected',true);
-          $('#members option').attr('selected',true);
-          $('#user_groups option').attr('selected',true);
-        });
-        $('#addtag').click(function() {
-          var s = $('#tag').val().trim();
-          var exists = $("#usertags option[value='"+s+"']").length !== 0;
+        $('#userdata').submit(function(event) {
+            event.preventDefault();
 
-          if (s != "" && !exists) {
-            //$('#usertags').append('<option value="'+s+'">'+s+'</option>');
-            $('#usertags').append(new Option(s,s,false,false));
-          }
-          $('#tag').val("");
-          return false;
-        });
-        $('#alltags').click(function() {
-          var s = $('#alltags option:selected').text()
-          var exists = $("#usertags option[value='"+s+"']").length !== 0;
-          if (s != "" && !exists) {
-            $('#usertags').append(new Option(s,s,false,false));
-          }
-        });
-        $('#showtags').click(function() {
-          var pos = $('#tag').offset();
-          pos.top += $('#tag').width();
-          $('#alltags').fadeIn(100);
-          $('#alltags').css({position:"absolute",top:0,left:0}).position({
-             my: "right top",
-             at: "right bottom",
-             of: "#showtags",
-             offset: "1 -1",
-             collision: "none"
-          }).fadeIn(200);
-          return false;
-        });
-        $('#allmembers').click(function() {
-          var s = $('#allmembers option:selected').text()
-          var exists = $("#members option[value='"+s+"']").length !== 0;
-          if (s != "" && !exists) {
-            $('#members').append(new Option(s,s,false,false));
-          }
-        });
-        $('#allgroups').click(function() {
-          var s = $('#allgroups option:selected').text()
-          var exists = $("#user_groups option[value='"+s+"']").length !== 0;
-          if (s != "" && !exists) {
-            $('#user_groups').append(new Option(s,s,false,false));
-          }
-        });
-        $('#showmembers').click(function() {
-          var pos = $('#member').offset();
-          pos.top += $('#member').width();
-          $('#allmembers').fadeIn(100);
-          $('#allmembers').css({position:"absolute",top:0,left:0}).position({
-             my: "right top",
-             at: "right bottom",
-             of: "#showmembers",
-             offset: "1 -1",
-             collision: "none"
-          }).fadeIn(200);
-          return false;
-        });
-        $('#showgroups').click(function() {
-          var pos = $('#group').offset();
-          pos.top += $('#group').width();
-          $('#allgroups').fadeIn(100);
-          $('#allgroups').css({position:"absolute",top:0,left:0}).position({
-             my: "right top",
-             at: "right bottom",
-             of: "#showgroups",
-             offset: "1 -1",
-             collision: "none"
-          }).fadeIn(200);
-          return false;
-        });
-        $('#alltags ul li a').click(function() {
-          $('#tag').val($(this).text());
-          $('#alltags').fadeOut(200);
-          return false;
-        });
-        $('#deltags').click(function() {
-          $('#usertags :selected').remove();
-          return false;
-        });
-        $('#delmember').click(function() {
-          $('#members :selected').remove();
-          return false;
-        });
-        $('#delgroup').click(function() {
-          $('#user_groups :selected').remove();
-          return false;
-        });
-        $(document).mouseup(function(e) {
-          // hide the tags list if clicked outside
-          var container = $("#alltags");
-          if (container.has(e.target).length === 0) {
-            container.hide();
-          }
-          var container = $("#allmembers");
-          if (container.has(e.target).length === 0) {
-            container.hide();
-          }
-          var container = $("#allgroups");
-          if (container.has(e.target).length === 0) {
-            container.hide();
-          }
+            var name = $("#name_field").val();
+            if (name.length < 3) {
+                alert("Name must consist of at least 3 characters!");
+                $("#name_field").css("color", "red");
+
+                return false;
+            }
+
+
+            $('#curr_tags li').each(function() {
+                var tag = $(this).text();
+                $("#usertags").append("<option value=\"" + tag + "\">" + tag + "</option>");
+            });
+            $('#curr_members li').each(function() {
+                var member = $(this).text();
+                $("#members").append("<option value=\"" + member + "\">" + member + "</option>");
+            });
+            $('#curr_groups li').each(function() {
+                var group = $(this).text();
+                $("#user_groups").append("<option value=\"" + group + "\">" + group + "</option>");
+            });
+
+            console.log( $(this).serialize() );
+
+            return false;
         });
       });
       </script>
       <% end %>
       </div>
-<%= erb :footer, :locals => locals %>

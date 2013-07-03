@@ -12,6 +12,7 @@ Gem::Specification.new do |gem|
 
   # Dependencies
 gem.add_runtime_dependency 'sinatra'
+gem.add_runtime_dependency 'haml'
 gem.add_runtime_dependency 'json'
 gem.add_runtime_dependency 'fastercsv'
 gem.add_runtime_dependency 'tzinfo'
@@ -20,6 +21,8 @@ gem.add_runtime_dependency 'curb'
 gem.add_runtime_dependency 'daemons'
 #gem.add_runtime_dependency 'rpam'
 gem.add_runtime_dependency 'net-ldap'
+gem.add_runtime_dependency 'jls-grok'
+gem.add_runtime_dependency 'tire'
 
 gem.add_development_dependency 'rake'
 gem.add_development_dependency 'rspec'
