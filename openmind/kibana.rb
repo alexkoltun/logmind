@@ -98,10 +98,6 @@ get '/' do
   erb :index, :locals => locals
 end
 
-get '/stream' do
-  send_file File.join(settings.public_folder, 'stream.html')
-end
-
 get '/auth/login' do
   locals = {}
   login_message = session[:login_message]
