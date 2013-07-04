@@ -1,5 +1,7 @@
 class User
 
+  attr_accessor :username
+
   def initialize(username, permissions)
     @username = username
     @permissions = permissions
@@ -20,4 +22,5 @@ class User
 
     return false
   end
+
 end

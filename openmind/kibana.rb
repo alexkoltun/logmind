@@ -92,6 +92,9 @@ get '/' do
   headers "X-Frame-Options" => "allow","X-XSS-Protection" => "0" if KibanaConfig::Allow_iframed
   @user.allowed?('frontend_ui_view', nil) || halt(403, 'Unauthorized')
   locals = {}
+  if @user
+    locals[:currentUserJson] = JSON.generate({'username' => @user.username})
+  end
   erb :index, :locals => locals
 end
 
