@@ -60,5 +60,7 @@
           window.location = 'admin/group/new/';
         });
       });
+
+      var currentUser = <%= locals[:currentUserJson] %>;
       </script>
 <!--%= erb :footer, :locals => locals %-->
