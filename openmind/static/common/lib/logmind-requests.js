@@ -400,7 +400,7 @@
                 // we don't need to convert the client params to a string
                 // on get requests, just create the url and pass the client
                 // params as the data
-                var url = '/' + index + '/' + type + '/' + id;
+                var url = '/api/idx/get/' + index + '/' + type + '/' + id;
 
                 return ejs.client.get(url, genClientParams(), successcb, errorcb);
             },

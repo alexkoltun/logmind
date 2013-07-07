@@ -203,8 +203,62 @@ get '/export/:hash/?:count?' do
 
 end
 
-def get_action(index, type, id)
+#
+# Index API - /api/idx
+# helpers too
+#
 
+def get_request_json
+  raw = request.env["rack.input"].read
+
+  data = nil
+
+  if raw && !raw.empty?
+    data = JSON.parse (raw)
+  end
+
+  return data
+end
+
+def get_view_scope
+  # get the user scope
+  # get the items we have a view data permissions to union the items we have any permissions to
+  (@user.get_scope('view_data') || []) | (@user.get_scope('*') || [])
+end
+
+def api_action_security!(method, action, index)
+  if @user
+    if @user.allowed?(action, nil)
+      return true
+    else
+      halt 403, JSON.generate({'error' => 'not_authorized'})
+    end
+  else
+    halt 401, JSON.generate({'error' => 'authentication_required'})
+  end
+end
+
+# actions...
+
+def get_action(index, type, id)
+  # check if we are allowed to read the index
+  if @user.allowed?('index_read', index)
+    view_scope = get_view_scope
+
+    c = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id) do |curl|
+      curl.headers['Accept'] = 'application/json'
+      curl.headers['Content-Type'] = 'application/json'
+    end
+
+    result = JSON.parse(c.body_str)
+
+    # check if result permitted
+    if view_scope.include?('*') || view_scope.include?(id) || ((view_scope & ((result['_source']['tags'] || []).map { |item| '#' + item })).length > 0)
+      return JSON.generate(result)
+    end
+  end
+
+  halt 403, JSON.generate({'error' => 'not_authorized'})
 end
 
 def search_action(data, index, type)
@@ -216,25 +270,6 @@ def search_action(data, index, type)
     view_scope = (@user.get_scope('view_data') || []) | (@user.get_scope('*') || [])
 
     url_suffix = '_search'
-
-    # type and id
-    if esp2 && !esp2.start_with?('_')
-      c = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + esp1 + '/' + esp2) do |curl|
-        curl.headers['Accept'] = 'application/json'
-        curl.headers['Content-Type'] = 'application/json'
-      end
-
-      result = JSON.parse(c.body_str)
-      # check if result permitted
-      if view_scope.include?('*') || view_scope.include?(esp2) || ((view_scope & ((result['_source']['tags'] || []).map { |item| '#' + item })).length > 0)
-        return JSON.generate(result)
-      else
-        return halt 403, JSON.generate({'error' => 'not_authorized'})
-      end
-      # type only
-    elsif esp2
-      url_suffix = esp1 + '/_search'
-    end
 
     security_filter = nil
 
@@ -277,47 +312,43 @@ def search_action(data, index, type)
       filtered_query['sort'] = data['sort']
     end
 
-    c = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + url_suffix, JSON.generate(filtered_query)) do |curl|
+    c = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + index + ((type == '_any') ? '' : ('/' + type)) + '/_search', JSON.generate(filtered_query)) do |curl|
       curl.headers['Accept'] = 'application/json'
       curl.headers['Content-Type'] = 'application/json'
     end
 
-    c.body_str
-  else
-    halt 403, JSON.generate({'error' => 'not_authorized'})
-  end
-end
-
-def get_request_json
-  raw = request.env["rack.input"].read
-
-  data = nil
-
-  if raw && !raw.empty?
-    data = JSON.parse (raw)
+    return c.body_str
   end
 
-  return data
+  halt 403, JSON.generate({'error' => 'not_authorized'})
 end
 
-def api_action_security!(method, action, index)
-  if @user
-    if @user.allowed?(action, nil)
-    else
-      halt 403, JSON.generate({'error' => 'not_authorized'})
-    end
-  else
-    halt 401, JSON.generate({'error' => 'authentication_required'})
-  end
-end
+# endpoints
 
-get '/api/idx/:action/?:index?/?:type?' do
-  api_action :get, params[:action], params[:index], params[:type] || '_any'
-end
-
+# search action
 post '/api/idx/search/:index/?:type?' do
+  index = params[:index]
+  type = params[:type] || '_any'
 
+  api_action_security! 'search', index, type
+
+  search_action get_request_json, index, type
 end
+
+# get action
+get '/api/idx/get/:index/:type/:id' do
+  index = params[:index]
+  type = params[:type] || '_any'
+  id = params[:id]
+
+  api_action_security! 'get', index, type
+
+  get_action index, type, id
+end
+
+#
+# end index API
+#
 
 def grok
   if @grok.nil?
