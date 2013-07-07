@@ -296,7 +296,7 @@ angular.module('openmind.histogram', [])
               series: {
                 stackpercent: scope.panel.stack ? scope.panel.percentage : false,
                 stack: scope.panel.percentage ? null : stack,
-                lines:  { 
+                lines:  {
                   show: scope.panel.lines, 
                   fill: scope.panel.fill/10, 
                   lineWidth: scope.panel.linewidth,
@@ -310,22 +310,20 @@ angular.module('openmind.histogram', [])
                 show: scope.panel['y-axis'], 
                 min: 0, 
                 max: scope.panel.percentage && scope.panel.stack ? 100 : null, 
-                color: "#000" 
               },
               xaxis: {
                 timezone: scope.panel.timezone,
                 show: scope.panel['x-axis'],
                 mode: "time",
                 timeformat: time_format(scope.panel.interval),
-                label: "Datetime",
-                color: "#000",
+                label: "Datetime"
               },
               grid: {
-                backgroundColor: '#fff',
+                backgroundColor: { colors: [ "#ccc", "#fff" ] },
                 borderWidth: 0,
                 borderColor: '#eee',
-                color: "#eee",
-                hoverable: true,
+                color: '#000',
+                hoverable: true
               },
               colors: ['#86B22D','#BF6730','#1D7373','#BFB930','#BF3030','#77207D']
             }
