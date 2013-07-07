@@ -203,7 +203,11 @@ get '/export/:hash/?:count?' do
 
 end
 
-def search_action(data, index, esp1, esp2)
+def get_action(index, type, id)
+
+end
+
+def search_action(data, index, type)
   # check if we are allowed to read the index
   if @user.allowed?('index_read', index)
 
@@ -284,9 +288,7 @@ def search_action(data, index, esp1, esp2)
   end
 end
 
-def api_action(method, action, index, esp1, esp2)
-  action = params[:action]
-
+def get_request_json
   raw = request.env["rack.input"].read
 
   data = nil
@@ -295,14 +297,12 @@ def api_action(method, action, index, esp1, esp2)
     data = JSON.parse (raw)
   end
 
-  index = params[:index] || 'logstash-*'
+  return data
+end
 
+def api_action_security!(method, action, index)
   if @user
     if @user.allowed?(action, nil)
-      if  action == "search"
-        search_action data, index, esp1, esp2
-      elsif action == "save_dashboard"
-      end
     else
       halt 403, JSON.generate({'error' => 'not_authorized'})
     end
@@ -311,12 +311,12 @@ def api_action(method, action, index, esp1, esp2)
   end
 end
 
-get '/api/:action/?:index?/?:esp1?/?:esp2?' do
-  api_action :get, params[:action], params[:index], params[:esp1], params[:esp2]
+get '/api/idx/:action/?:index?/?:type?' do
+  api_action :get, params[:action], params[:index], params[:type] || '_any'
 end
 
-post '/api/:action/?:index?/?:esp1?/?:esp2?' do
-  api_action :post, params[:action], params[:index], params[:esp1], params[:esp2]
+post '/api/idx/search/:index/?:type?' do
+
 end
 
 def grok

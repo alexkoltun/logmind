@@ -154,8 +154,6 @@ $scope.get_data = function(segment,query_id) {
     restrict: 'A',
     link: function(scope, elem, attrs) {
 
-      elem.html('<center><img src="common/img/load_big.gif"></center>')
-
       // Receive render events
       scope.$on('draw',function(){
         render_panel();

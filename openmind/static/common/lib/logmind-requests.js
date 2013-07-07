@@ -6,8 +6,217 @@
 
     var oldRequest = ejs.Request, oldDocument = ejs.Document;
 
+    'use strict';
+
+    var
+    // from underscore.js, used in utils
+        ArrayProto = Array.prototype,
+        ObjProto = Object.prototype,
+        slice = ArrayProto.slice,
+        toString = ObjProto.toString,
+        hasOwnProp = ObjProto.hasOwnProperty,
+        nativeForEach = ArrayProto.forEach,
+        nativeIsArray = Array.isArray,
+        breaker = {},
+        has,
+        each,
+        extend,
+        isArray,
+        isObject,
+        isString,
+        isNumber,
+        isFunction,
+        isEJSObject, // checks if valid ejs object
+        isQuery, // checks valid ejs Query object
+        isFilter, // checks valid ejs Filter object
+        isFacet, // checks valid ejs Facet object
+        isScriptField, // checks valid ejs ScriptField object
+        isGeoPoint, // checks valid ejs GeoPoint object
+        isIndexedShape, // checks valid ejs IndexedShape object
+        isShape, // checks valid ejs Shape object
+        isSort, // checks valid ejs Sort object
+        isHighlight, // checks valid ejs Highlight object
+        isSuggest, // checks valid ejs Suggest object
+        isGenerator;
+
+    /* Utility methods, most of which are pulled from underscore.js. */
+
+    // Shortcut function for checking if an object has a given property directly
+    // on itself (in other words, not on a prototype).
+    has = function (obj, key) {
+        return hasOwnProp.call(obj, key);
+    };
+
+    // The cornerstone, an `each` implementation, aka `forEach`.
+    // Handles objects with the built-in `forEach`, arrays, and raw objects.
+    // Delegates to **ECMAScript 5**'s native `forEach` if available.
+    each = function (obj, iterator, context) {
+        if (obj == null) {
+            return;
+        }
+        if (nativeForEach && obj.forEach === nativeForEach) {
+            obj.forEach(iterator, context);
+        } else if (obj.length === +obj.length) {
+            for (var i = 0, l = obj.length; i < l; i++) {
+                if (iterator.call(context, obj[i], i, obj) === breaker) {
+                    return;
+                }
+            }
+        } else {
+            for (var key in obj) {
+                if (has(obj, key)) {
+                    if (iterator.call(context, obj[key], key, obj) === breaker) {
+                        return;
+                    }
+                }
+            }
+        }
+    };
+
+    // Extend a given object with all the properties in passed-in object(s).
+    extend = function (obj) {
+        each(slice.call(arguments, 1), function (source) {
+            for (var prop in source) {
+                obj[prop] = source[prop];
+            }
+        });
+        return obj;
+    };
+
+    // Is a given value an array?
+    // Delegates to ECMA5's native Array.isArray
+    // switched to ===, not sure why underscore used ==
+    isArray = nativeIsArray || function (obj) {
+        return toString.call(obj) === '[object Array]';
+    };
+
+    // Is a given variable an object?
+    isObject = function (obj) {
+        return obj === Object(obj);
+    };
+
+    // switched to ===, not sure why underscore used ==
+    isString = function (obj) {
+        return toString.call(obj) === '[object String]';
+    };
+
+    // switched to ===, not sure why underscore used ==
+    isNumber = function (obj) {
+        return toString.call(obj) === '[object Number]';
+    };
+
+    // switched to ===, not sure why underscore used ==
+    if (typeof (/./) !== 'function') {
+        isFunction = function (obj) {
+            return typeof obj === 'function';
+        };
+    } else {
+        isFunction = function (obj) {
+            return toString.call(obj) === '[object Function]';
+        };
+    }
+
+    // Is a given value an ejs object?
+    // Yes if object and has "_type", "_self", and "toString" properties
+    isEJSObject = function (obj) {
+        return (isObject(obj) &&
+            has(obj, '_type') &&
+            has(obj, '_self') &&
+            has(obj, 'toString'));
+    };
+
+    isQuery = function (obj) {
+        return (isEJSObject(obj) && obj._type() === 'query');
+    };
+
+    isFilter = function (obj) {
+        return (isEJSObject(obj) && obj._type() === 'filter');
+    };
+
+    isFacet = function (obj) {
+        return (isEJSObject(obj) && obj._type() === 'facet');
+    };
+
+    isScriptField = function (obj) {
+        return (isEJSObject(obj) && obj._type() === 'script field');
+    };
+
+    isGeoPoint = function (obj) {
+        return (isEJSObject(obj) && obj._type() === 'geo point');
+    };
+
+    isIndexedShape = function (obj) {
+        return (isEJSObject(obj) && obj._type() === 'indexed shape');
+    };
+
+    isShape = function (obj) {
+        return (isEJSObject(obj) && obj._type() === 'shape');
+    };
+
+    isSort = function (obj) {
+        return (isEJSObject(obj) && obj._type() === 'sort');
+    };
+
+    isHighlight = function (obj) {
+        return (isEJSObject(obj) && obj._type() === 'highlight');
+    };
+
+    isSuggest = function (obj) {
+        return (isEJSObject(obj) && obj._type() === 'suggest');
+    };
+
+    isGenerator = function (obj) {
+        return (isEJSObject(obj) && obj._type() === 'generator');
+    };
+
+    // Document
+
     ejs.Document = function (index, type, id) {
-        var params = {};
+        var params = {},
+        // converts client params to a string param1=val1&param2=val1
+        genParamStr = function () {
+            var clientParams = genClientParams(),
+                parts = [];
+
+            for (var p in clientParams) {
+                if (!has(clientParams, p)) {
+                    continue;
+                }
+
+                parts.push(p + '=' + encodeURIComponent(clientParams[p]));
+            }
+
+            return parts.join('&');
+        },
+
+        // Converts the stored params into parameters that will be passed
+        // to a client.  Certain parameter are skipped, and others require
+        // special processing before being sent to the client.
+        genClientParams = function () {
+            var clientParams = {};
+
+            for (var param in params) {
+                if (!has(params, param)) {
+                    continue;
+                }
+
+                // skip params that don't go in the query string
+                if (param === 'upsert' || param === 'source' ||
+                    param === 'script' || param === 'lang' || param === 'params') {
+                    continue;
+                }
+
+                // process all over params
+                var paramVal = params[param];
+                if (isArray(paramVal)) {
+                    paramVal = paramVal.join();
+                }
+
+                clientParams[param] = paramVal;
+            }
+
+            return clientParams;
+        };
 
         return {
 

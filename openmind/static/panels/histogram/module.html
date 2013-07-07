@@ -13,6 +13,5 @@
   </span>
   <span ng-show="panel.legend" class="small"><span ng-show="panel.value_field && panel.mode != 'count'">{{panel.value_field}}</span> {{panel.mode}} per <strong>{{panel.interval}}</strong> | (<strong>{{hits}}</strong> hits)</span>
   </div>
-  <center><img ng-show='panel.loading && _.isUndefined(data)' src="common/img/load_big.gif"></center>
   <div histogram-chart params="{{panel}}" style="height:{{panel.height || row.height}};position:relative"></div>
 </openmind-panel>         
