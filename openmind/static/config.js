@@ -22,6 +22,6 @@ var config = new Settings(
   modules:          ['histogram','map','pie','table','stringquery','sort',
                     'timepicker','text','fields','hits','dashcontrol',
                     'column','derivequeries','trends','bettermap',
-		    'dashboards', 'dynamicmenu', 'dynamictopmenu'],
+		    'dashboards', 'dynamicmenu', 'dynamictopmenu']
   }
 );
