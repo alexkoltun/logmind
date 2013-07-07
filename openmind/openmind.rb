@@ -82,6 +82,7 @@ before do
       content_type 'text/javascript'
       halt 401, JSON.generate({'error' => 'authentication_required'})
     elsif !request.path.start_with?('/auth')
+      session[:redirect_url] = request.path
       # normal web call, redirect to login
       halt redirect '/auth/login'
     end
