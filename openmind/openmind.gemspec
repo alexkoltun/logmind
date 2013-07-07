@@ -1,12 +1,12 @@
 Gem::Specification.new do |gem|
-  gem.authors = ["Rashid Khan"]
-  gem.description = %q{log search, visualization and analysis frontend for logstash+elasticsearch}
-  gem.summary = %q{Kibana - log search, visualization and analysis}
-  gem.homepage = "http://rashidkpc.github.com/Kibana/"
+  gem.authors = ["Logmind Developers"]
+  gem.description = %q{Logmind is an integrated enterprise enabled big-data analytics system}
+  gem.summary = %q{Logmind - machine generated data analytics}
+  gem.homepage = "http://logmind.co/"
   gem.license = "MIT License"
 
   #gem.files = `git ls-files`.split($\)
-  gem.name = "kibana"
+  gem.name = "openmind"
   gem.require_paths = ["lib"]
   gem.version = "0.0.1"
 

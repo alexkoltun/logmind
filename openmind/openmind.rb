@@ -13,10 +13,10 @@ require 'curl'
 $LOAD_PATH << '.'
 $LOAD_PATH << './lib'
 
-if ENV["KIBANA_CONFIG"]
-  require ENV["KIBANA_CONFIG"]
+if ENV["LOGMIND_CONFIG"]
+  require ENV["LOGMIND_CONFIG"]
 else
-  require 'KibanaConfig'
+  require 'GlobalConfig'
 end
 Dir['./lib/*.rb'].each{ |f| require f }
 
@@ -24,12 +24,12 @@ ruby_18 { require 'fastercsv' }
 ruby_19 { require 'csv' }
 
 Tire.configure do
-  url 'http://' + KibanaConfig::Elasticsearch
+  url 'http://' + GlobalConfig::Elasticsearch
 end
 
 configure do
-  set :bind, defined?(KibanaConfig::KibanaHost) ? KibanaConfig::KibanaHost : '0.0.0.0'
-  set :port, KibanaConfig::KibanaPort
+  set :bind, defined?(GlobalConfig::OpenmindHost) ? GlobalConfig::OpenmindHost : '0.0.0.0'
+  set :port, GlobalConfig::OpenmindPort
   set :public_folder, Proc.new { File.join(root, "static") }
  # enable :sessions
   use Rack::Session::Cookie, :key => 'rack.session',
@@ -89,7 +89,7 @@ before do
 end
 
 get '/' do
-  headers "X-Frame-Options" => "allow","X-XSS-Protection" => "0" if KibanaConfig::Allow_iframed
+  headers "X-Frame-Options" => "allow","X-XSS-Protection" => "0" if GlobalConfig::Allow_iframed
   @user.allowed?('frontend_ui_view', nil) || halt(403, 'Unauthorized')
   locals = {}
   if @user
@@ -101,7 +101,7 @@ end
 get '/auth/login' do
   locals = {}
   login_message = session[:login_message]
-  if login_message
+  if login_message && !login_message.empty?()
     locals[:login_message] = login_message
   end
   erb :login, :locals => locals
@@ -135,86 +135,9 @@ get '/auth/logout' do
   redirect '/auth/login'
 end
 
-# User/permission administration
-get '/admin' do
-    auth = Authorization.new
-    locals = {}
-    locals[:username] = session[:username]
-    locals[:is_admin] = true
-    locals[:show_back] = true
-
-    locals[:users] = []
-    locals[:groups] = []
-
-    locals[:header_title] = "Administration"
-    locals[:internal_content] = true
-    locals[:current_content] = "admin"
-    locals[:pathtobase] = ""
-
-    locals[:groups] += auth.get_groups
-    locals[:users] += auth.get_users
-
-    erb :main, :locals => locals
-end
-
-get "/admin/:type/:mode/?:name?" do
-  locals = {}
-
-  locals[:header_title] = "Administration"
-  locals[:internal_content] = true
-  locals[:pathtobase] = "../../../"
-
-  type = params[:type]
-  mode = params[:mode]
-
-  locals[:show_back] = true
-  locals[:mode] = mode
-  locals[:alltags] = ['*', '_grokparsefailure']
-
-  if type == 'user'
-    locals[:current_content] = 'edituser'
-
-    if mode == 'new'
-    else
-      locals[:username] = params[:name]
-    end
-  elsif type == 'group'
-    if mode == 'new'
-
-    else
-
-    end
-  end
-
-  erb :main, :locals => locals
-end
-
-post '/admin/save' do
-
-  auth = Authorization.new
-  type = params[:type]
-
-  if type == :user
-    username = params[:username]
-    password = params[:password]
-    groups = params[:groups]
-    tags = params[:tags]
-    auth.save_user(username, groups, tags)
-    password.empty? || auth.set_password(username, password)
-    JSON.generate({ :success => true })
-  elsif type == :group
-    name = params[:name]
-    members = params[:members]
-    tags = params[:tags]
-    auth.save_group(name, tags)
-    JSON.generate({ :success => true })
-  end
-end
-
-
 get '/rss/:hash/?:count?' do
   # TODO: Make the count number above/below functional w/ hard limit setting
-  count = KibanaConfig::Rss_show
+  count = GlobalConfig::Rss_show
   # count = params[:count].nil? ? 30 : params[:count].to_i
   span  = (60 * 60 * 24)
   from  = Time.now - span
@@ -228,10 +151,10 @@ get '/rss/:hash/?:count?' do
 
   headers "Content-Type"        => "application/rss+xml",
           "charset"             => "utf-8",
-          "Content-Disposition" => "inline; filename=kibana_rss_#{Time.now.to_i}.xml"
+          "Content-Disposition" => "inline; filename=logmind_rss_#{Time.now.to_i}.xml"
 
   content = RSS::Maker.make('2.0') do |m|
-    m.channel.title = "Kibana #{req.search}"
+    m.channel.title = "Logmind #{req.search}"
     m.channel.link  = "www.example.com"
     m.channel.description =
       "A event search for: #{req.search}.
@@ -252,18 +175,18 @@ end
 
 get '/export/:hash/?:count?' do
 
-  count = KibanaConfig::Export_show
+  count = GlobalConfig::Export_show
   # TODO: Make the count number above/below functional w/ hard limit setting
   # count = params[:count].nil? ? 20000 : params[:count].to_i
-  sep   = KibanaConfig::Export_delimiter
+  sep   = GlobalConfig::Export_delimiter
 
-  req     = ClientRequest.new(params[:hash])
-  query   = SortedQuery.new(req.search,@user_perms,req.from,req.to,0,count)
-  indices = Kelastic.index_range(req.from,req.to)
-  result  = KelasticMulti.new(query,indices)
-  flat    = KelasticResponse.flatten_response(result.response,req.fields)
+#  req     = ClientRequest.new(params[:hash])
+#  query   = SortedQuery.new(req.search,@user_perms,req.from,req.to,0,count)
+#  indices = Kelastic.index_range(req.from,req.to)
+#  result  = KelasticMulti.new(query,indices)
+#  flat    = KelasticResponse.flatten_response(result.response,req.fields)
 
-  headers "Content-Disposition" => "attachment;filename=Kibana_#{Time.now.to_i}.csv",
+  headers "Content-Disposition" => "attachment;filename=Logmind_#{Time.now.to_i}.csv",
     "Content-Type" => "application/octet-stream"
 
   if RUBY_VERSION < "1.9"
@@ -280,120 +203,6 @@ get '/export/:hash/?:count?' do
 
 end
 
-post '/api/favorites' do
-  if @@auth_module
-    name = params[:addFavoriteInput]
-    hashcode = params[:hashcode]
-    user = session[:username]
-
-    # checks if favorite name already exists
-    if !name.nil? and !hashcode.nil? and name != "" and hashcode != ""
-      favorites = @@storage_module.get_favorites(user)
-      favorites.each do |fav|
-        if fav["name"] == name
-          return JSON.generate( { :success => false , :message => "Name already exists" } )
-        end
-      end
-      # adds a new favorite
-      result = @@storage_module.set_favorite(name,user,hashcode)
-      return JSON.generate( { :success => result , :message => "" } )
-    else
-      halt 500, "Invalid action"
-    end
-  end
-end
-
-get '/lastevents' do
-  locals = {}
-  locals[:username] = session[:username]
-  locals[:is_admin] = @user_perms[:is_admin]
-  locals[:header_title] = "Last Events"
-  locals[:internal_content] = true
-  locals[:current_content] = "lastevents"
-  locals[:pathtobase] = ""
-  if @@auth_module
-    locals[:show_back] = true
-
-    query   = SortedQuery.new("*",@user_perms,nil,nil,nil)
-    result  = Kelastic.new(query,KibanaConfig::LastEvents_index)
-    #output  = JSON.generate(result.response)
-    #if result.response.has_key?('hits')
-    locals[:result] = result.response
-    #end
-
-  end
-  erb :main, :locals => locals
-end
-
-delete '/lastevents' do
-  locals = {}
-  locals[:username] = session[:username]
-  locals[:is_admin] = @user_perms[:is_admin]
-  if @@auth_module
-    id = params[:id]
-    type = params[:type]
-
-    @esf = Elasticsearchmod.new(KibanaConfig::LastEvents_index,type)
-    result = @esf.del_by_id(id)
-    return JSON.generate( { :success => result, :message => ""} )
-  end
-end
-
-get '/indiceslist' do
-  locals = {}
-  locals[:username] = session[:username]
-  locals[:is_admin] = @user_perms[:is_admin]
-  locals[:header_title] = "Live Indices"
-  locals[:internal_content] = true
-  locals[:current_content] = "indiceslist"
-  locals[:pathtobase] = ""
-  if @@auth_module
-    locals[:show_back] = true
-    result = Kelastic.just_logstash_indices()
-    locals[:result] = result
-  end
-  erb :main, :locals => locals
-end
-
-
-post '/indexController' do
-  locals = {}
-  locals[:username] = session[:username]
-  locals[:is_admin] = @user_perms[:is_admin]
-
-  if @@auth_module
-    requested_action = params[:action]
-    indexName = params[:indexName]
-
-    case requested_action
-      when "archive"
-        @@storage_module.index_archive(indexName)
-      when "restore"
-        @@storage_module.index_restore(indexName)
-      else
-        return JSON.generate( { :success => false, :message => "Operation not permitted" } )
-    end
-
-    return JSON.generate( { :success => "ok", :message => ""} )
-  end
-end
-
-get '/archivedlist' do
-  locals = {}
-  locals[:username] = session[:username]
-  locals[:is_admin] = @user_perms[:is_admin]
-  locals[:header_title] = "Archived Indices"
-  locals[:internal_content] = true
-  locals[:current_content] = "archivedlist"
-  locals[:pathtobase] = ""
-  if @@auth_module
-    locals[:show_back] = true
-    result = @@storage_module.archived_list()
-    locals[:result] = result
-  end
-  erb :main, :locals => locals
-end
-
 def search_action(data, index, esp1, esp2)
   # check if we are allowed to read the index
   if @user.allowed?('index_read', index)
@@ -406,7 +215,7 @@ def search_action(data, index, esp1, esp2)
 
     # type and id
     if esp2 && !esp2.start_with?('_')
-      c = Curl::Easy.http_get('http://' + KibanaConfig::Elasticsearch + '/' + index + '/' + esp1 + '/' + esp2) do |curl|
+      c = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + esp1 + '/' + esp2) do |curl|
         curl.headers['Accept'] = 'application/json'
         curl.headers['Content-Type'] = 'application/json'
       end
@@ -464,7 +273,7 @@ def search_action(data, index, esp1, esp2)
       filtered_query['sort'] = data['sort']
     end
 
-    c = Curl::Easy.http_post('http://' + KibanaConfig::Elasticsearch + '/' + index + '/' + url_suffix, JSON.generate(filtered_query)) do |curl|
+    c = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + url_suffix, JSON.generate(filtered_query)) do |curl|
       curl.headers['Accept'] = 'application/json'
       curl.headers['Content-Type'] = 'application/json'
     end
@@ -508,59 +317,6 @@ end
 
 post '/api/:action/?:index?/?:esp1?/?:esp2?' do
   api_action :post, params[:action], params[:index], params[:esp1], params[:esp2]
-end
-
-get %r{/napi/es/(.*)} do
-  q = params[:captures].first
-
-  c = Curl::Easy.http_get("http://" + KibanaConfig::Elasticsearch + "/" + q
-  ) do |curl|
-    curl.headers['Accept'] = 'application/json'
-    curl.headers['Content-Type'] = 'application/json'
-  end
-
-  c.body_str
-end
-
-
-post %r{/napi/es/(.*)} do
-  q = params[:captures].first
-  raw = request.env["rack.input"].read
-
-  c = Curl::Easy.http_post("http://" + KibanaConfig::Elasticsearch + "/" + q, raw
-  ) do |curl|
-    curl.headers['Accept'] = 'application/json'
-    curl.headers['Content-Type'] = 'application/json'
-  end
-
-  c.body_str
-end
-
-put %r{/napi/es/(.*)} do
-  q = params[:captures].first
-  raw = request.env["rack.input"].read
-
-  c = Curl::Easy.http_put("http://" + KibanaConfig::Elasticsearch + "/" + q, raw
-  ) do |curl|
-    curl.headers['Accept'] = 'application/json'
-    curl.headers['Content-Type'] = 'application/json'
-  end
-
-  c.body_str
-end
-
-
-delete %r{/napi/es/(.*)} do
-  q = params[:captures].first
-  raw = request.env["rack.input"].read
-
-  c = Curl::Easy.http_delete("http://" + KibanaConfig::Elasticsearch + "/" + q
-  ) do |curl|
-    curl.headers['Accept'] = 'application/json'
-    curl.headers['Content-Type'] = 'application/json'
-  end
-
-  c.body_str
 end
 
 def grok
