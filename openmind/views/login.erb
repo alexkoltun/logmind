@@ -7,17 +7,21 @@
   <title>Logmind Login</title>
 
   <script type="text/javascript" src="../../common/lib/jquery-1.8.0.min.js"></script>
-  <script type="text/javascript" src="../../js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="../../common/lib/bootstrap.min.js"></script>
 
 
-  <link rel="stylesheet" href="../../css/bootstrap.min.css">
-  <link rel="stylesheet" href="../../css/jquery-ui.css">
-  <link rel="stylesheet" href="../../css/datepicker.css">
+  <link rel="stylesheet" href="../../common/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../common/css/bootstrap-responsive.min.css">
+
   <style type="text/css">
     body {
-    padding-top: 80px;
-    padding-bottom: 40px;
-    background-image:url('../../images/grey.png');:
+    background-color: #ffffff;
+    }
+
+    .slogan {
+        font-family: verdana, arial;
+        font-size: 16px;
+        font-weight: bold;
     }
   </style>
   <link href="../../favicon.ico" rel="shortcut icon" type="image/x-icon" />
@@ -29,24 +33,19 @@
     $(".alert").alert();
   });
   </script>
-
-  <div class="hugeotron masthead">
-    <div class="container">
-      <div class=row>
-        <h1><img src='../../images/logmind_text.png'></h1>
-        <p>Unleash the power of logs</p>
+        <p></p>
+        <div class="well span5" style="background-image:url('../../common/img/grey.png')">
+        <h1><img src='../../common/img/logo.png'></h1>
         <% if locals[:login_message] %>
         <p><span class="label label-success"><%= locals[:login_message] %></span></p>
         <% end %>
         <form action="/auth/login" method="POST">
           <input type="text" placeholder="Username" id="username" name="username" /><br>
           <input type="password" placeholder="Password" id="password" name="password" /><br>
-          <button class="btn btn-success" type=submit>Login</button>
+          <button class="btn btn-success pull-right" type=submit>Login</button>
        </form>
-    </div>
-    </div>
-
-  </div>
+       </div>
+        </div>
 
 </body>
 

@@ -196,8 +196,6 @@ angular.module('openmind.pie', [])
     restrict: 'A',
     link: function(scope, elem, attrs) {
 
-      elem.html('<center><img src="common/img/load_big.gif"></center>')
-
       // Receive render events
       scope.$on('render',function(){
         render_panel();
