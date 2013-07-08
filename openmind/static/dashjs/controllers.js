@@ -136,9 +136,40 @@ angular.module('openmind.controllers', [])
 
   $scope.init();
 
+})
+
+.controller('AdminCtrl', function($scope, $rootScope, $http, $timeout, ejsResource) {
+
+    $scope.adminData = {
+        usersList: [],
+        groupsList: []
+    }
+
+    var _d = {
+        title: "Admin",
+        collapse: false,
+        collapsable: false,
+        editable: true,
+        panels: []
+    }
+    _.defaults($scope.adminData,_d)
+
+
+    $scope.init = function() {
+
+        $http.get('/authapi/get_users').success(function(result) {
+            $scope.adminData.usersList = result;
+        });
+
+        $http.get('/authapi/get_groups').success(function(result) {
+            $scope.adminData.groupsList = result;
+        });
+    }
+
+
+    $scope.init();
+
 });
-
-
 
 
 
