@@ -1,11 +1,11 @@
 <openmind-panel ng-controller='histogram' ng-init="init()" style="height:{{panel.height || row.height}}">
   <span ng-show="panel.spyable" style="position:absolute;right:0px;top:0px" class='panelextra pointer'>
-      <i bs-modal="'partials/modal.html'" class="icon-eye-open small-icon"></i>
+      <i bs-modal="'partials/modal.html'" class="icon-eye-open dark-icon"></i>
   </span>
   <div>
   <span ng-show='panel.zoomlinks && data'>
-    <a class='small' ng-click='zoom(0.5)'><i class='small-icon icon-zoom-in'></i> Zoom In</a>
-    <a class='small' ng-click='zoom(2)'><i class='small-icon icon-zoom-out'></i> Zoom Out</a> |
+    <a class='small' ng-click='zoom(0.5)'><i class='dark-icon icon-zoom-in'></i> Zoom In</a>
+    <a class='small' ng-click='zoom(2)'><i class='dark-icon icon-zoom-out'></i> Zoom Out</a> |
   </span>
   <span ng-show="panel.legend" ng-repeat='series in plot.getData()' style='display:inline-block;padding-right:5px'>
     <div style="display:inline-block;background:{{series.color}};height:10px;width:10px;border-radius:5px;"></div>
