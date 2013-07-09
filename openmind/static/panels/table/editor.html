@@ -3,7 +3,7 @@
       <form class="input-append">
         <h6>Query</h6>
         <input type="text" style="width:90%" ng-model="panel.query">
-        <button class="btn" ng-click="get_data();"><i class="icon-search"></i></button>
+        <button class="btn btn-info" ng-click="get_data();"><i class="icon-search"></i></button>
       </form>
     </div>
   </div>
@@ -12,7 +12,7 @@
       <form class="input-append">
         <h6>Add field</h6>
         <input bs-typeahead="fields.list" type="text" class="input-small" ng-model='newfield'>
-        <button class="btn" ng-click="toggle_field(newfield);newfield=''"><i class="icon-plus"></i></button>
+        <button class="btn btn-info" ng-click="toggle_field(newfield);newfield=''"><i class="icon-plus"></i></button>
       </form>
     </div>
     <div class="span8">
@@ -25,7 +25,7 @@
       <form class="input-append">
         <h6>Add field</h6>
         <input bs-typeahead="fields.list" type="text" class="input-small" ng-model='newhighlight' ng-change="set_refresh(true)">
-        <button class="btn" ng-click="toggle_highlight(newhighlight);newhighlight=''"><i class="icon-plus"></i></button>
+        <button class="btn btn-info" ng-click="toggle_highlight(newhighlight);newhighlight=''"><i class="icon-plus"></i></button>
       </form>
     </div>
     <div class="span8">

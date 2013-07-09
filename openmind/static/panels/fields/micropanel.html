@@ -15,8 +15,8 @@
     <tr ng-repeat='field in micropanel.values'>
       <td>{{{true: "__blank__",false:field[0]}[field[0] == ""]}}</td>
       <td>
-        <i class="small-icon pointer icon-search" ng-click="build_search(micropanel.field,field[0]);dismiss();"></i>
-        <i class="small-icon pointer icon-ban-circle" ng-click="build_search(micropanel.field,field[0],true);dismiss();"></i>
+        <i class="dark-icon pointer icon-search" ng-click="build_search(micropanel.field,field[0]);dismiss();"></i>
+        <i class="dark-icon pointer icon-ban-circle" ng-click="build_search(micropanel.field,field[0],true);dismiss();"></i>
       </td>
       <td>{{field[1]}}</td>
     </tr>
