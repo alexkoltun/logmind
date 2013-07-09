@@ -177,7 +177,7 @@ angular.module('openmind.dashboards', [])
     if(type === 'temp')
       request = request.ttl($scope.panel.temp_ttl)
 
-    var result = request.doIndex();
+    var result = request.doSave();
     var id = result.then(function(result) {
       $scope.alert('Dashboard Saved','This dashboard has been saved to Elasticsearch','success',5000)
       $scope.elasticsearch_dblist($scope.elasticsearch.query);

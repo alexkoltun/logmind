@@ -160,7 +160,7 @@ angular.module('openmind.dynamictopmenu', [])
                 menu_json: angular.toJson(_default_menu)
             });
 
-            a.doIndex();
+            a.doSave();
         }
 
         if (a._source != undefined) {
