@@ -55,34 +55,14 @@ angular.module('openmind.cep_rules', [])
 
   $scope.init = function () {
 
-    $scope.set_listeners($scope.panel.group)
+    //$scope.set_listeners($scope.panel.group)
 
     // Now that we're all setup, request the time from our group
-    eventBus.broadcast($scope.$id,$scope.panel.group,"get_time")
+    //eventBus.broadcast($scope.$id,$scope.panel.group,"get_time")
+      $scope.get_data();
   }
 
-  $scope.set_listeners = function(group) {
-    eventBus.register($scope,'time',function(event,time) {
-      $scope.panel.offset = 0;
-      set_time(time)
-    });
-    eventBus.register($scope,'query',function(event,query) {
-      $scope.panel.offset = 0;
-      $scope.panel.query = _.isArray(query) ? query[0] : query;
-      $scope.get_data();
-    });
-    eventBus.register($scope,'sort', function(event,sort){
-      $scope.panel.sort = _.clone(sort);
-      $scope.get_data();
-    });
-    eventBus.register($scope,'selected_fields', function(event, fields) {
-      $scope.panel.fields = _.clone(fields)
-    });
-    eventBus.register($scope,'table_documents', function(event, docs) {
-        $scope.panel.query = docs.query;
-        $scope.data = docs.docs;
-    });
-  }
+
 
   $scope.set_sort = function(field) {
     if($scope.panel.sort[0] === field)
@@ -100,16 +80,10 @@ angular.module('openmind.cep_rules', [])
     broadcast_results();
   }
 
-  $scope.toggle_highlight = function(field) {
-    if (_.indexOf($scope.panel.highlight,field) > -1) 
-      $scope.panel.highlight = _.without($scope.panel.highlight,field)
-    else
-      $scope.panel.highlight.push(field)
-  }  
 
   $scope.toggle_details = function(row) {
     row.openmind = row.openmind || {};
-    row.openmind.details = !row.openmind.details ? $scope.without_openmind(row) : false;
+    row.openmind.details = row;// ? $scope.without_openmind(row) : false;
   }
 
   $scope.page = function(page) {
@@ -117,24 +91,19 @@ angular.module('openmind.cep_rules', [])
     $scope.get_data();
   }
 
-  $scope.build_search = function(field,value,negate) {
-    $scope.panel.query = add_to_query($scope.panel.query,field,value,negate)
-    $scope.panel.offset = 0;
-    $scope.get_data();
-    eventBus.broadcast($scope.$id,$scope.panel.group,'query',[$scope.panel.query]);
-  }
+
 
   $scope.get_data = function(segment,query_id) {
-    $scope.panel.error =  false;
+    $scope.panel.error = false;
 
     // Make sure we have everything for the request to complete
-    if(_.isUndefined($scope.index) || _.isUndefined($scope.time))
-      return
+    //if(_.isUndefined($scope.index) || _.isUndefined($scope.time))
+    //  return
     
     $scope.panel.loading = true;
 
-    var _segment = _.isUndefined(segment) ? 0 : segment
-    $scope.segment = _segment;
+    //var _segment = _.isUndefined(segment) ? 0 : segment
+    //$scope.segment = _segment;
 
     // pass index name
     var request = $scope.ejs.Request().indices([$scope.panel.elasticsearch_saveto])
@@ -144,17 +113,17 @@ angular.module('openmind.cep_rules', [])
 
   //  $scope.populate_modal(request)
 
-    var results = request.doSearch()
+    var results = request.doSearch();
 
     // Populate scope when we have results
     results.then(function(results) {
       $scope.panel.loading = false;
 
-      if(_segment === 0) {
-        $scope.hits = 0;
-        $scope.data = [];
-        query_id = $scope.query_id = new Date().getTime()
-      }
+      //if(_segment === 0) {
+      //  $scope.hits = 0;
+      //  $scope.data = [];
+      //  query_id = $scope.query_id = new Date().getTime()
+      //}
 
       // Check for error and abort if found
       if(!(_.isUndefined(results.error))) {
@@ -163,15 +132,14 @@ angular.module('openmind.cep_rules', [])
       }
 
       // Check that we're still on the same query, if not stop
-      if($scope.query_id === query_id) {
-        $scope.data= $scope.data.concat(_.map(results.hits.hits, function(hit) {
+      //if($scope.query_id === query_id) {
+        $scope.data = _.map(results.hits.hits, function(hit) {
           return {
-            _source   : flatten_json(hit['_source']),
-            highlight : flatten_json(hit['highlight']||{})
+            _source   : hit['_source']
           }
-        }));
+        });
         
-        $scope.hits += results.hits.total;
+        $scope.hits = results.hits.total;
 
         // Sort the data
         $scope.data = _.sortBy($scope.data, function(v){
@@ -185,28 +153,38 @@ angular.module('openmind.cep_rules', [])
         // Keep only what we need for the set
         $scope.data = $scope.data.slice(0,$scope.panel.size * $scope.panel.pages)
 
-      } else {
-        return;
-      }
+      //} else {
+      //  return;
+      //}
       
       // This breaks, use $scope.data for this
       $scope.all_fields = get_all_fields(_.pluck($scope.data,'_source'));
-      broadcast_results();
-
-      // If we're not sorting in reverse chrono order, query every index for
-      // size*pages results
-      // Otherwise, only get size*pages results then stop querying
-      if(
-          ($scope.data.length < $scope.panel.size*$scope.panel.pages || 
-            !(($scope.panel.sort[0] === $scope.time.field) && $scope.panel.sort[1] === 'desc')) && 
-          _segment+1 < $scope.index.length
-      ) {
-        $scope.get_data(_segment+1,$scope.query_id)
-      }
+      //broadcast_results();
 
     });
   }
 
+  $scope.edit_rule = function(ruleRow){
+
+      /*var temp = JSON.parse(ruleRow['_source']['raw_queries']);
+      var arr = {};
+      if (_.isArray(temp))
+          arr = temp;
+      else
+          arr[0] = temp;
+       */
+      //if (temp is array)
+      var rule =
+      {
+        name: ruleRow['_source']['name'],
+        description: ruleRow['_source']['description'],
+        raw_queries:ruleRow['_source']['raw_queries']
+      };
+
+      //alert(rule.raw_queries.length);
+      eventBus.broadcast($scope.$id,$scope.panel.group,"edited_rule", rule);
+
+  }
   $scope.populate_modal = function(request) {
     $scope.modal = {
       title: "Table Inspector",
@@ -217,17 +195,13 @@ angular.module('openmind.cep_rules', [])
     } 
   }
 
-  $scope.without_openmind = function (row) {
-    return { 
-      _source   : row._source,
-      highlight : row.highlight
-    }
-  } 
+
 
   // Broadcast a list of all fields. Note that receivers of field array 
   // events should be able to receive from multiple sources, merge, dedupe 
   // and sort on the fly if needed.
-  function broadcast_results() {
+
+  /*function broadcast_results() {
     eventBus.broadcast($scope.$id,$scope.panel.group,"fields", {
       all   : $scope.all_fields,
       sort  : $scope.panel.sort,
@@ -240,7 +214,7 @@ angular.module('openmind.cep_rules', [])
         index: $scope.index
       });
   }
-
+  */
   $scope.set_refresh = function (state) { 
     $scope.refresh = state; 
   }
@@ -251,25 +225,13 @@ angular.module('openmind.cep_rules', [])
     $scope.refresh =  false;
   }
 
-
+  /*
   function set_time(time) {
     $scope.time = time;
     $scope.index = _.isUndefined(time.index) ? $scope.index : time.index
     $scope.get_data();
   }
+  */
 
 })
-.filter('highlight', function() {
-  return function(text) {
-    if (!_.isUndefined(text) && !_.isNull(text) && text.toString().length > 0) {
-      return text.toString().
-        replace(/&/g, '&amp;').
-        replace(/</g, '&lt;').
-        replace(/>/g, '&gt;').
-        replace(/\r?\n/g, '<br/>').
-        replace(/@start-highlight@/g, '<code class="highlight">').
-        replace(/@end-highlight@/g, '</code>')
-    }
-    return '';
-  }
-});
+;

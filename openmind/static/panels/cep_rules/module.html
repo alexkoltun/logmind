@@ -18,7 +18,7 @@
         <i ng-click="panel.offset = (panel.offset + panel.size)" ng-show="data.length > panel.offset+panel.size" class='dark-icon icon-arrow-right pointer'></i>
       </div>
     </div>
-    <div class="small" ng-show="panel.fields.length == 0">No columns configured. You may want to add a <strong>fields panel</strong>, or click the edit button in the top right of this panel to add some columns</div>
+
     <table class="table-hover table table-condensed" ng-style="panel.style">
       <thead ng-show="panel.header">
         
@@ -36,10 +36,11 @@
       </thead>
       <tbody ng-repeat="row in data.slice(panel.offset,panel.offset+panel.size)" ng-class-odd="'odd'">
         <tr ng-click="toggle_details(row)" class="pointer">
-          <td ng-repeat="field in panel.fields" ng-bind-html-unsafe="(row.highlight[field]||row._source[field]) | highlight"></td>
+          <td ng-repeat="field in panel.fields" ng-bind-html-unsafe="row._source[field]"></td>
+           <td>[<a href="" ng-click="edit_rule(row)">edit</a>]</td>
         </tr>
         <tr ng-show="row.openmind.details">
-          <td colspan=1000>
+          <td colspan="2">
             <table class='table table-bordered table-condensed'>
               <thead>
                 <th>Field</th>
@@ -49,8 +50,7 @@
               <tr ng-repeat="(key,value) in row.openmind.details._source" ng-class-odd="'odd'">
                 <td>{{key}}</td>
                 <td>
-                  <i class='dark-icon icon-search pointer' ng-click="build_search(key,value)"></i>
-                  <i class='dark-icon icon-ban-circle pointer' ng-click="build_search(key,value,true)"></i>
+                  TODO
                 </td>
                 <td>{{value}}</td>
               </tr> 

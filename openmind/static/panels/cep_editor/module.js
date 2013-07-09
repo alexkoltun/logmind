@@ -39,12 +39,18 @@ angular.module('openmind.cep_editor', [])
         // push first default empty query..
         $scope.panel.current_rule.raw_queries = [{query:''}];
 
+
+        eventBus.register($scope,'edited_rule', function(event, rule) {
+            //alert(rule.raw_queries.length);
+            $scope.panel.current_rule = rule;
+
+      });
         // If we're in multi query mode, they all get wiped out if we receive a
         // query. Query events must be exchanged as arrays.
-        eventBus.register($scope,'query',function(event,query) {
+        //eventBus.register($scope,'query',function(event,query) {
             //$scope.panel.query = query;
             //update_history(query);
-        });
+        //});
   }
 
   $scope.test_rule = function() {
@@ -52,16 +58,23 @@ angular.module('openmind.cep_editor', [])
   }
 
   $scope.save_rule = function() {
-      alert($scope.panel.elasticsearch_saveto);// = { name: }
 
       var id = $scope.panel.current_rule.name;
       var type = $scope.panel.obj_type;
-
+      var toSaveQs = [];
+      for(var i=0;i<$scope.panel.current_rule.raw_queries.length;i++)
+      {
+          toSaveQs.push(
+              {
+                  query: $scope.panel.current_rule.raw_queries[i].query,
+                  id: $scope.get_id($scope.panel.current_rule.raw_queries[i])
+              });
+      }
       // TODO, save all rule parts..
       var request = $scope.ejs.Document($scope.panel.elasticsearch_saveto,type,id).source({
           name: $scope.panel.current_rule.name,
-          group: $scope.panel.current_rule.description,
-          raw_queries: $scope.panel.current_rule.raw_queries
+          description: $scope.panel.current_rule.description,
+          raw_queries: toSaveQs//$scope.panel.current_rule.raw_queries
       })
 
       var result = request.doSave();
@@ -84,6 +97,6 @@ angular.module('openmind.cep_editor', [])
 
   $scope.get_id = function(q){
       var index = $scope.panel.current_rule.raw_queries.indexOf(q);
-      return String.fromCharCode(65 + index).toUpperCase() + ".";
+      return String.fromCharCode(65 + index).toUpperCase();
   }
 });
