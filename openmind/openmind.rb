@@ -347,6 +347,16 @@ get '/api/idx/get/:index/:type/:id' do
   get_action index, type, id
 end
 
+# save action
+post '/api/idx/save/:index/:type/?:id?' do
+
+end
+
+# delete action
+post '/api/idx/delete/:index/:type/:id' do
+
+end
+
 #
 # end index API
 #

@@ -38,7 +38,7 @@
       <form class="input-append" style="margin-bottom: 0px">
         <label class="small">Query</label>
         <input type="text" placeholder="New Query" style="width:80%" ng-model="newquery">
-        <button class="btn" ng-click="add_query(newlabel,newquery);newlabel='';newquery='';set_refresh(true)"><i class="icon-plus"></i></button>
+        <button class="btn btn-info" ng-click="add_query(newlabel,newquery);newlabel='';newquery='';set_refresh(true)"><i class="icon-plus"></i></button>
       </form>
     </div>
     <div class="span1">
@@ -53,7 +53,7 @@
     <div class="span8">
       <form class="input-append" style="margin-bottom: 0px">
         <input type="text" style="width:80%" ng-model="q.query" ng-change="set_refresh(true)">
-        <button class="btn" ng-click="get_data()"><i class="icon-search"></i></button>
+        <button class="btn btn-info" ng-click="get_data()"><i class="icon-search"></i></button>
       </form>
     </div>
     <div class="span1">

@@ -1,0 +1,78 @@
+curl -XPUT http://127.0.0.1:9200/_template/authorization -d '
+{
+    "template": "authorization",
+    "mappings": {
+        "user": {
+            "properties": {
+                "name": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                },
+                "password": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                },
+                "salt": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                },
+                "groups": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                },
+                "tags": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                }
+            }
+        },
+        "group": {
+            "properties": {
+                "name": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                },
+                "tags": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                }
+            }
+        },
+        "action": {
+            "properties": {
+                "name": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                },
+                "tags": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                }
+            }
+        },
+        "policy": {
+            "properties": {
+                "title": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                },
+                "who": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                },
+                "what": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                },
+                "on": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                },
+                "tags": {
+                    "index": "not_analyzed",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}'
