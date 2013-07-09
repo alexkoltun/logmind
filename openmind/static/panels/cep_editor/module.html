@@ -1,0 +1,41 @@
+<openmind-panel ng-controller='cep_editor' ng-init="init()">
+  <div ng-show="!panel.multi">
+    <form>
+      <table class="form-horizontal">
+        <tr><td><label><small>{{panel.label}}</small></label></td></tr>
+        <tr>
+          <td width="97%">
+            <input type="text" style="width: 97% !important;" ng-model="panel.current_rule.name">
+          </td>
+        </tr>
+          <tr>
+              <td width="97%">
+                  <input type="text" style="width: 97% !important;" ng-model="panel.current_rule.description">
+              </td>
+          </tr>
+
+      </table>
+       <table class="form-horizontal">
+           <tr><td><label><small>Queries</small></label></td></tr>
+           <tr ng-repeat="q in panel.current_rule.raw_queries" ng-class-odd="'odd'">
+               <td>{{get_id(q)}}</td>
+               <td width="97%">
+                   <input type="text" style="width: 97% !important;" ng-model="q.query">
+
+               </td>
+               <td width="1%">[<a href="" ng-click="remove_query(q)">X</a>]</td>
+           </tr>
+           <tr>
+               <td colspan="2">
+                   <button style="margin-top:0px"  type="submit" class="btn btn-info" ng-click="add_query()"><i class="icon-plus"></i></button>
+               </td>
+           </tr>
+       </table>
+    </form>
+
+      <button style="margin-top:0px"  type="submit" class="btn btn-info" ng-click="save_rule()"><i class="icon-plus"></i></button>
+
+  </div>
+
+
+</openmind-panel>
