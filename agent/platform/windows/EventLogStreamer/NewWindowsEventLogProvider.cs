@@ -49,6 +49,7 @@ namespace Logmind.EventLogStreamer
                 _watcher = new EventLogWatcher(new EventLogQuery(logName, PathType.LogName));
                 _watcher.EventRecordWritten += delegate(object sender, EventRecordWrittenEventArgs e)
                 {
+                    Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
                     EventLogItem item = CreateEventLogItem(e.EventRecord);
                     callback(item);
                 };

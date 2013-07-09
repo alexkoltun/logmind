@@ -1786,3 +1786,37 @@ form {
 .table-menu > td > a > i {
     background-image:url("../img/glyphicons-halflings.png");
 }
+
+.login-page {
+    background-image:url('../../common/img/grey.png')
+}
+
+.login-box {
+
+    background-color: white;
+
+    width: 470px;
+    height: 208px;
+
+    position: absolute;
+    display: table-cell;
+    top: 30%;
+    margin-top: -124px;
+    margin-left: -255px;
+    left: 50%;
+
+    border: 1px solid rgb(102,102,102);
+
+    -webkit-box-shadow: 7px 7px 5px rgba(50, 50, 50, 0.75);
+    -moz-box-shadow:    7px 7px 5px rgba(50, 50, 50, 0.75);
+    box-shadow:         7px 7px 5px rgba(50, 50, 50, 0.75);
+}
+
+.login-box img {
+    position: relative;
+    top: 54px;
+}
+
+.login-box .login-msg {
+    height: 20px;
+}

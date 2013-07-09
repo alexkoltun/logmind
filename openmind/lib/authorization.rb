@@ -8,17 +8,21 @@ class Authorization
   end
 
   def setup_defaults_if_needed()
-    save_user 'admin', [], []
-    set_password 'admin', 'password'
-    save_policy 'user_default_policy_admin', ['admin'], ['*'], ['*']
+    save_group 'administrators', []
+    save_policy 'group_policy_administrators', ['@administrators'], ['*'], ['*']
 
-    save_user 'viewer', [], []
+    save_group 'users', []
+    save_policy 'group_policy_users', ['@users'], ['view_data', 'index_read', 'search', 'frontend_ui_view'], ['logstash-*', 'logmind-management', 'openmind-int']
+
+
+    save_user 'admin', ['@administrators'], []
+    set_password 'admin', 'password'
+
+    save_user 'viewer', ['@users'], []
     set_password 'viewer', 'password'
-    save_policy 'user_default_policy_viewer', ['viewer'], ['view_data', 'index_read', 'search', 'frontend_ui_view'], ['logstash-*', '#owner-benb@watchdox.com', 'logmind-management', 'openmind-int']
 
     save_user 'guest', [], []
     set_password 'guest', 'password'
-    save_policy 'user_default_policy_guest', ['guest'], [], []
   end
 
   def remove_user(username)

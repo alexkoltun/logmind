@@ -505,3 +505,33 @@ end
 get '/grocker/patterns/*' do
   send_file(params[:spat]) unless params[:spat].nil?
 end
+
+get '/authapi/:method' do
+  auth_api(params[:method])
+end
+
+def auth_api(method)
+  auth = Authorization.new
+
+  if method == "get_users"
+    JSON.generate(auth.get_users)
+  elsif method == "get_groups"
+    JSON.generate(auth.get_groups)
+  end
+
+end
+
+get '/admin' do
+  auth = Authorization.new
+  locals = {}
+  locals[:username] = session[:username]
+  locals[:is_admin] = true
+  locals[:show_back] = true
+
+  locals[:header_title] = "Administration"
+  locals[:internal_content] = true
+  locals[:current_content] = "admin"
+  locals[:pathtobase] = ""
+
+  erb :main, :locals => locals
+end
