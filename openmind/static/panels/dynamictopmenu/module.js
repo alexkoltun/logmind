@@ -125,7 +125,7 @@ angular.module('openmind.dynamictopmenu', [])
   $scope._menu = null;
 
   $scope.userinfo = {
-      username: "this is user"
+      username: currentUser.username
   };
 
 

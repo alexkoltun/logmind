@@ -222,7 +222,7 @@ angular.module('openmind.table', [])
       body : "<h5>Last Elasticsearch Query</h5><pre>"+
           'curl -XGET '+config.elasticsearch+'/'+$scope.index+"/_search?pretty -d'\n"+
           angular.toJson(JSON.parse(request.toString()),true)+
-        "'</pre>", 
+        "'</pre>"
     } 
   }
 

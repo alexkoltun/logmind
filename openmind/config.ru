@@ -1,5 +1,5 @@
 root_dir = File.dirname(__FILE__)
-app_file = File.join(root_dir, 'kibana.rb')
+app_file = File.join(root_dir, 'openmind.rb')
 
 require app_file
 

@@ -80,6 +80,19 @@
   top: 0px;
   left: 0px;
   z-index: 800;
+  right: 0px;
+  bottom: 0px;
+  background-color: #ccc;
+  opacity: 0.5;
+}
+
+.panel-loading img {
+    position: absolute;
+    display: table-cell;
+    top: 50%;
+    margin-top: -16px;
+    margin-left: -16px;
+    left: 50%;
 }
 
 .panel span.panelextra {

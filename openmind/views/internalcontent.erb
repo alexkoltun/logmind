@@ -3,6 +3,9 @@
     <%= locals[:header_title] %>
 </div>
 
+<% if @user %>
+    <% locals[:currentUserJson] = JSON.generate({'username' => @user.username}) %>
+<% end %>
 
 <% if locals[:current_content] == "lastevents" %>
     <%= erb :lastevents, :locals => locals %>

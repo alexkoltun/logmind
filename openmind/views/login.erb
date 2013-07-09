@@ -6,50 +6,51 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>Logmind Login</title>
 
-  <script type="text/javascript" src="../../lib/js/lib/jquery.min.js"></script>
-  <script type="text/javascript" src="../../lib/js/lib/jquery.history.js"></script>
-  <script type="text/javascript" src="../../lib/bootstrap/js/bootstrap.js"></script>
+  <script type="text/javascript" src="../../common/lib/jquery-1.8.0.min.js"></script>
+  <script type="text/javascript" src="../../common/lib/bootstrap.min.js"></script>
 
 
-  <link rel="stylesheet" href="../../lib/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../../lib/css/style.css">
-  <link rel="stylesheet" href="../../lib/css/font-awesome.css">
-  <link rel="stylesheet" href="../../lib/css/jquery-ui-1.8.16.custom.css">
-  <link rel="stylesheet" href="../../lib/css/jquery.ui.datepicker.css">
+  <link rel="stylesheet" href="../../common/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../common/css/bootstrap-responsive.min.css">
+  <link rel="stylesheet" href="../../common/css/unicorn.main.css">
+
   <style type="text/css">
     body {
-    padding-top: 80px;
-    padding-bottom: 40px;
-    background-image:url('../../images/grey.png');:
+    background-color: #ffffff;
+    }
+
+    .slogan {
+        font-family: verdana, arial;
+        font-size: 16px;
+        font-weight: bold;
     }
   </style>
   <link href="../../favicon.ico" rel="shortcut icon" type="image/x-icon" />
 </head>
 
-<body>
+<body class="login-page">
   <script>
   $('document').ready(function(){
     $(".alert").alert();
   });
   </script>
 
-  <div class="hugeotron masthead">
-    <div class="container">
-      <div class=row>
-        <h1><img src='../../images/logmind_text.png'></h1>
-        <p>Unleash the power of logs</p>
-        <% if locals[:login_message] %>
-        <p><span class="label label-success"><%= locals[:login_message] %></span></p>
-        <% end %>
+    <p></p>
+    <div class="login-box well span5" style="">
+        <h1><img src='../../common/img/logo.png'></h1>
         <form action="/auth/login" method="POST">
-          <input type="text" placeholder="Username" id="username" name="username" /><br>
-          <input type="password" placeholder="Password" id="password" name="password" /><br>
-          <button class="btn btn-success" type=submit>Login</button>
-       </form>
+          <div class="pull-right">
+            <input type="text" placeholder="Username" id="username" name="username" /><br>
+            <input type="password" placeholder="Password" id="password" name="password" /><br>
+            <% if locals[:login_message] %>
+                <p class="login-msg"><span class="label label-success"><%= locals[:login_message] %></span></p>
+            <% else %>
+                <p class="login-msg"></p>
+            <% end %>
+            <button class="btn btn-success pull-right" type=submit>Login</button>
+          </div>
+        </form>
     </div>
-    </div>
-
-  </div>
 
 </body>
 
