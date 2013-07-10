@@ -1,0 +1,25 @@
+<div class="modal-header">
+  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+  <h3>Edit User - {{user.name}}</h3>
+</div>
+<div class="modal-body">
+
+    <h4>User Settings</h4>
+
+    <form name='form'>
+        <input type="password" ng-model="user.newpass" name="uPassword" required placeholder='New Password' ng-minlength="3" ng-maxlength="15" title="3 to 15 characters" />
+        <span class="error" ng-show="form.uPassword.$dirty && form.uPassword.$error.minlength">Password is too short</span>
+        <span ng-show="form.uPassword.$dirty && form.uPassword.$error.required">Password required.</span><br />
+
+        <input type="password" ng-model="user.confirmnewpass" name="ucPassword" required placeholder='Confirm New Password' ng-minlength="3" ng-maxlength="15" title="3 to 15 characters" />
+        <span class="error" ng-show="form.ucPassword.$dirty && form.ucPassword.$error.minlength">Password is too short</span>
+        <span ng-show="form.ucPassword.$dirty && form.ucPassword.$error.required">Retype password.</span>
+        <div ng-show="(form.uPassword.$dirty && form.ucPassword.$dirty) && (user.newpass != user.confirmnewpass)">
+            <span>Passwords mismatch</span>
+        </div>
+    </form>
+  
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-success" ng-show="((!form.uPassword.$dirty && !form.ucPassword.$dirty)) || ((form.uPassword.$dirty && form.ucPassword.$dirty) && (user.newpass == user.confirmnewpass) && (user.newpass != null))" ng-click="save_user(user.name, (form.uPassword.$dirty && form.ucPassword.$dirty), user.newpass);dismiss()">Save</button><button type="button" class="btn" ng-click="dismiss()">Cancel</button>
+</div>

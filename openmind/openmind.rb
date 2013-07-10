@@ -497,16 +497,32 @@ get '/grocker/patterns/*' do
 end
 
 get '/authapi/:method' do
-  auth_api(params[:method])
+  auth_api(params[:method], nil)
 end
 
-def auth_api(method)
+get '/authapi/:method/:args' do
+  auth_api(params[:method], params[:args])
+end
+
+def auth_api(method, args)
   auth = Authorization.new
+
+  args_list = []
+  if args != nil
+    args_list = args.split(",")
+  end
 
   if method == "get_users"
     JSON.generate(auth.get_users)
+
   elsif method == "get_groups"
     JSON.generate(auth.get_groups)
+
+  elsif method == "save_user"
+    auth.set_password args_list[0], args_list[1]
+
+  elsif method == "remove_user"
+    auth.remove_user args_list[0]
   end
 
 end

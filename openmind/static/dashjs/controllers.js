@@ -167,6 +167,25 @@ angular.module('openmind.controllers', [])
     }
 
 
+    $scope.save_user = function(user, is_new_pass, new_pass) {
+        if (is_new_pass) {
+            $http.get('/authapi/save_user/' + user + ',' + new_pass).success(function(result) {
+                alert("Save Successful!");
+            });
+        }
+    }
+
+    $scope.remove_user = function(user) {
+        var is_remove = confirm("Remove user '" + user + "'?");
+        if (is_remove) {
+            $http.get('/authapi/remove_user/' + user).success(function(result) {
+                alert("User Removed!");
+                $scope.init();
+            });
+        }
+    }
+
+
     $scope.init();
 
 });

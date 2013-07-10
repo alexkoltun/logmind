@@ -11,7 +11,8 @@
        </thead>
        <tbody ng-repeat='user in adminData.usersList'>
         <tr>
-         <td><a href="admin/user/edit/{{user.name}}"><i class="dark-icon icon-edit"></i> {{user.name}}</a></td>
+         <!--td><a href="admin/user/edit/{{user.name}}"><i class="dark-icon icon-edit"></i> {{user.name}}</a></td-->
+         <td><a href="#" <i ng-click="remove_user(user.name)" class="dark-icon icon-remove"></i></a>&nbsp;&nbsp;<a href="#" bs-modal="'partials/adminedit.html'"><i class="dark-icon icon-edit"></i> {{user.name}}</a></td>
          <td><label class="checkbox"><input type="checkbox" disabled></label></td>
          <td>No Tags</td>
         </tr>
