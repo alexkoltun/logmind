@@ -11,7 +11,7 @@ using Logmind.Domain.Requests;
 
 namespace Logmind.DataDelivery
 {
-    public class Postman : ThreadBasedManager
+    public class Postman : ThreadBasedManager, IPostMan
     {
         // REVIEW by AK
         // Let's make sure we keep thread safty in mind (if relvant for this queue), if only one thread reads and writes to this queue that its fine
@@ -109,48 +109,65 @@ namespace Logmind.DataDelivery
 
         */
 
-        //private Queue<Package> m_Packages = new Queue<Package>();
-        private Queue<SendDataRequest> m_Packages = new Queue<SendDataRequest>();
+        private Queue<MsgData> m_Packages = new Queue<MsgData>();
         private Guid m_LastMsgId = Guid.NewGuid();
         private DateTime m_LastDelivered = DateTime.Now;
+        private object m_Sync = new object();
 
-        private Thread m_SendingThread;
-        private ManualResetEvent m_SendEvt;
-
-        private IConfigurationManager m_ConfigManager;
         private PostmanConfig m_Config;
+        private DeliveryManager m_DeliveryMgr;
+        private ManualResetEvent m_StopEvent;
 
-        public Postman() {}
-
-        public void Init(IConfigurationManager configManager)
+        public Postman(ManualResetEvent stopEvent) 
         {
-            m_ConfigManager = configManager;
-            m_ConfigManager.ConfigurationReceived += new EventHandler<ConfigEventArgs>(m_ConfigManager_ConfigurationReceived);
+            m_StopEvent = stopEvent;
+        }
 
-            var configHolder = m_ConfigManager.LastConfig;
-            if (configHolder != null && configHolder.PostMan != null)
+        public void Init(PostmanConfig config, DeliveryManager deliveryMgr)
+        {
+            m_DeliveryMgr = deliveryMgr;
+            m_Config = config;
+            base.StartThread(new ThreadStart(SendingThreadMethod),m_StopEvent);
+        }
+
+        public void Enqueue(MsgData msg)
+        {
+            if (m_Packages.Count > m_Config.SizeThreshold)
             {
-                m_Config = configHolder.PostMan;
-                base.StartThread(new ThreadStart(SendingThreadMethod));
+                lock (m_Sync)
+                {
+                    // avoid double processing
+                    if (m_Packages.Count > m_Config.SizeThreshold)
+                    {
+                        var temp = m_Packages;
+
+                        m_DeliveryMgr.ProcessQueue(temp);
+                        m_LastDelivered = DateTime.Now;
+                        m_Packages = new Queue<MsgData>();
+                    }
+                }
             }
+            
+            m_Packages.Enqueue(msg);
         }
 
         public void Shutdown()
         {
-            base.StopThread();
+            //base.StopThread();
         }
+
         private void m_ConfigManager_ConfigurationReceived(object sender, ConfigEventArgs e)
         {
             if (e.NewConfig.PostMan != null)
             {
                 m_Config = e.NewConfig.PostMan;
-                base.StartThread(new ThreadStart(SendingThreadMethod));
+                base.StartThread(new ThreadStart(SendingThreadMethod),m_StopEvent);
             }
         }
 
         private void SendingThreadMethod()
         {
-            // TODO...         
+            // TODO... check last delivered...        
         }
     }
 }

@@ -136,7 +136,16 @@ public class AsynchronousSocketListener
                             configData.Communicaiton.BlockSize = 1000;
 
                             configData.PostMan = new PostmanConfig();
-                            //configData.PostMan
+                            configData.PostMan.SizeThreshold = 10;
+                            configData.PostMan.Harvesters = new System.Collections.Generic.List<HarvesterConfig>();
+
+                            var dummy = new HarvesterConfig() { 
+                                Id = Guid.NewGuid().ToString(), 
+                                Type = "Logmind.Harvester.DummyHarvester", 
+                                LoadFromAsm = "Logmind.Harvester" 
+                            };
+                            configData.PostMan.Harvesters.Add(dummy);
+
                             Package<ConfigurationHolder> configResponse = new Package<ConfigurationHolder>();
                             configResponse.Payload = configData;
                             configResponse.Id = basePacket.Id;
@@ -144,6 +153,12 @@ public class AsynchronousSocketListener
 
                             responseBuffer = Utils.Serialize<Package<ConfigurationHolder>>(configResponse);
 
+                            break;
+                        case "SendData":
+                            Package<int> dataPAckage = new Package<int>();
+                            dataPAckage.Id = basePacket.Id;
+                            dataPAckage.Type = basePacket.Type;
+                            dataPAckage.Payload = bytesRead;
                             break;
                         default:
                             Package<NullRequest> nullRequest = new Package<NullRequest>();

@@ -92,7 +92,7 @@ class Authorization
     hashpass = Digest::SHA256.hexdigest(salt + password)
 
     Tire.index 'authorization' do
-      store  :id => username, :type => 'user', :name => username, :password => hashpass, :salt => salt
+      update  'user',username,:doc => { :password => hashpass, :salt => salt }
     end
   end
 

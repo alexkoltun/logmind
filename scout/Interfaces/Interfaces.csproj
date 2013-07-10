@@ -43,8 +43,10 @@
     <Compile Include="ICommandAndControl.cs" />
     <Compile Include="ICommunicationChannel.cs" />
     <Compile Include="IConfigurationManager.cs" />
+    <Compile Include="IHarvester.cs" />
     <Compile Include="IPersistence.cs" />
     <Compile Include="IPersistenceProvider.cs" />
+    <Compile Include="IPostMan.cs" />
     <Compile Include="IRunable.cs" />
     <Compile Include="IRunner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

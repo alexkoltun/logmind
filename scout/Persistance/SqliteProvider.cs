@@ -126,6 +126,7 @@ namespace Logmind.Persistance
 
                 if (reader != null && reader.HasRows)
                 {
+                    reader.Read();
                     var res = reader.GetString(0);
 
                     reader.Close();

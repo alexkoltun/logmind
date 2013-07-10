@@ -8,7 +8,9 @@ namespace Logmind.Domain.Config
     public class HarvesterConfig : BaseConfig
     {
         public string Id { get; set; }
+
         public string Type { get; set; }
+        public string LoadFromAsm { get; set; }
 
         public List<ConfigKey> Parameters { get; set; }
     }

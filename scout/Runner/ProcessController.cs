@@ -5,21 +5,25 @@ using System.Text;
 using Logmind.Domain.Config;
 using Logmind.Domain;
 using Logmind.Interfaces;
+using System.Threading;
+using Logmind.DataDelivery;
 
 namespace Logmind.Runner
 {
     internal class ProcessController : IRunner
     {
-        private  IConfigurationManager m_ConfigManager;
+        private IConfigurationManager m_ConfigManager;
         private IPersistence m_Persistence;
         private ICommandAndControl m_Cc;
+        private DeliveryManager m_DeliveryManger;
 
-        Logmind.DataDelivery.Postman m_PostMan;
-
+        private ManualResetEvent m_StopEvent;
         private List<IRunable> m_Runnables;
 
         internal ProcessController()
         {
+            m_StopEvent = new ManualResetEvent(false);
+
             m_Runnables = new List<IRunable>();
 
             m_Persistence = new Persistance.PersistanceManager();
@@ -30,6 +34,9 @@ namespace Logmind.Runner
 
             m_ConfigManager = new ConfigurationManager.ConfigurationManager();
             m_Runnables.Add(m_ConfigManager);
+
+            m_DeliveryManger = new DeliveryManager();
+            m_Runnables.Add(m_DeliveryManger);
         }
 
 
@@ -38,14 +45,7 @@ namespace Logmind.Runner
             m_Persistence.Init(this);
             m_Cc.Init(this);
             m_ConfigManager.Init(this);
-
-            //
-            m_PostMan = new DataDelivery.Postman();
-            m_PostMan.Init(m_ConfigManager);
-
-            //PostmanConfig testC = new PostmanConfig() { SizeThreshold = 500, TimeThreshold = 500 };
-
-            // Persistance.PersistanceManager.SaveConfigObject(Domain.ModulesTypes.DataDelivery, testC);
+            m_DeliveryManger.Init(this);
         }
 
         internal void Shutdown()
@@ -54,7 +54,6 @@ namespace Logmind.Runner
             {
                 runable.Shutdown();
             }
-            m_PostMan.Shutdown();
         }
 
 
@@ -88,5 +87,17 @@ namespace Logmind.Runner
         {
             get { return m_Cc; }
         }
+
+
+
+        #region IRunner Members
+
+
+        public ManualResetEvent StopEvent
+        {
+            get { return m_StopEvent; }
+        }
+
+        #endregion
     }
 }

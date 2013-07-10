@@ -270,8 +270,6 @@ def search_action(data, index, type)
     # get the items we have a view data permissions to union the items we have any permissions to
     view_scope = (@user.get_scope('view_data') || []) | (@user.get_scope('*') || [])
 
-    url_suffix = '_search'
-
     security_filter = nil
 
     # if we have access to everything then no need to filter
@@ -324,6 +322,42 @@ def search_action(data, index, type)
   halt 403, JSON.generate({'error' => 'not_authorized'})
 end
 
+def save_action(data, index, type, id)
+  # check if we are allowed to write the index
+  if @user.allowed?('index_write', index)
+
+    # get the user scope
+    # get the items we have a view data permissions to union the items we have any permissions to
+    view_scope = (@user.get_scope('modify_data') || []) | (@user.get_scope('*') || [])
+
+    allowed = false
+
+    if id
+      existing_object_request = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id) do |curl|
+        curl.headers['Accept'] = 'application/json'
+        curl.headers['Content-Type'] = 'application/json'
+      end
+      result = JSON.parse(existing_object_request.body_str)
+      if view_scope.include?('*') || view_scope.include?(id) || ((view_scope & ((result['_source']['tags'] || []).map { |item| '#' + item })).length > 0)
+        allowed = true
+      end
+    else
+      allowed = true
+    end
+
+    if allowed
+      c = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id, JSON.generate(data)) do |curl|
+        curl.headers['Accept'] = 'application/json'
+        curl.headers['Content-Type'] = 'application/json'
+      end
+
+      return c.body_str
+    end
+  end
+
+  halt 403, JSON.generate({'error' => 'not_authorized'})
+end
+
 # endpoints
 
 # search action
@@ -345,6 +379,22 @@ get '/api/idx/get/:index/:type/:id' do
   api_action_security! 'get', index, type
 
   get_action index, type, id
+end
+
+# save action
+post '/api/idx/save/:index/:type/:id' do
+  index = params[:index]
+  type = params[:type]
+  id = params[:id]
+
+  api_action_security! 'save', index, type
+
+  save_action get_request_json, index, type, id
+end
+
+# delete action
+post '/api/idx/delete/:index/:type/:id' do
+
 end
 
 #

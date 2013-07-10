@@ -9,21 +9,17 @@ namespace Logmind.Domain
     public abstract class ThreadBasedManager
     {
         private Thread m_Thread;
-        protected ManualResetEvent m_StopEvt;
+        private ManualResetEvent m_StopEvt;
 
-        protected void StopThread()
+        protected void StartThread(ThreadStart threadMethod, ManualResetEvent stopEvent)
         {
-            m_StopEvt.Set();
-        }
+            m_StopEvt = stopEvent;
 
-        protected void StartThread(ThreadStart threadMethod)
-        {
             if (m_Thread != null && m_Thread.IsAlive)
             {
                 m_Thread.Join(Constants.JoinOnThread);
             }
 
-            m_StopEvt = new ManualResetEvent(false);
             m_Thread = new Thread(new ThreadStart(threadMethod));
             m_Thread.IsBackground = true;
             m_Thread.Start();

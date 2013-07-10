@@ -1,7 +1,7 @@
 module GlobalConfig
 
 
-  Elasticsearch = "localhost:9200"
+  Elasticsearch = "127.0.0.1:9200"
 
   ElasticsearchTimeout = 500
 

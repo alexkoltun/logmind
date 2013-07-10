@@ -442,12 +442,7 @@
                 }
 
                 // do post if id not set so one is created
-                if (id == null) {
-                    response = ejs.client.post(url, data, successcb, errorcb);
-                } else {
-                    // put when id is specified
-                    response = ejs.client.put(url, data, successcb, errorcb);
-                }
+                response = ejs.client.post(url, data, successcb, errorcb);
 
                 return response;
             },

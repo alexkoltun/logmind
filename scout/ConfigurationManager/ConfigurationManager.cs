@@ -17,6 +17,7 @@ namespace Logmind.ConfigurationManager
         private ConfigurationHolder m_Config;
         private object m_Sync = new object();
 
+        public ConfigurationManager() { }
         private void PollingThreadMethod()
         {
             // start polling thread and try to fetch new configuration from the server..
@@ -49,7 +50,7 @@ namespace Logmind.ConfigurationManager
                 {
                     // TODO, log...
                 }
-            } while (m_StopEvt.WaitOne(Constants.StopWaitInterval) == false);
+            } while (m_Runner.StopEvent.WaitOne(Constants.StopWaitInterval) == false);
         }
 
         public ConfigurationHolder LastConfig
@@ -60,7 +61,7 @@ namespace Logmind.ConfigurationManager
 
         public void Shutdown()
         {
-            base.StopThread();
+            //base.StopThread();
         }
         public void Init(IRunner runner)
         {
@@ -87,7 +88,7 @@ namespace Logmind.ConfigurationManager
                 // read configuration from app.config..???
             }
 
-            base.StartThread(new ThreadStart(this.PollingThreadMethod));
+            base.StartThread(new ThreadStart(this.PollingThreadMethod),runner.StopEvent);
         }
 
         public event EventHandler<ConfigEventArgs> ConfigurationReceived;
