@@ -358,6 +358,40 @@ def save_action(data, index, type, id)
   halt 403, JSON.generate({'error' => 'not_authorized'})
 end
 
+def delete_action(data, index, type, id)
+  # check if we are allowed to write the index
+  if @user.allowed?('index_write', index)
+
+    # get the user scope
+    # get the items we have a view data permissions to union the items we have any permissions to
+    view_scope = (@user.get_scope('delete_data') || []) | (@user.get_scope('*') || [])
+
+    allowed = false
+
+    if id
+      existing_object_request = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id) do |curl|
+        curl.headers['Accept'] = 'application/json'
+        curl.headers['Content-Type'] = 'application/json'
+      end
+      result = JSON.parse(existing_object_request.body_str)
+
+      if view_scope.include?('*') || view_scope.include?(id) || ((view_scope & ((result['_source']['tags'] || []).map { |item| '#' + item })).length > 0)
+
+        c = Curl::Easy.http_delete('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id) do |curl|
+          curl.headers['Accept'] = 'application/json'
+          curl.headers['Content-Type'] = 'application/json'
+        end
+
+        return c.body_str
+      end
+
+    else
+      halt 404, JSON.generate({'error' => 'not_found'})
+    end
+  end
+
+  halt 403, JSON.generate({'error' => 'not_authorized'})
+end
 # endpoints
 
 # search action
@@ -394,7 +428,13 @@ end
 
 # delete action
 post '/api/idx/delete/:index/:type/:id' do
+  index = params[:index]
+  type = params[:type]
+  id = params[:id]
 
+  api_action_security! 'delete', index, type
+
+  delete_action get_request_json, index, type, id
 end
 
 #
