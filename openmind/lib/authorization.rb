@@ -13,6 +13,8 @@ class Authorization
 
     if index.exists?
 
+      #groups = JSON.generate(get_groups)
+      #users = JSON.generate(get_users)
       groups = get_groups
       users = get_users
 

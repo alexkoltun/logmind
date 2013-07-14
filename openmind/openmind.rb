@@ -613,11 +613,18 @@ def auth_api_post(method)
   data = get_request_json
 
   if method == "save_user"
-    auth.set_groups data['user_name'], data['groups']
+
+    if data['mode'] == "add"
+      auth.save_user data['user_name'], data['groups'], []
+
+    elsif data['mode'] == "edit"
+      auth.set_groups data['user_name'], data['groups']
+    end
 
     if data['is_new_pass']
       auth.set_password data['user_name'], data['new_pass']
     end
+
 
   elsif method == "remove_user"
     auth.remove_user data['user_name']

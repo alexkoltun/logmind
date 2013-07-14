@@ -167,12 +167,15 @@ angular.module('openmind.controllers', [])
     }
 
 
-    $scope.save_user = function(user, is_new_pass, new_pass) {
+    $scope.save_user = function(mode, user, is_new_pass, new_pass) {
 
         var groups = $scope.get_user_groups();
 
-        $http.post('/authapi/post/save_user', {user_name: user, is_new_pass: is_new_pass, new_pass: new_pass, groups: groups}).success(function(result) {
+        $http.post('/authapi/post/save_user', {mode: mode, user_name: user, is_new_pass: is_new_pass, new_pass: new_pass, groups: groups}).success(function(result) {
             alert("Save Successful!");
+            if (mode == "add") {
+                $scope.init();
+            }
         });
     }
 
