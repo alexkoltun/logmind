@@ -16,10 +16,10 @@ var config = new Settings(
   // elasticsearch installed on. You probably want to set it to the FQDN of your
   // elasticsearch host
   elasticsearch:    "http://"+window.location.hostname + ":" + window.location.port,
-  openmind_index:     "openmind-int",
+  openmind_index:     "openmind-management",
   modules:          ['histogram','map','pie','table','stringquery','sort',
                     'timepicker','text','fields','hits','dashcontrol',
                     'column','derivequeries','trends','bettermap',
-		    'dashboards', 'dynamicmenu', 'dynamictopmenu']
+		    'dashboards', 'dynamicmenu', 'dynamictopmenu','cep_rules','cep_editor']
   }
 );
