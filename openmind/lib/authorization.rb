@@ -8,21 +8,148 @@ class Authorization
   end
 
   def setup_defaults_if_needed()
-    save_group 'administrators', []
-    save_policy 'group_policy_administrators', ['@administrators'], ['*'], ['*']
 
-    save_group 'users', []
-    save_policy 'group_policy_users', ['@users'], ['view_data', 'index_read', 'search', 'frontend_ui_view'], ['logstash-*', 'logmind-management', 'openmind-int']
+    index = Tire.index 'authorization'
+
+    if index.exists?
+
+      #groups = JSON.generate(get_groups)
+      #users = JSON.generate(get_users)
+      groups = get_groups
+      users = get_users
+
+      unless groups.include?('administrators')
+        save_group 'administrators', []
+        save_policy 'group_policy_administrators', ['@administrators'], ['*'], ['*']
+      end
+
+      unless groups.include?('users')
+        save_group 'users', []
+        save_policy 'group_policy_users', ['@users'], ['view_data', 'index_read', 'search', 'frontend_ui_view'], ['logstash-*', 'logmind-management', 'openmind-int']
+      end
+
+      unless users.include?('admin')
+        save_user 'admin', ['@administrators'], []
+        set_password 'admin', 'password'
+      end
+
+      unless users.include?('viewer')
+        save_user 'viewer', ['@users'], []
+        set_password 'viewer', 'password'
+      end
+
+      unless users.include?('guest')
+        save_user 'guest', [], []
+        set_password 'guest', 'password'
+      end
 
 
-    save_user 'admin', ['@administrators'], []
-    set_password 'admin', 'password'
+    else
 
-    save_user 'viewer', ['@users'], []
-    set_password 'viewer', 'password'
+      mappings = ' {
+          "template": "authorization",
+          "mappings": {
+              "user": {
+                  "properties": {
+                      "name": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      },
+                      "password": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      },
+                      "salt": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      },
+                      "groups": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      },
+                      "tags": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      }
+                  }
+              },
+              "group": {
+                  "properties": {
+                      "name": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      },
+                      "tags": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      }
+                  }
+              },
+              "action": {
+                  "properties": {
+                      "name": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      },
+                      "tags": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      }
+                  }
+              },
+              "policy": {
+                  "properties": {
+                      "title": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      },
+                      "who": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      },
+                      "what": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      },
+                      "on": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      },
+                      "tags": {
+                          "index": "not_analyzed",
+                          "type": "string"
+                      }
+                  }
+              }
+          }
+      }'
 
-    save_user 'guest', [], []
-    set_password 'guest', 'password'
+      c = Curl::Easy.http_put('http://' + GlobalConfig::Elasticsearch + '/_template/authorization', mappings) do |curl|
+        curl.headers['Accept'] = 'application/json'
+        curl.headers['Content-Type'] = 'application/json'
+      end
+
+      result = JSON.parse(c.body_str)
+
+      if result['ok']
+
+        save_group 'administrators', []
+        save_policy 'group_policy_administrators', ['@administrators'], ['*'], ['*']
+
+        save_group 'users', []
+        save_policy 'group_policy_users', ['@users'], ['view_data', 'index_read', 'search', 'frontend_ui_view'], ['logstash-*', 'logmind-management', 'openmind-int']
+
+        save_user 'admin', ['@administrators'], []
+        set_password 'admin', 'password'
+
+        save_user 'viewer', ['@users'], []
+        set_password 'viewer', 'password'
+
+        save_user 'guest', [], []
+        set_password 'guest', 'password'
+      end
+    end
+
   end
 
   def remove_user(username)
@@ -60,6 +187,16 @@ class Authorization
 
     Tire.index 'authorization' do
       store :id => username, :type => 'user', :name => username, :groups => groups, :tags => tags
+    end
+  end
+
+  def set_groups(username, groups)
+
+    # username is always lower case
+    username.downcase!
+
+    Tire.index 'authorization' do
+      update  'user',username,:doc => { :groups => groups }
     end
   end
 

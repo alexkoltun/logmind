@@ -466,7 +466,7 @@
                     throw new Error('Index, Type, and ID must be set');
                 }
 
-                var url = '/api/idx/save/' + index + '/' + type + '/' + id,
+                var url = '/api/idx/delete/' + index + '/' + type + '/' + id,
                     data = '',
                     paramStr = genParamStr();
 
@@ -474,7 +474,7 @@
                     url = url + '?' + paramStr;
                 }
 
-                return ejs.client.del(url, data, successcb, errorcb);
+                return ejs.client.post(url, data, successcb, errorcb);
             }
 
         };

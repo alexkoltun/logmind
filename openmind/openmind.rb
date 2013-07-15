@@ -358,6 +358,40 @@ def save_action(data, index, type, id)
   halt 403, JSON.generate({'error' => 'not_authorized'})
 end
 
+def delete_action(data, index, type, id)
+  # check if we are allowed to write the index
+  if @user.allowed?('index_write', index)
+
+    # get the user scope
+    # get the items we have a view data permissions to union the items we have any permissions to
+    view_scope = (@user.get_scope('delete_data') || []) | (@user.get_scope('*') || [])
+
+    allowed = false
+
+    if id
+      existing_object_request = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id) do |curl|
+        curl.headers['Accept'] = 'application/json'
+        curl.headers['Content-Type'] = 'application/json'
+      end
+      result = JSON.parse(existing_object_request.body_str)
+
+      if view_scope.include?('*') || view_scope.include?(id) || ((view_scope & ((result['_source']['tags'] || []).map { |item| '#' + item })).length > 0)
+
+        c = Curl::Easy.http_delete('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id) do |curl|
+          curl.headers['Accept'] = 'application/json'
+          curl.headers['Content-Type'] = 'application/json'
+        end
+
+        return c.body_str
+      end
+
+    else
+      halt 404, JSON.generate({'error' => 'not_found'})
+    end
+  end
+
+  halt 403, JSON.generate({'error' => 'not_authorized'})
+end
 # endpoints
 
 # search action
@@ -395,7 +429,13 @@ end
 
 # delete action
 post '/api/idx/delete/:index/:type/:id' do
+  index = params[:index]
+  type = params[:type]
+  id = params[:id]
 
+  api_action_security! 'delete', index, type
+
+  delete_action get_request_json, index, type, id
 end
 
 #
@@ -587,17 +627,49 @@ get '/grocker/patterns/*' do
   send_file(params[:spat]) unless params[:spat].nil?
 end
 
-get '/authapi/:method' do
-  auth_api(params[:method])
+get '/authapi/get/:method' do
+  auth_api_get(params[:method])
 end
 
-def auth_api(method)
+post '/authapi/post/:method' do
+  auth_api_post(params[:method])
+end
+
+def auth_api_get(method)
   auth = Authorization.new
 
   if method == "get_users"
     JSON.generate(auth.get_users)
+
   elsif method == "get_groups"
     JSON.generate(auth.get_groups)
+
+  end
+
+end
+
+def auth_api_post(method)
+  auth = Authorization.new
+
+  data = get_request_json
+
+  if method == "save_user"
+
+    if data['mode'] == "add"
+      auth.save_user data['user_name'], data['groups'], []
+
+    elsif data['mode'] == "edit"
+      auth.set_groups data['user_name'], data['groups']
+    end
+
+    if data['is_new_pass']
+      auth.set_password data['user_name'], data['new_pass']
+    end
+
+
+  elsif method == "remove_user"
+    auth.remove_user data['user_name']
+
   end
 
 end

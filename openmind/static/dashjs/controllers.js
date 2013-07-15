@@ -157,13 +157,54 @@ angular.module('openmind.controllers', [])
 
     $scope.init = function() {
 
-        $http.get('/authapi/get_users').success(function(result) {
+        $http.get('/authapi/get/get_users').success(function(result) {
             $scope.adminData.usersList = result;
         });
 
-        $http.get('/authapi/get_groups').success(function(result) {
+        $http.get('/authapi/get/get_groups').success(function(result) {
             $scope.adminData.groupsList = result;
         });
+    }
+
+
+    $scope.save_user = function(mode, user, is_new_pass, new_pass) {
+
+        var groups = $scope.get_user_groups();
+
+        $http.post('/authapi/post/save_user', {mode: mode, user_name: user, is_new_pass: is_new_pass, new_pass: new_pass, groups: groups}).success(function(result) {
+            alert("Save Successful!");
+            if (mode == "add") {
+                $scope.init();
+            }
+        });
+    }
+
+    $scope.get_user_groups = function() {
+        var groups = [];
+        $(".modal.in #curr_groups li").each(function() {
+            groups.push("@" + $(this).text());
+        })
+
+        return groups;
+    }
+
+    $scope.remove_user = function(user) {
+        var is_remove = confirm("Remove user '" + user + "'?");
+        if (is_remove) {
+            $http.post('/authapi/post/remove_user', {user_name: user}).success(function(result) {
+                alert("User Removed!");
+                $scope.init();
+            });
+        }
+    }
+
+    $scope.is_user_group = function(user, group_name) {
+        return $.inArray("@" + group_name, user.groups);
+    }
+
+
+    $scope.get_name = function(str) {
+        return str.replace('@', '');
     }
 
 

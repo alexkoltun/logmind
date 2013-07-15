@@ -1820,3 +1820,9 @@ form {
 .login-box .login-msg {
     height: 20px;
 }
+
+
+.errormsg {
+    font-size: 12px;
+    color: red;
+}

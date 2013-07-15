@@ -11,13 +11,13 @@
        </thead>
        <tbody ng-repeat='user in adminData.usersList'>
         <tr>
-         <td><a href="admin/user/edit/{{user.name}}"><i class="dark-icon icon-edit"></i> {{user.name}}</a></td>
+         <td><a href="#" <i ng-click="remove_user(user.name)" class="dark-icon icon-remove"></i></a>&nbsp;&nbsp;<a href="#" bs-modal="'partials/admin/edituser.html'"><i class="dark-icon icon-edit"></i> {{user.name}}</a></td>
          <td><label class="checkbox"><input type="checkbox" disabled></label></td>
          <td>No Tags</td>
         </tr>
        </tbody>
        </table>
-       <button id="adduser" class="btn btn-primary btn-small"><i class="icon icon-tag"></i> New User</button>
+       <button id="adduser" class="btn btn-primary btn-small" bs-modal="'partials/admin/adduser.html'"><i class="icon icon-tag"></i> New User</button>
 
        <h4 style="margin-top: 40px;">Groups</h4>
        <table class="table table-striped table-bordered table-condensed table-hover">
@@ -40,9 +40,6 @@
       </div>
       <script>
       $(function() {
-        $('#adduser').click(function() {
-          window.location = 'admin/user/new/';
-        });
         $('#addgroup').click(function() {
           window.location = 'admin/group/new/';
         });
