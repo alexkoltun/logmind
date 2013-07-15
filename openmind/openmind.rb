@@ -392,6 +392,7 @@ post '/api/idx/save/:index/:type/:id' do
   save_action get_request_json, index, type, id
 end
 
+
 # delete action
 post '/api/idx/delete/:index/:type/:id' do
 
@@ -400,6 +401,46 @@ end
 #
 # end index API
 #
+
+#
+# cep API
+#
+post '/api/cep/save/' do
+
+  rule = get_request_json
+
+  index = GlobalConfig::Cep_index # params[:index]
+  type = GlobalConfig::Cep_rule_type
+  id = rule['name']
+
+  api_action_security! 'save', index, type
+
+  # create percolation
+  perc_index = GlobalConfig::Cep_perc_index
+  raw_qs = rule['raw_queries']
+  raw_qs.each do |q|
+    perc_q = Hash.new()
+    perc_q['query'] = Hash.new()
+    perc_q['query']['query_string'] = Hash.new()
+    perc_q['query']['query_string']['query'] = q['query']
+
+    perc_type = perc_index
+    perc_q_name = "#{id}_#{q['id']}"
+
+    #var q_data = JSON.generate(perc_q);
+
+    save_action perc_q, "_percolator", perc_type, perc_q_name
+  end
+  # compile ESPER EPL into the rule
+
+
+  save_action rule, index, type, id
+end
+
+#
+# end cep API
+#
+
 
 def grok
   if @grok.nil?

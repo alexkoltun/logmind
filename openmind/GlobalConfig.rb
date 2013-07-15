@@ -87,4 +87,9 @@ module GlobalConfig
 
   # Use this interval as fallback if the client's request in not valid.
   Fallback_interval = 900
+
+  # CEP parameters
+  Cep_rule_type = 'cep_rule'
+  Cep_index = 'openmind-management'
+  Cep_perc_index = 'logstash-*'
 end

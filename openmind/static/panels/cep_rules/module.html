@@ -37,21 +37,24 @@
       <tbody ng-repeat="row in data.slice(panel.offset,panel.offset+panel.size)" ng-class-odd="'odd'">
         <tr ng-click="toggle_details(row)" class="pointer">
           <td ng-repeat="field in panel.fields" ng-bind-html-unsafe="row._source[field]"></td>
-           <td>[<a href="" ng-click="edit_rule(row)">edit</a>]</td>
+           <td>
+               [
+                <a href="" ng-click="edit_rule(row)">edit</a> |
+                <a href="" ng-click="delete_rule(row)">delete</a>
+               ]
+           </td>
         </tr>
         <tr ng-show="row.openmind.details">
           <td colspan="2">
             <table class='table table-bordered table-condensed'>
               <thead>
                 <th>Field</th>
-                <th>Action</th>
+
                 <th>Value</th>
               </thead>
               <tr ng-repeat="(key,value) in row.openmind.details._source" ng-class-odd="'odd'">
                 <td>{{key}}</td>
-                <td>
-                  TODO
-                </td>
+
                 <td>{{value}}</td>
               </tr> 
             </table>
