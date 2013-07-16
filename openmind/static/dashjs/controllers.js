@@ -46,7 +46,7 @@ angular.module('openmind.controllers', [])
     $scope.row = {
       title: '',
       height: '150px',
-      editable: true,
+      editable: true
     };
   };
 
@@ -58,7 +58,7 @@ angular.module('openmind.controllers', [])
     var alert = {
       title: title,
       text: text,
-      severity: severity || 'info',
+      severity: severity || 'info'
     };
     $scope.global_alert.push(alert);
     if (timeout > 0)
@@ -97,7 +97,7 @@ angular.module('openmind.controllers', [])
     collapse: false,
     collapsable: true,
     editable: true,
-    panels: [],
+    panels: []
   }
   _.defaults($scope.row,_d)
 
@@ -130,7 +130,7 @@ angular.module('openmind.controllers', [])
       error   : false,
       span    : 3,
       editable: true,
-      group   : ['default'],
+      group   : ['default']
     };
   };
 
