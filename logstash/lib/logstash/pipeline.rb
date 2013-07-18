@@ -25,9 +25,16 @@ class LogStash::Pipeline
       plugin.logger = @logger
     end
 
+    @outputs.each do |output|
+      if output.respond_to?(:set_input_queue)
+        output.set_input_queue(@input_to_filter)
+      end
+    end
+
     @inputs.each(&:register)
     @filters.each(&:register)
     @outputs.each(&:register)
+
   end # def initialize
 
   # Parses a config and returns [inputs, filters, outputs]
