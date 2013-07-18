@@ -458,6 +458,7 @@ post '/api/cep/save/' do
   # create percolation
   perc_index = GlobalConfig::Cep_perc_index
   raw_qs = rule['raw_queries']
+
   raw_qs.each do |q|
     perc_q = Hash.new()
     perc_q['query'] = Hash.new()
@@ -467,12 +468,8 @@ post '/api/cep/save/' do
     perc_type = perc_index
     perc_q_name = "#{id}_#{q['id']}"
 
-    #var q_data = JSON.generate(perc_q);
-
     save_action perc_q, "_percolator", perc_type, perc_q_name
   end
-  # compile ESPER EPL into the rule
-
 
   save_action rule, index, type, id
 end

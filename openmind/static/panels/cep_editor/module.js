@@ -43,6 +43,7 @@ angular.module('openmind.cep_editor', [])
         // push first default empty query..
         $scope.panel.current_rule.raw_queries = [{query:''}];
         $scope.panel.current_rule.correlations = [{correlation:''}];
+        $scope.panel.current_rule.time_window = 0;
 
         eventBus.register($scope,'edited_rule', function(event, rule) {
 
@@ -50,6 +51,7 @@ angular.module('openmind.cep_editor', [])
         $scope.panel.current_rule = {};
         $scope.panel.current_rule.name = rule["_source"]["name"];
         $scope.panel.current_rule.description = rule["_source"]["description"];
+        $scope.panel.current_rule.time_window = rule["_source"]["time_window"];
         $scope.panel.current_rule.raw_queries = rule["_source"]["raw_queries"];
         $scope.panel.current_rule.correlations = rule["_source"]["correlations"];
       });
@@ -109,9 +111,11 @@ angular.module('openmind.cep_editor', [])
               });
         }
         // TODO, save all rule parts..
+        //debugger;
         var saveData = {
             name: $scope.panel.current_rule.name,
             description: $scope.panel.current_rule.description,
+            time_window: $scope.panel.current_rule.time_window,
             raw_queries: toSaveQs, //$scope.panel.current_rule.raw_queries
             correlations: _.clone($scope.panel.current_rule.correlations)
         };

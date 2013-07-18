@@ -9,12 +9,12 @@
                       <tr><td><label><small>{{panel.label}}</small></label></td></tr>
                       <tr>
                           <td>
-                              <input type="text" ng-model="panel.current_rule.name">
+                              <input type="text" ng-model="panel.current_rule.name" class="input-large">
                           </td>
                       </tr>
                       <tr>
                           <td>
-                              <input type="text" ng-model="panel.current_rule.description">
+                              <input type="text" ng-model="panel.current_rule.description" class="input-large">
                           </td>
                       </tr>
 
@@ -45,7 +45,7 @@
                       <tr ng-repeat="c in panel.current_rule.correlations">
                           <td>{{get_cor_id(c)}}.</td>
                           <td>
-                               <input type="text" ng-model="c.correlation">
+                               <input type="text" ng-model="c.correlation" class="input-mini">
                           </td>
                           <td>
                               <a href="" ng-click="remove_correlation(c)">[X]</a>
@@ -58,6 +58,10 @@
                           </td>
                       </tr>
                   </table>
+                  <div>
+                      <span class="label">Time Window:</span>
+                      <input type="text" ng-model="panel.current_rule.time_window" class="input-mini" >
+                  </div>
               </div>
           </form>
 
