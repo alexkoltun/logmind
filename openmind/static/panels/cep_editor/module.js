@@ -35,7 +35,8 @@ angular.module('openmind.cep_editor', [])
         test_index: 'logstash-*',
         test_results: [],
         test_result_size: 100,
-        all_fields:[]
+        all_fields:[],
+        selected_fields: ['@timestamp', '@message']
     }
     _.defaults($scope.panel,_d);
 

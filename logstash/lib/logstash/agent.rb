@@ -846,6 +846,7 @@ end # class LogStash::Agent
 if __FILE__ == $0
   $: << "net"
   agent = LogStash::Agent.new
-  agent.argv = ARGV
-  agent.run
+  #agent.argv = ARGV
+  agent.run ARGV
+  sleep 100000
 end

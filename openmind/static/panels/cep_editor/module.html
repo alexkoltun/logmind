@@ -1,85 +1,56 @@
 <openmind-panel ng-controller='cep_editor' ng-init="init()" style="{{panel.overflow}}:{{panel.height || row.height}};overflow-y:auto;overflow-x:auto">
 
+<div class="span3">
 
+<input type="text" placeholder="Name" ng-model="panel.current_rule.name" />
+<textarea placeholder="Description" ng-model="panel.current_rule.description"></textarea>
+
+  <h4>Queries</h4>
+      <form class="form-inline" ng-repeat="q in panel.current_rule.raw_queries">
+          <div class="row">
+              <label class="span1">{{get_id(q)}}.</label>
+              <input type="text" ng-model="q.query">
+              <a href="" ng-click="test_query(q)" class="btn btn-primary">Test</a>
+              <a href="" ng-click="remove_query(q)" class="btn btn-danger">Remove</a>
+          </div>
+      </form>
   <div class="row">
-      <div class="span4">
-          <form class="form-horizontal">
-              <div>
-                  <table >
-                      <tr><td><label><small>{{panel.label}}</small></label></td></tr>
-                      <tr>
-                          <td>
-                              <input type="text" ng-model="panel.current_rule.name">
-                          </td>
-                      </tr>
-                      <tr>
-                          <td>
-                              <input type="text" ng-model="panel.current_rule.description">
-                          </td>
-                      </tr>
+      <a href="" ng-click="add_query(q)" class="btn">Add Query</a>
+  </div>
+  <h4>Correlations</h4>
+      <form class="form-inline" ng-repeat="c in panel.current_rule.correlations">
+          <div class="row">
+              <label class="span1">{{get_cor_id(c)}}.</label>
+              <input type="text" ng-model="c.correlation">
+              <a href="" ng-click="remove_correlation(c)" class="btn btn-danger">Remove</a>
+          </div>
+      </form>
+  <div class="row">
+      <a href="" ng-click="add_correlation()" class="btn">Add Correlation</a>
+  </div>
+    <div class="row">
+        <a href="" ng-click="save_rule()" class="btn btn-primary">Save</a>
+        <a href="" ng-click="reset()" class="btn btn-warning">Reset</a>
+    </div>
+</div>
 
-                  </table>
-
-                  <table>
-                      <tr><td><label><small>Queries</small></label></td></tr>
-                      <tr ng-repeat="q in panel.current_rule.raw_queries">
-                          <td>{{get_id(q)}}.</td>
-                          <td>
-                              <input type="text" ng-model="q.query">
-                          </td>
-                          <td>
-                              [
-                              <a href="" ng-click="test_query(q)">test</a> |
-                              <a href="" ng-click="remove_query(q)">X</a>
-                              ]
-                          </td>
-                      </tr>
-                      <tr>
-                          <td colspan="3">
-                              <a href="" ng-click="add_query(q)">[add query]</a>
-                          </td>
-                      </tr>
-                  </table>
-                  <table>
-                      <tr><td><label><small>Correlations</small></label></td></tr>
-                      <tr ng-repeat="c in panel.current_rule.correlations">
-                          <td>{{get_cor_id(c)}}.</td>
-                          <td>
-                               <input type="text" ng-model="c.correlation">
-                          </td>
-                          <td>
-                              <a href="" ng-click="remove_correlation(c)">[X]</a>
-                          </td>
-
-                      </tr>
-                      <tr>
-                          <td colspan="3">
-                              <a href="" ng-click="add_correlation()">[add correlation]</a>
-                          </td>
-                      </tr>
-                  </table>
-              </div>
-          </form>
-
-          <a href="" ng-click="save_rule()">[save rule]</a> |
-          <a href="" ng-click="reset()">[reset]</a>
-      </div>
-      <div class="span8">
+      <div class="span7">
           <table class="table table-hover table-condensed" ng-style="panel.style">
               <thead>
-              <th style="white-space:nowrap" ng-repeat="field in panel.all_fields">
+              <th style="white-space:nowrap" ng-repeat="field in panel.selected_fields">
                   <i ng-show="!$first" class="dark-icon pointer link icon-caret-left"></i>
                   <span>{{field}}</span>
               </th>
               </thead>
               <tbody ng-repeat="row in panel.test_results" ng-class-odd="'odd'">
               <tr >
-                  <td ng-repeat="field in panel.all_fields" ng-bind-html-unsafe="row._source[field]"></td>
+                  <td ng-repeat="field in panel.selected_fields" ng-bind-html-unsafe="row._source[field]"></td>
               </tr>
               </tbody>
           </table>
       </div>
-  </div>
+
+
 
 
 </openmind-panel>
