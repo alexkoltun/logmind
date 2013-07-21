@@ -17,7 +17,7 @@ var config = new Settings(
   // elasticsearch installed on. You probably want to set it to the FQDN of your
   // elasticsearch host
   elasticsearch:    "http://"+window.location.hostname + ":" + window.location.port,
-  openmind_index:     "openmind-management",
+  openmind_index:     "logmind-management",
   logstash_index:     "logstash-*",
   modules:          ['histogram','map','pie','table','stringquery','sort',
                     'timepicker','text','fields','hits','dashcontrol',
