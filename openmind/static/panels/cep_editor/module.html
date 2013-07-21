@@ -1,90 +1,109 @@
 <openmind-panel ng-controller='cep_editor' ng-init="init()" style="{{panel.overflow}}:{{panel.height || row.height}};overflow-y:auto;overflow-x:auto">
 
-<div class="row-fluid">
-    <label class="span3">Name</label>
-    <input class="span9" placeholder="Name" ng-model="panel.current_rule.name" />
-</div>
 
-<div class="row-fluid">
-    <label class="span3">Description</label>
-    <textarea class="span9"  placeholder="Description" ng-model="panel.current_rule.description"></textarea>
-</div>
-
-<div class="row-fluid">
-    <div class="span6">
-      <h4>Queries</h4>
-          <form class="form-inline" ng-repeat="q in panel.current_rule.raw_queries">
-              <div class="row-fluid">
-                  <label class="span1">{{get_id(q)}}.</label>
-                  <input type="text" ng-model="q.query">
-                  <a href="" ng-click="test_query(q)" class="btn btn-primary">Test</a>
-                  <a href="" ng-click="remove_query(q)" class="btn btn-danger">Remove</a>
-              </div>
-          </form>
-      <div class="row-fluid">
-          <a href="" ng-click="add_query(q)" class="btn">Add Query</a>
-      </div>
-    </div>
-    <div class="span6">
-      <h4>Correlations</h4>
-          <form class="form-inline" ng-repeat="c in panel.current_rule.correlations">
-              <div class="row-fluid">
-                  <label class="span1">{{get_cor_id(c)}}.</label>
-                  <input type="text" ng-model="c.correlation">
-                  <a href="" ng-click="remove_correlation(c)" class="btn btn-danger">Remove</a>
-              </div>
-          </form>
-      <div class="row-fluid">
-          <a href="" ng-click="add_correlation()" class="btn">Add Correlation</a>
-      </div>
-    </div>
-</div>
-<!--
 <form class="form-horizontal">
+    <fieldset>
+        <legend>Rule Editor</legend>
+    </fieldset>
     <div class="control-group">
-        <label class="control-label" for="inputEmail">Email</label>
+        <label class="control-label"><strong>General</strong></label>
+        <div class="controls"></div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Rule Name:</label>
         <div class="controls">
-            <input type="text" id="inputEmail" placeholder="Email">
+            <input type="text" placeholder="Rule Name" class="input-block-level" ng-model="panel.current_rule.name" required />
         </div>
     </div>
     <div class="control-group">
-        <label class="control-label" for="inputPassword">Password</label>
+        <label class="control-label">Rule Description:</label>
         <div class="controls">
-            <input type="password" id="inputPassword" placeholder="Password">
+            <textarea placeholder="Rule Description" class="input-block-level" rows="3" ng-model="panel.current_rule.description"></textarea>
         </div>
     </div>
     <div class="control-group">
+        <label class="control-label"><strong>Queries</strong></label>
+        <div class="controls"></div>
+    </div>
+    <div class="control-group" ng-repeat="q in panel.current_rule.raw_queries">
+        <label class="control-label">{{get_id(q)}}:</label>
         <div class="controls">
-            <label class="checkbox">
-                <input type="checkbox"> Remember me
-            </label>
-            <button type="submit" class="btn">Sign in</button>
+            <div class="input-append input-block-level">
+                <input type="text" ng-model="q.query" class="input-block-level">
+                <div class="btn-group">
+                    <button class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+                        <i class="icon-cog"></i>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="" ng-click="test_query(q)">Test Query</a>
+                        </li>
+                        <li>
+                            <a href="" ng-click="test_query(q)">Remove Query</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="" ng-click="add_query(q)">Add Query</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label"><strong>Correlations</strong></label>
+        <div class="controls"></div>
+    </div>
+    <div class="control-group" ng-repeat="c in panel.current_rule.correlations">
+        <label class="control-label">{{get_cor_id(c)}}:</label>
+        <div class="controls">
+            <div class="input-append input-block-level">
+                <input type="text" ng-model="c.correlation" class="input-block-level">
+                <div class="btn-group">
+                    <button class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+                        <i class="icon-cog"></i>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="" ng-click="remove_correlation(c)">Remove Correlation</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="" ng-click="add_correlation()">Add Correlation</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label"><strong>Options</strong></label>
+        <div class="controls"></div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Time Window:</label>
+        <div class="controls">
+            <input type="text" placeholder="0" class="input-block-level" ng-model="panel.current_rule.time_window" required />
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Enable Notification:</label>
+        <div class="controls">
+            <input type="checkbox" />
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Email:</label>
+        <div class="controls">
+            <input type="email"  class="input-block-level" required>
+        </div>
+    </div>
+    <div class="form-actions">
+        <button type="button" ng-click="save_rule()" class="btn btn-primary">Save Rule</button>
+        <button type="button" ng-click="reset()" class="btn btn-inverse">Reset Rule</button>
     </div>
 </form>
--->
-<div class="row-fluid">
-    <h4>Options</h4>
-    <form class="form-horizontal">
-
-        <div class="row-fluid">
-            <div class="span3">Time Window</div>
-            <input type="text" ng-model="panel.current_rule.time_window" class="span6">
-        </div>
-        <div class="row-fluid">
-            <label class="checkbox span3">Notify</label>
-            <input type="checkbox">
-        </div>
-        <div class="row-fluid">
-            <label class="span3">Email</label>
-            <input type="text" placeholder="Email" class="span6">
-        </div>
-    </form>
-</div>
-
- <div class="row-fluid">
-    <a href="" ng-click="save_rule()" class="btn btn-primary">Save</a>
-    <a href="" ng-click="reset()" class="btn btn-warning">Reset</a>
-</div>
 
 </openmind-panel>
