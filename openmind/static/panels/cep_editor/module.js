@@ -46,21 +46,24 @@ angular.module('openmind.cep_editor', [])
         $scope.panel.current_rule.description = '';
         $scope.panel.current_rule.raw_queries = [{query:''}];
         $scope.panel.current_rule.correlations = [{correlation:''}];
-        $scope.panel.current_rule.time_window = 0;
-        $scope.panel.current_rule.enable_notification = false;
-        $scope.panel.current_rule.destination_email = 'test@example.com';
+        $scope.panel.current_rule.time_window = 10;
+        $scope.panel.current_rule.notification = {};
+        $scope.panel.current_rule.notification.enable_notification = false;
+        $scope.panel.current_rule.notification.destination_email = 'test@example.com';
 
         eventBus.register($scope,'edited_rule', function(event, rule) {
 
-            //alert(rule.name);
+            //alert($scope.panel.current_rule.notification.enable_notification);
             $scope.panel.current_rule = {};
             $scope.panel.current_rule.name = rule["_source"]["name"];
             $scope.panel.current_rule.description = rule["_source"]["description"];
             $scope.panel.current_rule.time_window = rule["_source"]["time_window"];
             $scope.panel.current_rule.raw_queries = rule["_source"]["raw_queries"];
             $scope.panel.current_rule.correlations = rule["_source"]["correlations"];
-            $scope.panel.current_rule.enable_notification = rule["_source"]["enable_notification"];
-            $scope.panel.current_rule.destination_email = rule["_source"]["destination_email"];
+            $scope.panel.current_rule.notification = {};
+            $scope.panel.current_rule.notification.enable_notification = rule["_source"]["notification"]["enable_notification"];
+            $scope.panel.current_rule.notification.destination_email = rule["_source"]["notification"]["destination_email"];
+            //alert($scope.panel.current_rule.notification.destination_email);
         });
 
     }
@@ -117,6 +120,11 @@ angular.module('openmind.cep_editor', [])
                   id: $scope.get_id($scope.panel.current_rule.raw_queries[i])
               });
         }
+
+        var notfi = {};
+        notfi.enable_notification = $scope.panel.current_rule.notification.enable_notification;
+        notfi.destination_email = $scope.panel.current_rule.notification.enable_notification? $scope.panel.current_rule.notification.destination_email : '';
+
         // TODO, save all rule parts..
         //debugger;
         var saveData = {
@@ -125,8 +133,7 @@ angular.module('openmind.cep_editor', [])
             time_window: $scope.panel.current_rule.time_window,
             raw_queries: toSaveQs, //$scope.panel.current_rule.raw_queries
             correlations: _.clone($scope.panel.current_rule.correlations),
-            enable_notification: $scope.panel.current_rule.enable_notification,
-            destination_email: $scope.panel.current_rule.enable_notification? $scope.panel.current_rule.destination_email : ''
+            notification: notfi
         };
 
         var request = $http.post('/api/cep/save/',saveData);
