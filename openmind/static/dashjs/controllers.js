@@ -138,7 +138,7 @@ angular.module('openmind.controllers', [])
 
 })
 
-.controller('AdminCtrl', function($scope, $rootScope, $http, $timeout, ejsResource) {
+.controller('AdminCtrl', function($scope, $rootScope, $http, $modal, ejsResource) {
 
     $scope.adminData = {
         usersList: [],
@@ -169,23 +169,12 @@ angular.module('openmind.controllers', [])
 
     $scope.save_user = function(mode, user, is_new_pass, new_pass) {
 
-        var groups = $scope.get_user_groups();
-
-        $http.post('/authapi/post/save_user', {mode: mode, user_name: user, is_new_pass: is_new_pass, new_pass: new_pass, groups: groups}).success(function(result) {
+        $http.post('/authapi/post/save_user', {mode: mode, user_name: user, is_new_pass: is_new_pass, new_pass: new_pass, groups: $scope.user.groups}).success(function(result) {
             alert("Save Successful!");
             if (mode == "add") {
                 $scope.init();
             }
         });
-    }
-
-    $scope.get_user_groups = function() {
-        var groups = [];
-        $(".modal.in #curr_groups li").each(function() {
-            groups.push("@" + $(this).text());
-        })
-
-        return groups;
     }
 
     $scope.remove_user = function(user) {
@@ -205,6 +194,133 @@ angular.module('openmind.controllers', [])
 
     $scope.get_name = function(str) {
         return str.replace('@', '');
+    }
+
+
+    $scope.show_add_user_modal = function() {
+        var modal_scope = $scope;
+        modal_scope.user = {groups: [], allgroups: $scope.get_all_group_names([])}
+
+        var modal = $modal({
+            template: 'partials/admin/adduser.html',
+            show: true,
+            persist: true,
+            backdrop: 'static',
+            scope: modal_scope
+        });
+    }
+
+
+    $scope.show_edit_user_modal = function(user) {
+        var modal_scope = $scope;
+        modal_scope.user = user;
+        modal_scope.user.allgroups = $scope.get_all_group_names(user.groups);
+
+        var modal = $modal({
+            template: 'partials/admin/edituser.html',
+            show: true,
+            persist: true,
+            backdrop: 'static',
+            scope: modal_scope
+        });
+    }
+
+
+    $scope.get_all_group_names = function(current_groups) {
+        var group_names = [];
+        for (var i = 0; i < $scope.adminData.groupsList.length; i++) {
+            var group = "@" + $scope.adminData.groupsList[i].name;
+            if ($.inArray(group, current_groups) == -1) {
+                group_names.push(group);
+            }
+        }
+
+        return group_names;
+    }
+
+
+    $scope.move_right = function(user) {
+//        $("#" + user + "_avail_groups li.ui-selected").each(function() {
+//            var tag = $(this);
+//            $("#" + user + "_curr_groups").append("<li class=\"select-item\" value=\"" + tag.text() + "\">" + tag.text() + "</li>");
+//            tag.remove();
+//        });
+        for (var i = 0; i < user.avail_selected.length; i++) {
+            user.groups.push(user.avail_selected[i]);
+            $scope.remove_from_user_allgroups(user, user.avail_selected[i]);
+        }
+
+        user.avail_selected = [];
+    }
+
+    $scope.remove_from_user_allgroups = function(user, group_name) {
+        var index = -1;
+        for (var i = 0; i < user.allgroups.length; i++) {
+            if ($scope.get_name(user.allgroups[i]) === $scope.get_name(group_name)) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index > -1) {
+            user.allgroups.splice(index, 1);
+        }
+    }
+
+    $scope.move_left = function(user) {
+        for (var i = 0; i < user.current_selected.length; i++) {
+            user.allgroups.push(user.current_selected[i]);
+            $scope.remove_from_user_groups(user, user.current_selected[i]);
+        }
+
+        user.current_selected = [];
+    }
+
+    $scope.remove_from_user_groups = function(user, group_name) {
+        var index = -1;
+        for (var i = 0; i < user.groups.length; i++) {
+            if ($scope.get_name(user.groups[i]) === $scope.get_name(group_name)) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index > -1) {
+            user.groups.splice(index, 1);
+        }
+    }
+
+
+    $scope.make_selectable = function() {
+        $( ".select-list" ).selectable();
+    }
+
+
+    $scope.user_avail_selected = function(user, group_name) {
+        if (user.avail_selected === undefined) {
+            user.avail_selected = [];
+        }
+
+        var index = user.avail_selected.indexOf(group_name);
+        if (index > -1) {
+            user.avail_selected.splice(index, 1);
+        } else {
+            user.avail_selected.push(group_name);
+        }
+    }
+
+
+    $scope.user_current_selected = function(user, group_name) {
+        if (user.current_selected === undefined) {
+            user.current_selected = [];
+        }
+
+        var index = user.current_selected.indexOf(group_name);
+        if (index > -1) {
+            user.current_selected.splice(index, 1);
+        } else {
+            user.current_selected.push(group_name);
+        }
     }
 
 
