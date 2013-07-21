@@ -85,19 +85,19 @@
     <div class="control-group">
         <label class="control-label">Time Window:</label>
         <div class="controls">
-            <input type="text" placeholder="0" class="input-block-level" ng-model="panel.current_rule.time_window" required />
+            <input type="text" placeholder="10" class="input-block-level" ng-model="panel.current_rule.time_window" required />
         </div>
     </div>
     <div class="control-group">
         <label class="control-label">Enable Notification:</label>
         <div class="controls">
-            <input type="checkbox" ng-model="panel.current_rule.enable_notification"/>
+            <input type="checkbox" ng-model="panel.current_rule.notification.enable_notification"/>
         </div>
     </div>
     <div class="control-group">
         <label class="control-label">Email:</label>
         <div class="controls">
-            <input type="email" placeholder="test@example.com" class="input-block-level" ng-model="panel.current_rule.destination_email" ng-disabled="!panel.current_rule.enable_notification" required>
+            <input type="email" placeholder="test@example.com" class="input-block-level" ng-model="panel.current_rule.notification.destination_email" ng-disabled="!panel.current_rule.notification.enable_notification" required>
         </div>
     </div>
     <div class="form-actions">
