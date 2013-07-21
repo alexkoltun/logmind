@@ -40,9 +40,11 @@ angular.module('openmind.cep_editor', [])
     }
     _.defaults($scope.panel,_d);
 
+
     $scope.init = function() {
         // push first default empty query..
-        $scope.panel.current_rule.name = '';
+        $scope.reset();
+        /*$scope.panel.current_rule.name = '';
         $scope.panel.current_rule.description = '';
         $scope.panel.current_rule.raw_queries = [{query:''}];
         $scope.panel.current_rule.correlations = [{correlation:''}];
@@ -50,7 +52,7 @@ angular.module('openmind.cep_editor', [])
         $scope.panel.current_rule.notification = {};
         $scope.panel.current_rule.notification.enable_notification = false;
         $scope.panel.current_rule.notification.destination_email = 'test@example.com';
-
+          */
         eventBus.register($scope,'edited_rule', function(event, rule) {
 
             //alert($scope.panel.current_rule.notification.enable_notification);
@@ -65,7 +67,9 @@ angular.module('openmind.cep_editor', [])
             $scope.panel.current_rule.notification.destination_email = rule["_source"]["notification"]["destination_email"];
             //alert($scope.panel.current_rule.notification.destination_email);
         });
-
+        eventBus.register($scope,'new_rule', function(event) {
+            $scope.reset();
+        });
     }
 
     $scope.test_query = function(q) {
@@ -122,8 +126,8 @@ angular.module('openmind.cep_editor', [])
         }
 
         var notfi = {};
-        notfi.enable_notification = $scope.panel.current_rule.notification.enable_notification;
-        notfi.destination_email = $scope.panel.current_rule.notification.enable_notification? $scope.panel.current_rule.notification.destination_email : '';
+        notfi.enable_notification = $scope.panel.current_rule.notification && $scope.panel.current_rule.notification.enable_notification;
+        notfi.destination_email = ($scope.panel.current_rule.notification && $scope.panel.current_rule.notification.enable_notification)? $scope.panel.current_rule.notification.destination_email : '';
 
         // TODO, save all rule parts..
         //debugger;
@@ -180,7 +184,7 @@ angular.module('openmind.cep_editor', [])
         $scope.panel.current_rule.description = '';
         $scope.panel.current_rule.raw_queries = [{query:''}];
         $scope.panel.current_rule.correlations = [{correlation:''}];
-        $scope.panel.current_rule.time_window = 0;
+        $scope.panel.current_rule.time_window = 10;
         $scope.panel.current_rule.enable_notification = false;
         $scope.panel.current_rule.destination_email = 'test@example.com';
     }

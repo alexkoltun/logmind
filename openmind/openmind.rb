@@ -474,6 +474,31 @@ post '/api/cep/save/' do
   save_action rule, index, type, id
 end
 
+post '/api/cep/delete/' do
+
+  rule = get_request_json
+
+  index = GlobalConfig::Cep_index # params[:index]
+  type = GlobalConfig::Cep_rule_type
+  id = rule['name']
+
+  api_action_security! 'delete', index, type
+
+  # create percolation
+  perc_index = GlobalConfig::Cep_perc_index
+  raw_qs = rule['raw_queries']
+
+  if (raw_qs != nil)
+    raw_qs.each do |q|
+      perc_type = perc_index
+      perc_q_name = "#{id}_#{q['id']}"
+
+      delete_action nil, "_percolator", perc_type, perc_q_name
+    end
+  end
+
+  delete_action nil, index, type, id
+end
 #
 # end cep API
 #

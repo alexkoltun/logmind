@@ -1,10 +1,6 @@
-<openmind-panel ng-controller='cep_rules' ng-init='init()'>
+<openmind-panel ng-controller='cep_rules' ng-init='init()' style="{{panel.overflow}}:{{panel.height || row.height}};overflow-y:auto;overflow-x:auto">
 
-  <span ng-show="panel.spyable" style="position:absolute;right:0px;top:0px" class='panelextra pointer'>
-      <i bs-modal="'partials/modal.html'" class="icon-eye-open dark-icon"></i>
-  </span>
 
-  <div style="{{panel.overflow}}:{{panel.height || row.height}};overflow-y:auto;overflow-x:auto">
     <div class="row-fluid" ng-show="panel.paging">
       <div class="span1 offset1" style="text-align:right">
         <i ng-click="panel.offset = 0" ng-show="panel.offset > 0" class='dark-icon icon-circle-arrow-left pointer'></i>
@@ -21,28 +17,26 @@
 
     <table class="table-hover table table-condensed" ng-style="panel.style">
       <thead ng-show="panel.header">
-
-      <th style="white-space:nowrap">
-      </th>
-
-      <th style="white-space:nowrap" ng-repeat="field in panel.fields">
-          <i ng-show="!$first" class="dark-icon pointer link icon-caret-left" ng-click="_.move(panel.fields,$index,$index-1)"></i>
-
-          <span  class="pointer" ng-click="set_sort(field)" ng-show='panel.sortable'>
-            {{ panel.displayNames[field] }}
-            <i ng-show='field == panel.sort[0]' class="dark-icon pointer link" ng-class="{'icon-chevron-up': panel.sort[1] == 'asc','icon-chevron-down': panel.sort[1] == 'desc'}"></i>
-          </span> 
-          <span ng-show='!panel.sortable'>{{ panel.displayNames[field] }}</span>
-          <i ng-show="!$last" class="dark-icon pointer link icon-caret-right" ng-click="_.move(panel.fields,$index,$index+1)"></i>
-        </th>
-      
+          <th style="white-space:nowrap">
+          </th>
+          <th style="white-space:nowrap" ng-repeat="field in panel.fields">
+              <i ng-show="!$first" class="dark-icon pointer link icon-caret-left" ng-click="_.move(panel.fields,$index,$index-1)"></i>
+              <span  class="pointer" ng-click="set_sort(field)" ng-show='panel.sortable'>
+                {{ panel.displayNames[field] }}
+                <i ng-show='field == panel.sort[0]' class="dark-icon pointer link" ng-class="{'icon-chevron-up': panel.sort[1] == 'asc','icon-chevron-down': panel.sort[1] == 'desc'}"></i>
+              </span>
+              <span ng-show='!panel.sortable'>{{ panel.displayNames[field] }}</span>
+              <i ng-show="!$last" class="dark-icon pointer link icon-caret-right" ng-click="_.move(panel.fields,$index,$index+1)"></i>
+          </th>
       </thead>
       <tbody>
-        <tr ng-repeat="row in data.slice(panel.offset,panel.offset+panel.size)" ng-class-odd="'odd'" ng-click="toggle_details(row)" class="pointer">
-          <td><a href="" ng-click="delete_rule(row)"><i class="dark-icon icon-remove"></i></a>&nbsp;&nbsp;<a href="" ng-click="edit_rule(row)"><i class="dark-icon icon-edit"></i></a></td><td ng-repeat="field in panel.fields">{{ row._source[field] }}</td>
+        <tr ng-repeat="row in data.slice(panel.offset,panel.offset+panel.size)" ng-class-odd="'odd'" ng-click="edit_rule(row)" class="pointer">
+          <td><a href="" ng-click="delete_rule(row)"><i class="dark-icon icon-remove"></i></a>&nbsp;&nbsp;<a href="" ng-click="edit_rule(row)"><i class="dark-icon icon-edit"></i></a></td>
+          <td ng-repeat="field in panel.fields">{{ get_display_value(row._source,field) }}</td>
         </tr>
       </tbody>
     </table>
+    <button class="btn btn-primary btn-small" ng-click="new_rule()"><i class="icon icon-tasks"></i> Add New Rule</button>
     <div class="row-fluid" ng-show="panel.paging">
       <div class="span1 offset3" style="text-align:right">
         <i ng-click="panel.offset = 0" ng-show="panel.offset > 0" class='dark-icon icon-circle-arrow-left pointer'></i>
@@ -56,5 +50,4 @@
         <i ng-click="panel.offset = (panel.offset + panel.size)" ng-show="data.length > panel.offset+panel.size" class='dark-icon icon-arrow-right pointer'></i>
       </div>
     </div>
-  </div>
 </openmind-panel>

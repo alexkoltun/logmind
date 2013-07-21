@@ -29,7 +29,7 @@
 */
 
 angular.module('openmind.cep_rules', [])
-.controller('cep_rules', function($scope, eventBus, fields) {
+.controller('cep_rules', function($scope, eventBus, fields,$http) {
 
   // Set and populate defaults
   var _d = {
@@ -42,8 +42,8 @@ angular.module('openmind.cep_rules', [])
     group   : "default",
     style   : {'font-size': '9pt'},
     overflow: 'height',
-    fields  : ['name','description'],
-    displayNames: { 'name': 'Name', 'description': 'Description' },
+    fields  : ['name','description', 'time_window', 'notification.enable_notification', 'notification.destination_email'],
+    displayNames: { 'name': 'Name', 'description': 'Description','time_window': 'Time Window', 'notification.enable_notification': 'Notification Enabled', 'notification.destination_email' : 'Destination Email' },
     highlight : [],
     sortable: true,
     header  : true,
@@ -77,10 +77,22 @@ angular.module('openmind.cep_rules', [])
       $scope.panel.fields = _.without($scope.panel.fields,field)
     else
       $scope.panel.fields.push(field)
-    broadcast_results();
+        //broadcast_results();
   }
 
-
+  $scope.get_display_value = function(source, field) {
+    var parts = field.split('.');
+    var current = source;
+    for (var i=0; i < parts.length; i++) {
+        if (current != null) {
+            current = current[parts[i]];
+        }
+        else {
+            return '';
+        }
+    }
+    return current;
+  }
   $scope.toggle_details = function(row) {
     row.openmind = row.openmind || {};
     row.openmind.details = row;// ? $scope.without_openmind(row) : false;
@@ -179,7 +191,9 @@ angular.module('openmind.cep_rules', [])
       eventBus.broadcast($scope.$id,$scope.panel.group,"edited_rule", rule);
 
   }
-
+  $scope.new_rule = function() {
+    eventBus.broadcast($scope.$id, $scope.panel.group,"new_rule");
+  }
   $scope.populate_modal = function(request) {
     $scope.modal = {
       title: "Table Inspector",
@@ -191,7 +205,12 @@ angular.module('openmind.cep_rules', [])
   }
 
   $scope.delete_rule = function(rule) {
-      alert("TOOD...");
+      var request = $http.post('/api/cep/delete/',rule._source);
+      var id = request.then(function(result) {
+          $scope.alert('Rule Deleted','This rule has been deleted!','success',5000);
+          $scope.getData();
+      })
+      return false;
   }
 
   // Broadcast a list of all fields. Note that receivers of field array 
