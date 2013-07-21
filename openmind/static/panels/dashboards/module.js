@@ -69,7 +69,7 @@ angular.module('openmind.dashboards', [])
         var _type = $routeParams.type;
         var _id = $routeParams.id;
         
-        if(_type === 'elasticsearch')
+        if(_type === 'store')
           $scope.elasticsearch_load('dashboard',_id)
         if(_type === 'temp')
           $scope.elasticsearch_load('temp',_id)

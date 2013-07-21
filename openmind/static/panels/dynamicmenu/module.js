@@ -93,10 +93,10 @@ angular.module('openmind.dynamicmenu', [])
                 {
                     type: "dynamic",
                     icon: "icon-star",
-                    link_base: "/#/dashboard/elasticsearch/",
+                    link_base: "/#/dashboard/store/",
                     title_column: "_id",
                     link_column: "_id",
-                    es_index: "openmind-int",
+                    es_index: "logmind-management",
                     es_type: "dashboard",
                     es_query: "*"
                 }
