@@ -42,20 +42,26 @@ angular.module('openmind.cep_editor', [])
 
     $scope.init = function() {
         // push first default empty query..
+        $scope.panel.current_rule.name = '';
+        $scope.panel.current_rule.description = '';
         $scope.panel.current_rule.raw_queries = [{query:''}];
         $scope.panel.current_rule.correlations = [{correlation:''}];
         $scope.panel.current_rule.time_window = 0;
+        $scope.panel.current_rule.enable_notification = false;
+        $scope.panel.current_rule.destination_email = 'test@example.com';
 
         eventBus.register($scope,'edited_rule', function(event, rule) {
 
-        //alert(rule.name);
-        $scope.panel.current_rule = {};
-        $scope.panel.current_rule.name = rule["_source"]["name"];
-        $scope.panel.current_rule.description = rule["_source"]["description"];
-        $scope.panel.current_rule.time_window = rule["_source"]["time_window"];
-        $scope.panel.current_rule.raw_queries = rule["_source"]["raw_queries"];
-        $scope.panel.current_rule.correlations = rule["_source"]["correlations"];
-      });
+            //alert(rule.name);
+            $scope.panel.current_rule = {};
+            $scope.panel.current_rule.name = rule["_source"]["name"];
+            $scope.panel.current_rule.description = rule["_source"]["description"];
+            $scope.panel.current_rule.time_window = rule["_source"]["time_window"];
+            $scope.panel.current_rule.raw_queries = rule["_source"]["raw_queries"];
+            $scope.panel.current_rule.correlations = rule["_source"]["correlations"];
+            $scope.panel.current_rule.enable_notification = rule["_source"]["enable_notification"];
+            $scope.panel.current_rule.destination_email = rule["_source"]["destination_email"];
+        });
 
     }
 
@@ -118,7 +124,9 @@ angular.module('openmind.cep_editor', [])
             description: $scope.panel.current_rule.description,
             time_window: $scope.panel.current_rule.time_window,
             raw_queries: toSaveQs, //$scope.panel.current_rule.raw_queries
-            correlations: _.clone($scope.panel.current_rule.correlations)
+            correlations: _.clone($scope.panel.current_rule.correlations),
+            enable_notification: $scope.panel.current_rule.enable_notification,
+            destination_email: $scope.panel.current_rule.enable_notification? $scope.panel.current_rule.destination_email : ''
         };
 
         var request = $http.post('/api/cep/save/',saveData);
@@ -133,7 +141,7 @@ angular.module('openmind.cep_editor', [])
 
         //var result = request.doSave();
         var id = request.then(function(result) {
-            $scope.alert('Rule Saved','This rule has been saved to Elasticsearch','success',5000)
+            $scope.alert('Rule Saved','This rule has been saved!','success',5000)
 
             // notify list for save..
             eventBus.broadcast($scope.$id,$scope.panel.group,"rule_saved");
@@ -161,7 +169,13 @@ angular.module('openmind.cep_editor', [])
 
     $scope.reset = function(){
         $scope.panel.current_rule =  {};
+        $scope.panel.current_rule.name = '';
+        $scope.panel.current_rule.description = '';
         $scope.panel.current_rule.raw_queries = [{query:''}];
+        $scope.panel.current_rule.correlations = [{correlation:''}];
+        $scope.panel.current_rule.time_window = 0;
+        $scope.panel.current_rule.enable_notification = false;
+        $scope.panel.current_rule.destination_email = 'test@example.com';
     }
 
     $scope.add_correlation = function(){
