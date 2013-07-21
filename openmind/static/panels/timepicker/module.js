@@ -205,7 +205,7 @@ angular.module('openmind.timepicker', [])
     $scope.panel.error = "";   
     // Update internal time object
     $scope.time = $scope.time_calc();
-    $scope.time.field = $scope.panel.timefield
+    $scope.time.field = $scope.panel.timefield;
 
     // Get indices for the time period, then broadcast time range and index list
     // in a single object. Not sure if I like this.
@@ -234,7 +234,7 @@ angular.module('openmind.timepicker', [])
       $scope.panel.time = { 
         from : $scope.time.from.format("MM/DD/YYYY HH:mm:ss"),
         to : $scope.time.to.format("MM/DD/YYYY HH:mm:ss"),
-        index : $scope.time.index,
+        index : $scope.time.index
       };
     } else {
       delete $scope.panel.time;

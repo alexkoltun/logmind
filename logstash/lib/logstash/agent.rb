@@ -410,6 +410,10 @@ class LogStash::Agent
 
   private
   def start_output(output)
+    if output.respond_to?(:set_input_queue)
+      output.set_input_queue(@filters.length > 0 ? @filter_queue : @output_queue)
+    end
+
     @logger.debug? and @logger.debug("Starting output", :plugin => output)
     queue = LogStash::SizedQueue.new(@queue_size * @filterworker_count)
     queue.logger = @logger
@@ -846,6 +850,7 @@ end # class LogStash::Agent
 if __FILE__ == $0
   $: << "net"
   agent = LogStash::Agent.new
-  agent.argv = ARGV
-  agent.run
+  #agent.argv = ARGV
+  agent.run ARGV
+  sleep 100000
 end

@@ -43,6 +43,7 @@ angular.module('openmind.cep_rules', [])
     style   : {'font-size': '9pt'},
     overflow: 'height',
     fields  : ['name','description'],
+    displayNames: { 'name': 'Name', 'description': 'Description' },
     highlight : [],
     sortable: true,
     header  : true,
@@ -55,14 +56,13 @@ angular.module('openmind.cep_rules', [])
 
   $scope.init = function () {
 
-    //$scope.set_listeners($scope.panel.group)
-
-    // Now that we're all setup, request the time from our group
-    //eventBus.broadcast($scope.$id,$scope.panel.group,"get_time")
       $scope.get_data();
+
+      eventBus.register($scope,'rule_saved', function(event) {
+          //alert('asd');
+          $scope.get_data();
+      });
   }
-
-
 
   $scope.set_sort = function(field) {
     if($scope.panel.sort[0] === field)
@@ -93,76 +93,70 @@ angular.module('openmind.cep_rules', [])
 
 
 
-  $scope.get_data = function(segment,query_id) {
-    $scope.panel.error = false;
+    $scope.get_data = function(segment,query_id) {
 
-    // Make sure we have everything for the request to complete
-    //if(_.isUndefined($scope.index) || _.isUndefined($scope.time))
-    //  return
-    
-    $scope.panel.loading = true;
+        $scope.panel.error = false;
+        $scope.panel.loading = true;
 
-    //var _segment = _.isUndefined(segment) ? 0 : segment
-    //$scope.segment = _segment;
+        // pass index name
+        var request = $scope.ejs.Request().indices([$scope.panel.elasticsearch_saveto])
+              .types([$scope.panel.obj_type])
+              .size($scope.panel.size*$scope.panel.pages)
+              .sort($scope.panel.sort[0],$scope.panel.sort[1]);
 
-    // pass index name
-    var request = $scope.ejs.Request().indices([$scope.panel.elasticsearch_saveto])
-          .types([$scope.panel.obj_type])
-          .size($scope.panel.size*$scope.panel.pages)
-          .sort($scope.panel.sort[0],$scope.panel.sort[1]);
+        //  $scope.populate_modal(request)
 
-  //  $scope.populate_modal(request)
+        var results = request.doSearch();
 
-    var results = request.doSearch();
+        // Populate scope when we have results
+        results.then(function(results) {
+          $scope.panel.loading = false;
 
-    // Populate scope when we have results
-    results.then(function(results) {
-      $scope.panel.loading = false;
+          //if(_segment === 0) {
+          //  $scope.hits = 0;
+          //  $scope.data = [];
+          //  query_id = $scope.query_id = new Date().getTime()
+          //}
 
-      //if(_segment === 0) {
-      //  $scope.hits = 0;
-      //  $scope.data = [];
-      //  query_id = $scope.query_id = new Date().getTime()
-      //}
-
-      // Check for error and abort if found
-      if(!(_.isUndefined(results.error))) {
-        $scope.panel.error = $scope.parse_error(results.error);
-        return;
-      }
-
-      // Check that we're still on the same query, if not stop
-      //if($scope.query_id === query_id) {
-        $scope.data = _.map(results.hits.hits, function(hit) {
-          return {
-            _source   : hit['_source']
+          // Check for error and abort if found
+          if(!(_.isUndefined(results.error))) {
+            $scope.panel.error = $scope.parse_error(results.error);
+            return;
           }
+
+          // Check that we're still on the same query, if not stop
+          //if($scope.query_id === query_id) {
+            $scope.data = _.map(results.hits.hits, function(hit) {
+              return {
+                _source   : hit['_source']
+              }
+            });
+
+            $scope.hits = results.hits.total;
+
+            // Sort the data
+            $scope.data = _.sortBy($scope.data, function(v){
+              return v._source[$scope.panel.sort[0]]
+            });
+
+            // Reverse if needed
+            if($scope.panel.sort[1] == 'desc')
+              $scope.data.reverse();
+
+            // Keep only what we need for the set
+            $scope.data = $scope.data.slice(0,$scope.panel.size * $scope.panel.pages)
+
+          //} else {
+          //  return;
+          //}
+
+          // This breaks, use $scope.data for this
+          $scope.all_fields = get_all_fields(_.pluck($scope.data,'_source'));
+          //broadcast_results();
+
         });
-        
-        $scope.hits = results.hits.total;
+    }
 
-        // Sort the data
-        $scope.data = _.sortBy($scope.data, function(v){
-          return v._source[$scope.panel.sort[0]]
-        });
-        
-        // Reverse if needed
-        if($scope.panel.sort[1] == 'desc')
-          $scope.data.reverse();
-        
-        // Keep only what we need for the set
-        $scope.data = $scope.data.slice(0,$scope.panel.size * $scope.panel.pages)
-
-      //} else {
-      //  return;
-      //}
-      
-      // This breaks, use $scope.data for this
-      $scope.all_fields = get_all_fields(_.pluck($scope.data,'_source'));
-      //broadcast_results();
-
-    });
-  }
 
   $scope.edit_rule = function(ruleRow){
 
@@ -174,17 +168,18 @@ angular.module('openmind.cep_rules', [])
           arr[0] = temp;
        */
       //if (temp is array)
-      var rule =
-      {
-        name: ruleRow['_source']['name'],
-        description: ruleRow['_source']['description'],
-        raw_queries:ruleRow['_source']['raw_queries']
-      };
+      var rule =  _.clone(ruleRow);
+      //{
+      //  name: ruleRow['_source']['name'],
+      //  description: ruleRow['_source']['description'],
+      //  raw_queries:ruleRow['_source']['raw_queries']
+      //};
 
       //alert(rule.raw_queries.length);
       eventBus.broadcast($scope.$id,$scope.panel.group,"edited_rule", rule);
 
   }
+
   $scope.populate_modal = function(request) {
     $scope.modal = {
       title: "Table Inspector",
@@ -195,7 +190,9 @@ angular.module('openmind.cep_rules', [])
     } 
   }
 
-
+  $scope.delete_rule = function(rule) {
+      alert("TOOD...");
+  }
 
   // Broadcast a list of all fields. Note that receivers of field array 
   // events should be able to receive from multiple sources, merge, dedupe 

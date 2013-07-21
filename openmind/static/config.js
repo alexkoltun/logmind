@@ -2,7 +2,8 @@
 
 elasticsearch:  URL to your elasticsearch server
 openmind_index:   The default ES index to use for storing openmind specific object
-                such as stored dashboards 
+                such as stored dashboards
+logstash_index: all indices for search
 modules:        Panel modules to load. In the future these will be inferred 
                 from your initial dashboard, though if you share dashboards you
                 will probably need to list them all here 
@@ -17,6 +18,7 @@ var config = new Settings(
   // elasticsearch host
   elasticsearch:    "http://"+window.location.hostname + ":" + window.location.port,
   openmind_index:     "openmind-management",
+  logstash_index:     "logstash-*",
   modules:          ['histogram','map','pie','table','stringquery','sort',
                     'timepicker','text','fields','hits','dashcontrol',
                     'column','derivequeries','trends','bettermap',
