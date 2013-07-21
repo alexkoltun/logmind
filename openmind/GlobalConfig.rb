@@ -90,7 +90,7 @@ module GlobalConfig
 
   # CEP parameters
   Cep_rule_type = 'cep_rule'
-  Cep_index = 'openmind-management'
+  Cep_index = 'logmind-management'
   Cep_perc_index = 'openmind-perc'
   # name of the percolator field within the event
   Cep_q_fld_type_name = 'qtype'

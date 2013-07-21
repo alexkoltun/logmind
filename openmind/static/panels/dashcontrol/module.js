@@ -72,7 +72,7 @@ angular.module('openmind.dashcontrol', [])
         var _type = $routeParams.type;
         var _id = $routeParams.id;
         
-        if(_type === 'elasticsearch')
+        if(_type === 'store')
           $scope.elasticsearch_load('dashboard',_id)
         if(_type === 'temp')
           $scope.elasticsearch_load('temp',_id)
@@ -174,7 +174,7 @@ angular.module('openmind.dashcontrol', [])
         });
   }
 
-  $scope.elasticsearch_save = function(type) {
+  $scope.elasticsearch_save = function(type, title) {
     // Clone object so we can modify it without influencing the existing obejct
     if($scope.panel.hide_control) {
       $scope.panel.hide = true;
@@ -185,7 +185,7 @@ angular.module('openmind.dashcontrol', [])
 
     // Change title on object clone
     if(type === 'dashboard')
-      var id = save.title = $scope.elasticsearch.title;
+      var id = save.title = title;
 
     // Create request with id as title. Rethink this.
     var request = $scope.ejs.Document($scope.panel.elasticsearch_saveto,type,id).source({

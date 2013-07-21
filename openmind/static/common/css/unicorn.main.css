@@ -1730,7 +1730,6 @@ form {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff5bc0de', endColorstr='#ff2f96b4', GradientType=0);
     border-color: #559933 #559933 #228844;
     border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-    *background-color: #559933;
     /* Darken IE7 buttons by default so they stand out more given they won't have borders */
 
     filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
@@ -1742,7 +1741,6 @@ form {
 .btn-dash-menu[disabled] {
     color: #ffffff;
     background-color: #559933;
-    *background-color: #55bb44;
 }
 .btn-dash-menu:active,
 .btn-dash-menu.active {
@@ -1821,4 +1819,15 @@ form {
 .errormsg {
     font-size: 12px;
     color: red;
+}
+
+.icon-save {
+    background-image: url("../img/save.png");
+    background-position: 0px 0px;
+}
+
+.icon-saveas {
+    background-image: url("../img/saveas.png");
+    background-position: 0px 0px;
+    width: 20px;
 }
