@@ -43,6 +43,7 @@ angular.module('openmind.cep_rules', [])
     style   : {'font-size': '9pt'},
     overflow: 'height',
     fields  : ['name','description'],
+    displayNames: { 'name': 'Name', 'description': 'Description' },
     highlight : [],
     sortable: true,
     header  : true,
