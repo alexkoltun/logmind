@@ -92,16 +92,7 @@ class MyListener
 	@input_queue.push(e)
 	@logger.info("pushed esper event", :e => outEvent)
   end
-  
-  #def update(newEvents, oldEvents)
-  #  @logger.info("update with match")
-	#puts "matched: "
-#    newEvents.each do |event|
- #     #puts "- " + event.getUnderlying.inspect
-#	  event.getUnderlying()
-#	  @logger.info("from esper", :matched => event.getUnderlying())
- #   end
-  #end
+ 
 end
 
 class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
@@ -113,9 +104,7 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
   # The default value will partition your indices by day so you can more easily
   # delete old data or only search specific date ranges.
   config :index, :validate => :string, :default => "logstash-%{+YYYY.MM.dd}"
-
-  # The index type to write events to. Generally you should try to write only
-  # similar events to the same 'type'. String expansion '%{foo}' works here.
+ 
   config :out_type, :validate => :string, :default => "cep_alert"
 
   # The name/address of the host to use for ElasticSearch unicast discovery
@@ -127,29 +116,14 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
   # REST API port (normally 9200).
   config :port, :validate => :number, :default => 9200
 
-  config :openmind_index, :validate => :string, :default => "openmind-management"
-  
-  config :alerts_index, :validate => :string, :default => "alerts_index"
-
+  config :logmind_index, :validate => :string, :default => "logmind-management"
+    
   config :rule_type, :validate => :string, :default => "cep_rule"
   
-  config :openmind_perc_index, :validate => :string, :default => "openmind-perc"
+  config :logmind_perc_index, :validate => :string, :default => "logmind-perc"
   
-  # Set the number of events to queue up before writing to elasticsearch.
-  #
-  # If this value is set to 1, the normal ['index
-  # api'](http://www.elasticsearch.org/guide/reference/api/index_.html).
-  # Otherwise, the [bulk
-  # api](http://www.elasticsearch.org/guide/reference/api/bulk.html) will
-  # be used.
-  config :flush_size, :validate => :number, :default => 100
-
-  # The document ID for the index. Useful for overwriting existing entries in
-  # elasticsearch with the same ID.
-  config :document_id, :validate => :string, :default => nil
-
   @ep_service
-  @statement
+  #@statement
   #@listener
   @un_listener
   @ep_rt
@@ -159,15 +133,11 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
   
   private 
   def create_esper_engine
+  
 	@logger.info("creating esper runtime")
 	@ep_service = com.espertech.esper.client.EPServiceProviderManager.getDefaultProvider
-
-	# And the configuration
 	ep_config = @ep_service.getEPAdministrator.getConfiguration
 	ep_config.addEventType("logmind", {})
-	
-	#@listener = MyListener.new
-	#@listener.set_logger(@logger)
 	
 	@un_listener = MyUnmatchedListener.new
 	@un_listener.set_logger(@logger)
@@ -179,8 +149,9 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
   public
   def set_input_queue(input_queue)
 	@input_queue = input_queue
-	@logger.info("set_input_queue!!!")
-  end  
+	#@logger.info("set_input_queue!!!")
+  end
+  
   public
   def register
     begin
@@ -190,17 +161,7 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
 		
 		create_esper_engine()
 		load_rules()
-		
-		#where (cast(index,int) > 50)
-		#expression = "SELECT * FROM logmind WHERE cast(test?,string) like 'a%'"
-		#expression = "SELECT * FROM logmind WHERE cast(index?,int) > 100"
-		
-		#@statement = @ep_service.getEPAdministrator.createEPL(expression)
-		
-		@queue = []
-		
-		@live_alerts = Hash.new
-		
+	
 		@logger.info("DONE REGISTER")
 	rescue Exception => e
 		@logger.info("EXCEPTION during init", :ex => e)
@@ -212,9 +173,9 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
   
 	@statements = Hash.new
 			
-	get_url = "http://#{@host}:#{@port}/#{@openmind_index}/#{@rule_type}/_search"
+	get_url = "http://#{@host}:#{@port}/#{@logmind_index}/#{@rule_type}/_search"
 	
-	#@logger.info("get_url", :get_url => get_url)
+	@logger.info("trying to load rules from", :url => get_url)
 	request = @agent.get(get_url)
 	conf_response = @agent.execute(request)
 	
@@ -222,7 +183,8 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
 	jsonObj = JSON.parse(jsonRes)
 
 	#@logger.info("rules", :rules => jsonObj)
-	jsonObj["hits"]["hits"].each do |rule|
+	if (jsonObj["hits"]["hits"] != nil and jsonObj["hits"]["hits"].length > 0)
+		jsonObj["hits"]["hits"].each do |rule|
 		
 		#@logger.info("raw rule", :rule => rule)
 		# prefix for all queries
@@ -319,14 +281,15 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
 		end
 		
 	end # hits iteration
-	
+	else
+		@logger.warn("found zero rules")
+	end
   end
   
   public
   def receive(event)
     return unless output?(event)
 
-    #index = event.sprintf(@index)
     type = 'cep_perc' # event['@type'] #.sprintf(@out_type)
 	begin
 	
@@ -335,7 +298,7 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
 		newEvent['doc'] = event
 		
 		#@logger.info("newEvent.to_json", :data => newEvent.to_json)
-		response = @agent.post!("http://#{@host}:#{@port}/#{@openmind_perc_index}/#{type}/_percolate", :body => newEvent.to_json)
+		response = @agent.post!("http://#{@host}:#{@port}/#{@logmind_perc_index}/#{type}/_percolate", :body => newEvent.to_json)
 		body = "";
 		response.read_body { |chunk| body += chunk }
 
@@ -365,144 +328,7 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
 	rescue Exception => e
 		@logger.info("EXCEPTION during receive", :ex => e)	
 	end
-	
-	# TODO, how us bulk?
-    #if @flush_size == 1
-	#	receive_single(event, index, type)
-    #else
-    #  receive_bulk(event, index, type)
-    #end # 
+
   end # def receive
 
-  def receive_single(event, index, type)
-    success = false
-    while !success
-      response = @agent.post!("http://#{@host}:#{@port}/#{index}/#{type}?percolate=*",
-                              :body => event.to_json)
-      # We must read the body to free up this connection for reuse.
-      body = "";
-      response.read_body { |chunk| body += chunk }
-
-	  @logger.info("percolation_res", :percolation_res => body)
-	  
-	  
-      if response.status != 201
-        @logger.error("Error writing to elasticsearch",
-                      :response => response, :response_body => body)
-      else # sucess, try to index the event is got match
-		
-		index_res = JSON.parse(body)
-		if (index_res["matches"].length > 0)
-			# index the event
-			@logger.info("index_res", :index_res => index_res["matches"])
-			first_index_uri = "http://#{@host}:#{@port}/#{@alerts_index}/#{type}"
-			
-			map = event.to_hash
-			map["matched_queries"] = index_res["matches"]
-			map["from_index"] = index_res["_index"]
-			
-			# TODO, ttl per document... not sure if possible..
-			response = @agent.post!(first_index_uri, :body => map.to_json)
-			
-			body = "";
-			response.read_body { |chunk| body += chunk }
-
-			@logger.info("first_index_res", :first_index_res => body)
-	  
-		end
-        success = true
-      end
-    end
-  end # def receive_single
-
-  def receive_bulk(event, index, type)
-    header = { "index" => { "_index" => index, "_type" => type } }
-    if !@document_id.nil?
-      header["index"]["_id"] = event.sprintf(@document_id)
-    end
-    @queue << [
-      header.to_json, event.to_json
-    ].join("\n")
-
-    # Keep trying to flush while the queue is full.
-    # This will cause retries in flushing if the flush fails.
-    flush while @queue.size >= @flush_size
-  end # def receive_bulk
-
-  def flush
-    @logger.debug? && @logger.debug("Flushing events to elasticsearch",
-                                    :count => @queue.count)
-    # If we don't tack a trailing newline at the end, elasticsearch
-    # doesn't seem to process the last event in this bulk index call.
-    #
-    # as documented here: 
-    # http://www.elasticsearch.org/guide/reference/api/bulk.html
-    #  "NOTE: the final line of data must end with a newline character \n."
-    response = @agent.post!("http://#{@host}:#{@port}/_bulk",
-                            :body => @queue.join("\n") + "\n")
-
-    # Consume the body for error checking
-    # This will also free up the connection for reuse.
-    body = ""
-    response.read_body { |chunk| body += chunk }
-
-    if response.status != 200
-      @logger.error("Error writing (bulk) to elasticsearch",
-                    :response => response, :response_body => body,
-                    :request_body => @queue.join("\n"))
-      return
-    end
-
-    # Clear the queue on success only.
-    @queue.clear
-  end # def flush
-
-  def teardown
-    flush while @queue.size > 0
-  end # def teardown
-
-  # THIS IS NOT USED YET. SEE LOGSTASH-592
-  def setup_index_template
-  
-  
-    template_name = "logstash-template"
-    template_wildcard = @index.gsub(/%{[^}+]}/, "*")
-    template_config = {
-      "template" => template_wildcard,
-      "settings" => {
-        "number_of_shards" => 5,
-        "index.compress.stored" => true,
-        "index.query.default_field" => "@message"
-      },
-      "mappings" => {
-        "_default_" => {
-          "_all" => { "enabled" => false } 
-        }
-      }
-    } # template_config
-
-    @logger.info("Setting up index template", :name => template_name,
-                 :config => template_config)
-    begin
-      success = false
-      while !success
-        response = @agent.put!("http://#{@host}:#{@port}/_template/#{template_name}",
-                               :body => template_config.to_json)
-        if response.error?
-          body = ""
-          response.read_body { |c| body << c }
-          @logger.warn("Failure setting up elasticsearch index template, will retry...",
-                       :status => response.status, :response => body)
-          sleep(1)
-        else
-          success = true
-        end
-      end
-    rescue => e
-      @logger.warn("Failure setting up elasticsearch index template, will retry...",
-                   :exception => e)
-      sleep(1)
-      retry
-    end
-  end # def setup_index_template
-  end # class LogStash::Outputs::ElasticSearchHTTP
+end # class LogStash::Outputs::ElasticSearchHTTP
