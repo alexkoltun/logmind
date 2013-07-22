@@ -341,3 +341,4 @@ class Authorization
     groups_query.results
   end
 end
+
