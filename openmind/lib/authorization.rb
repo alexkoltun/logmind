@@ -9,6 +9,23 @@ class Authorization
 
   def setup_defaults_if_needed()
 
+    perc_index = Tire.index 'logmind-perc'
+    if not perc_index.exists?
+      Tire.index 'logmind-perc' do
+        create
+      end
+    end
+
+    mgmt_index = Tire.index 'logmind-management'
+    if not mgmt_index.exists?
+      dash_json = '{"title":"CEP","rows":[{"title":"CEP","height":"350px","editable":true,"collapse":false,"collapsable":true,"panels":[{"loading":false,"error":false,"span":5,"editable":true,"group":["default"],"type":"cep_editor","status":"Stable","label":"Rule","multi":false,"multi_arrange":"horizontal","current_rule":{"name":"Omer","description":"Omer","time_window":10,"raw_queries":[{"query":"omer","id":"A"},{"query":"error","id":"B"}],"correlations":[{"correlation":""}],"notification":{"enable_notification":true,"destination_email":"o.hanetz@adacom.net"}},"elasticsearch_saveto":"logmind-management","obj_type":"cep_rule","test_index":"logstash-*","test_results":[],"test_result_size":100,"all_fields":[],"selected_fields":["@timestamp","@message"]},{"loading":false,"error":false,"span":3,"editable":true,"group":["default"],"type":"cep_rules","status":"Stable","query":"*","size":20,"pages":5,"offset":0,"sort":["name","desc"],"style":{"font-size":"9pt"},"overflow":"height","fields":["name","description","time_window","notification.enable_notification","notification.destination_email"],"displayNames":{"name":"Name","description":"Description","time_window":"Time Window","notification.enable_notification":"Notification Enabled","notification.destination_email":"Destination Email"},"highlight":[],"sortable":true,"header":true,"paging":true,"spyable":false,"elasticsearch_saveto":"logmind-management","obj_type":"cep_rule"}]}],"editable":true,"last":null}'
+
+      Tire.index 'logmind-management' do
+        store :id => 'CEP', :type => 'dashboard', :exists => true, :title => 'CEP', :dashboard => dash_json
+        store :id => 'Demo', :type => 'cep_rule', :name => 'Demo', :description => 'Demo CEP Rule'
+      end
+    end
+
     index = Tire.index 'authorization'
 
     if index.exists?
