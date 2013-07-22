@@ -3,13 +3,15 @@ require "logstash/outputs/base"
 require "java"
 
 
-require 'esper/esper-4.9.0.jar'	
+require 'esper/lib/log4j-1.2.16.jar'	
 require 'esper/lib/commons-logging-1.1.1.jar'
 require 'esper/lib/antlr-runtime-3.2.jar'
 require 'esper/lib/cglib-nodep-2.2.jar'
+require 'esper/esper-4.9.0.jar'
 
 java_import 'java.util.HashMap'
 	
+java_import 'com.espertech.esper.dataflow.ops.BeaconSource'
 java_import 'com.espertech.esper.client.EPRuntime'
 java_import 'com.espertech.esper.client.EPServiceProviderManager'
 java_import 'com.espertech.esper.client.EPServiceProvider'
@@ -32,7 +34,7 @@ java_import 'org.apache.commons.logging.LogFactory'
 class MyUnmatchedListener
   include com.espertech.esper.client.UnmatchedListener
 
-  @logger
+  #@logger
   
   def set_logger(logger)
 	@logger = logger
@@ -122,14 +124,14 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
   
   config :logmind_perc_index, :validate => :string, :default => "logmind-perc"
   
-  @ep_service
+  #@ep_service
   #@statement
   #@listener
-  @un_listener
-  @ep_rt
+  #@un_listener
+  #@ep_rt
   
   # preserve all epl statements instances
-  @statements
+  #@statements
   
   private 
   def create_esper_engine
@@ -165,6 +167,8 @@ class LogStash::Outputs::LogmindCep < LogStash::Outputs::Base
 		@logger.info("DONE REGISTER")
 	rescue Exception => e
 		@logger.info("EXCEPTION during init", :ex => e)
+		puts e.inspect
+		puts e.backtrace
 	end
   end # def register
   
