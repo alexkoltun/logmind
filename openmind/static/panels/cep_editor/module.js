@@ -20,7 +20,7 @@
 */
 
 angular.module('openmind.cep_editor', [])
-.controller('cep_editor', function($scope, eventBus,$http) {
+.controller('cep_editor', function($scope, eventBus,$http,$modal) {
 
     // Set and populate defaults
     var _d = {
@@ -84,6 +84,7 @@ angular.module('openmind.cep_editor', [])
             var results = request.doSearch();
 
             results.then(function(results) {
+
                 $scope.panel.loading = false;
 
                 //if(_segment === 0) {
@@ -106,7 +107,20 @@ angular.module('openmind.cep_editor', [])
                 });
 
                 $scope.panel.all_fields = get_all_fields(_.pluck($scope.panel.test_results,'_source'));
-                //alert($scope.test_results.length);
+
+                var modal_scope = $scope;
+                modal_scope.current_query = q;
+
+                var modal = $modal({
+                    template: 'panels/cep_editor/test-query.html',
+                    show: true,
+                    persist: true,
+                    backdrop: 'static',
+                    scope: modal_scope
+                });
+                modal.then(function(modalEl) {
+                    modalEl.css('width','800px').css('margin-left','-400px').find('.modal-body').css('max-height','600px');
+                });
             });
         } // if q != ''
     }
