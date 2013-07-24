@@ -90,6 +90,7 @@ angular.module('openmind.timepicker', [])
     // request one be sent by broadcasting a 'get_time' with its _id to its group
     // This panel can handle multiple groups
     eventBus.register($scope,"get_time", function(event,id) {
+      $scope.time_apply();
       eventBus.broadcast($scope.$id,id,'time',compile_time($scope.time))
     });
 

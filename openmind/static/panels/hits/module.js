@@ -48,7 +48,7 @@ angular.module('openmind.hits', [])
       $scope.panel.query = _.map(query,function(q) {
         return {query: q, label: q};
       })
-      $scope.get_data();
+      eventBus.broadcast($scope.$id,$scope.panel.group,'get_time');
     });
     // Now that we're all setup, request the time from our group
     eventBus.broadcast($scope.$id,$scope.panel.group,'get_time')
