@@ -83,7 +83,19 @@ angular.module('openmind.controllers', [])
   // This is whoafully incomplete, but will do for now 
   $scope.parse_error = function(data) {
     var _error = data.match("nested: (.*?);")
-    return _.isNull(_error) ? data : _error[1];
+    return _.isNull(_error) ? $scope.pretty_error(data) : _error[1];
+  }
+
+  $scope.pretty_error = function(data) {
+
+      // IndexMissingException
+      if (data.indexOf("IndexMissingException") > -1) {
+          var index_name = data.substring(data.indexOf("[[") + 2, data.indexOf("]"));
+          return "No data at the moment (index: " + index_name + ")";
+      }
+
+      // No pretty error.
+      return data;
   }
 
   $scope.init();
