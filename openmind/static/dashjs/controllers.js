@@ -14,6 +14,8 @@ angular.module('openmind.controllers', [])
 
   $scope.init = function() {
 
+    $scope.is_dirty = false;
+
     $scope.config = config;
     // Make underscore.js available to views
     $scope._ = _;
@@ -40,6 +42,7 @@ angular.module('openmind.controllers', [])
 
   $scope.add_row = function(dashboards,row) {
     $scope.dashboards.rows.push(row);
+    $scope.dirty();
   }
 
   $scope.reset_row = function() {
@@ -96,6 +99,11 @@ angular.module('openmind.controllers', [])
 
       // No pretty error.
       return data;
+  }
+
+
+  $scope.dirty = function() {
+      eventBus.broadcast($scope.$id,['default'],'dash_dirty');
   }
 
   $scope.init();
