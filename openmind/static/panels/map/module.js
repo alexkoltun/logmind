@@ -48,7 +48,7 @@ angular.module('openmind.map', [])
     eventBus.register($scope,'time', function(event,time){set_time(time)});
     eventBus.register($scope,'query', function(event, query) {
       $scope.panel.query = _.isArray(query) ? query[0] : query;
-      $scope.get_data();
+      eventBus.broadcast($scope.$id,$scope.panel.group,'get_time');
     });
     // Now that we're all setup, request the time from our group
     eventBus.broadcast($scope.$id,$scope.panel.group,'get_time')

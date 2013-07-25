@@ -83,6 +83,7 @@ class MyListener
 			outEvent["events"][p] = event.get(p)
 		end
     end
+	outEvent["@tags"] = ["cep-event"]
 	
 	@logger.info("output from esper", :e => outEvent)
 	
@@ -90,6 +91,8 @@ class MyListener
 	e['@message'] = "cep rule matched:" << statement.getName()
 	e['notificaiton_data'] = @notificaiton_data
 	e['@type'] = @outtype
+	
+	e['rule'] = statement.getName()
 	
 	@input_queue.push(e)
 	@logger.info("pushed esper event", :e => outEvent)
