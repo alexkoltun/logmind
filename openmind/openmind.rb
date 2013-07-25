@@ -692,6 +692,20 @@ def auth_api_post(method)
   elsif method == "remove_user"
     auth.remove_user data['user_name']
 
+
+  elsif method == "save_group"
+
+    if data['mode'] == "add"
+      auth.save_group data['group_name'], []
+
+    elsif data['mode'] == "edit"
+      #auth.set_groups data['user_name'], data['groups']
+    end
+
+
+  elsif method == "remove_group"
+    auth.remove_group data['group_name']
+
   end
 
 end
