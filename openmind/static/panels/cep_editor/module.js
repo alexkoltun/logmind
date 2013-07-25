@@ -173,10 +173,11 @@ angular.module('openmind.cep_editor', [])
         })
     }
 
-    $scope.add_query = function(){
+    $scope.add_query = function(q){
         if ($scope.panel.current_rule.raw_queries == undefined)
             $scope.panel.current_rule.raw_queries = [];
-        $scope.panel.current_rule.raw_queries.push({query: ''});
+        var index = $scope.panel.current_rule.raw_queries.indexOf(q);
+        $scope.panel.current_rule.raw_queries.splice(index+1, 0, {query: ''});
     }
 
     $scope.remove_query = function(q){
