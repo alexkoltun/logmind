@@ -1,0 +1,18 @@
+<div class="modal-header">
+  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+  <h3>Add Group</h3>
+</div>
+<div class="modal-body">
+
+    <h4>Group Settings</h4>
+
+    <form name='form'>
+        <input type="text" ng-model="group.name" name="gName" required placeholder='Group Name' ng-minlength="3" ng-maxlength="15" title="3 to 15 characters" />
+        <span class="errormsg" ng-show="form.gName.$dirty && form.gName.$error.minlength">Group Name is too short</span>
+        <span class="errormsg" ng-show="form.gName.$dirty && form.gName.$error.required">Group Name required.</span><br /><br />
+    </form>
+
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-success" ng-show="(form.gName.$dirty) && (group.name != null)" ng-click="save_group('add', group.name);dismiss()">Save</button><button type="button" class="btn" ng-click="dismiss()">Cancel</button>
+</div>

@@ -22,7 +22,7 @@
     <h4>New Panel</h4>
     <form class="input-append">
     <select class="input-medium input-append" ng-model="panel.type" ng-options="f for f in config.modules|stringSort"></select>
-    <small ng-show="!panel.type">Select Type</small> <button ng-show="panel.type" ng-click="add_panel(row,panel); reset_panel();" class="btn btn-success ">Add <i class="icon-plus"></i></button></form>
+    <small ng-show="!panel.type">Select Type</small> <button ng-show="panel.type" ng-click="add_panel(row,panel); dirty(); reset_panel();" class="btn btn-success ">Add <i class="icon-plus"></i></button></form>
 
     <div ng-show="!(_.isUndefined(panel.type))">
       <div ng-include src="'partials/panelgeneral.html'"></div>
@@ -47,9 +47,9 @@
           <td>{{panel.title}}</td>
           <td>{{panel.type}}</td>
           <td><select ng-hide="panel.sizeable == false" class="input-mini" ng-model="panel.span" ng-options="f for f in [0,1,2,3,4,5,6,7,8,9,10,11,12]"></select></td>
-          <td><i ng-click="row.panels = _.without(row.panels,panel)" class="dark-icon pointer icon-remove"></i></td>
-          <td><i ng-click="_.move(row.panels,$index,$index-1)" ng-hide="$first" class="dark-icon pointer icon-arrow-up"></i></td>
-          <td><i ng-click="_.move(row.panels,$index,$index+1)" ng-hide="$last" class="dark-icon pointer icon-arrow-down"></i></td>
+          <td><i ng-click="row.panels = _.without(row.panels,panel); dirty()" class="dark-icon pointer icon-remove"></i></td>
+          <td><i ng-click="_.move(row.panels,$index,$index-1); dirty()" ng-hide="$first" class="dark-icon pointer icon-arrow-up"></i></td>
+          <td><i ng-click="_.move(row.panels,$index,$index+1); dirty()" ng-hide="$last" class="dark-icon pointer icon-arrow-down"></i></td>
           <td><input type="checkbox" ng-model="panel.hide" ng-checked="panel.hide"></td>
         </tr>
       </table>
@@ -57,5 +57,6 @@
   </div>
 </div>
 <div class="modal-footer">
-  <button type="button" class="btn btn-success" ng-click="dismiss();reset_panel();close_edit()">Close</button>
+  <button type="button" class="btn btn-success" ng-click="dismiss();reset_panel();close_edit(); dirty()">Save</button>
+  <button type="button" class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
 </div>
