@@ -246,8 +246,8 @@ def get_action(index, type, id)
   if @user.allowed?('index_read', index)
     view_scope = get_view_scope
 
-    c = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id) do |curl|
-      curl.headers['Accept'] = 'application/json'
+    c = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + URI.encode(index) + '/' + URI.encode(type) + '/' + URI.encode(id)) do |curl|
+      curl.headers['Accept'] = 'application/json, text/javascript, */*'
       curl.headers['Content-Type'] = 'application/json'
     end
 
@@ -312,7 +312,7 @@ def search_action(data, index, type)
     end
 
     c = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + index + ((type == '_any') ? '' : ('/' + type)) + '/_search', JSON.generate(filtered_query)) do |curl|
-      curl.headers['Accept'] = 'application/json'
+      curl.headers['Accept'] = 'application/json, text/javascript, */*'
       curl.headers['Content-Type'] = 'application/json'
     end
 
@@ -333,12 +333,12 @@ def save_action(data, index, type, id)
     allowed = false
 
     if id
-      existing_object_request = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id) do |curl|
-        curl.headers['Accept'] = 'application/json'
+      existing_object_request = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + URI.encode(index) + '/' + URI.encode(type) + '/' + URI.encode(id)) do |curl|
+        curl.headers['Accept'] = 'application/json, text/javascript, */*'
         curl.headers['Content-Type'] = 'application/json'
       end
       result = JSON.parse(existing_object_request.body_str)
-      if view_scope.include?('*') || view_scope.include?(id) || ((view_scope & ((result['_source']['tags'] || []).map { |item| '#' + item })).length > 0)
+      if !result || !result['exists'] || (view_scope.include?('*') || view_scope.include?(id) || ((view_scope & ((result['_source']['tags'] || []).map { |item| '#' + item })).length > 0))
         allowed = true
       end
     else
@@ -346,8 +346,8 @@ def save_action(data, index, type, id)
     end
 
     if allowed
-      c = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id, JSON.generate(data)) do |curl|
-        curl.headers['Accept'] = 'application/json'
+      c = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + URI.encode(index) + '/' + URI.encode(type) + '/' + URI.encode(id), JSON.generate(data)) do |curl|
+        curl.headers['Accept'] = 'application/json, text/javascript, */*'
         curl.headers['Content-Type'] = 'application/json'
       end
 
@@ -369,16 +369,16 @@ def delete_action(data, index, type, id)
     allowed = false
 
     if id
-      existing_object_request = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id) do |curl|
-        curl.headers['Accept'] = 'application/json'
+      existing_object_request = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/' + URI.encode(index) + '/' + URI.encode(type) + '/' + URI.encode(id)) do |curl|
+        curl.headers['Accept'] = 'application/json, text/javascript, */*'
         curl.headers['Content-Type'] = 'application/json'
       end
       result = JSON.parse(existing_object_request.body_str)
 
       if view_scope.include?('*') || view_scope.include?(id) || ((view_scope & ((result['_source']['tags'] || []).map { |item| '#' + item })).length > 0)
 
-        c = Curl::Easy.http_delete('http://' + GlobalConfig::Elasticsearch + '/' + index + '/' + type + '/' + id) do |curl|
-          curl.headers['Accept'] = 'application/json'
+        c = Curl::Easy.http_delete('http://' + GlobalConfig::Elasticsearch + '/' + URI.encode(index) + '/' + URI.encode(type) + '/' + URI.encode(id)) do |curl|
+          curl.headers['Accept'] = 'application/json, text/javascript, */*'
           curl.headers['Content-Type'] = 'application/json'
         end
 
@@ -691,6 +691,20 @@ def auth_api_post(method)
 
   elsif method == "remove_user"
     auth.remove_user data['user_name']
+
+
+  elsif method == "save_group"
+
+    if data['mode'] == "add"
+      auth.save_group data['group_name'], []
+
+    elsif data['mode'] == "edit"
+      #auth.set_groups data['user_name'], data['groups']
+    end
+
+
+  elsif method == "remove_group"
+    auth.remove_group data['group_name']
 
   end
 

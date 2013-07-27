@@ -2,19 +2,19 @@
     <div class="control-group">
         <label class="control-label">To</label>
         <div class="controls">
-            <input type="text" placeholder="example@mycompany.com">
+            <input type="text" ng-change="dirty()" placeholder="example@mycompany.com">
         </div>
     </div>
     <div class="control-group">
         <label class="control-label">Subject</label>
         <div class="controls">
-            <input type="text" placeholder="Enter your subject here..." ng-model="panel.em">
+            <input type="text" ng-change="dirty()" placeholder="Enter your subject here..." ng-model="panel.em">
         </div>
     </div>
     <div class="control-group">
         <label class="control-label">Body</label>
         <div class="controls">
-            <textarea placeholder="Body goes here..." ng-model="panel.body_text"></textarea>
+            <textarea ng-change="dirty()" placeholder="Body goes here..." ng-model="panel.body_text"></textarea>
         </div>
     </div>
 </form>

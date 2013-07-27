@@ -14,6 +14,8 @@ angular.module('openmind.controllers', [])
 
   $scope.init = function() {
 
+    $scope.is_dirty = false;
+
     $scope.config = config;
     // Make underscore.js available to views
     $scope._ = _;
@@ -40,6 +42,7 @@ angular.module('openmind.controllers', [])
 
   $scope.add_row = function(dashboards,row) {
     $scope.dashboards.rows.push(row);
+    $scope.dirty();
   }
 
   $scope.reset_row = function() {
@@ -96,6 +99,11 @@ angular.module('openmind.controllers', [])
 
       // No pretty error.
       return data;
+  }
+
+
+  $scope.dirty = function() {
+      eventBus.broadcast($scope.$id,['default'],'dash_dirty');
   }
 
   $scope.init();
@@ -199,6 +207,27 @@ angular.module('openmind.controllers', [])
         }
     }
 
+
+    $scope.save_group = function(mode, group) {
+
+        $http.post('/authapi/post/save_group', {mode: mode, group_name: group}).success(function(result) {
+            alert("Save Successful!");
+            if (mode == "add") {
+                $scope.init();
+            }
+        });
+    }
+
+    $scope.remove_group = function(group) {
+        var is_remove = confirm("Remove group '" + group + "' and all references?");
+        if (is_remove) {
+            $http.post('/authapi/post/remove_group', {group_name: group}).success(function(result) {
+                alert("Group Removed!");
+                $scope.init();
+            });
+        }
+    }
+
     $scope.is_user_group = function(user, group_name) {
         return $.inArray("@" + group_name, user.groups);
     }
@@ -230,6 +259,35 @@ angular.module('openmind.controllers', [])
 
         var modal = $modal({
             template: 'partials/admin/edituser.html',
+            show: true,
+            persist: true,
+            backdrop: 'static',
+            scope: modal_scope
+        });
+    }
+
+    $scope.show_add_group_modal = function() {
+        var modal_scope = $scope;
+        //modal_scope.user = {groups: [], allgroups: $scope.get_all_group_names([])}
+        modal_scope.group = {}
+
+        var modal = $modal({
+            template: 'partials/admin/addgroup.html',
+            show: true,
+            persist: true,
+            backdrop: 'static',
+            scope: modal_scope
+        });
+    }
+
+
+    $scope.show_edit_group_modal = function(group) {
+        var modal_scope = $scope;
+        modal_scope.group = group;
+        //modal_scope.user.allgroups = $scope.get_all_group_names(user.groups);
+
+        var modal = $modal({
+            template: 'partials/admin/editgroup.html',
             show: true,
             persist: true,
             backdrop: 'static',

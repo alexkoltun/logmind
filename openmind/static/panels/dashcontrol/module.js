@@ -100,6 +100,15 @@ angular.module('openmind.dashcontrol', [])
     $scope.gist_pattern = /(^\d{5,}$)|(^[a-z0-9]{10,}$)|(gist.github.com(\/*.*)\/[a-z0-9]{5,}\/*$)/;
     $scope.gist = {};
     $scope.elasticsearch = {};
+
+    $scope.is_dirty = false;
+
+    eventBus.register($scope, 'dash_dirty', function() {
+        $("#dash_save_button").removeClass('btn-dash-menu');
+        $("#dash_save_button").addClass('btn-danger');
+
+        $scope.is_dirty = true;
+    });
   }
 
   $scope.to_file = function() {
@@ -208,6 +217,10 @@ angular.module('openmind.dashcontrol', [])
     })
 
     $scope.panel.hide = false;
+
+    $("#dash_save_button").removeClass('btn-danger');
+    $("#dash_save_button").addClass('btn-dash-menu');
+    $scope.is_dirty = false;
   }
 
   $scope.elasticsearch_delete = function(dashboard) {

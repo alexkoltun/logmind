@@ -39,7 +39,7 @@ angular.module('openmind.parallelcoordinates', [])
       eventBus.register($scope,'query',function(event,query) {
         $scope.panel.offset = 0;
         $scope.panel.query = _.isArray(query) ? query[0] : query;
-        $scope.get_data();
+        eventBus.broadcast($scope.$id,$scope.panel.group,'get_time');
       });
       eventBus.register($scope,'sort', function(event,sort){
         $scope.panel.sort = _.clone(sort);

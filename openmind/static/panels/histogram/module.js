@@ -83,7 +83,7 @@ angular.module('openmind.histogram', [])
       } else {
         $scope.panel.query[0] = {query: query, label: query}
       }
-      $scope.get_data();
+      eventBus.broadcast($scope.$id,$scope.panel.group,'get_time');
     });
 
     // Now that we're all setup, request the time from our group if we don't 

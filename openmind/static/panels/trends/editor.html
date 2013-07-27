@@ -39,7 +39,7 @@
       <form class="input-append" style="margin-bottom: 0px">
         <label class="small">Query</label>
         <input type="text" placeholder="New Query" style="width:80%" ng-model="newquery">
-        <button class="btn btn-info" ng-click="add_query(newlabel,newquery);newlabel='';newquery='';set_refresh(true)"><i class="icon-plus"></i></button>
+        <button class="btn btn-info" ng-click="add_query(newlabel,newquery);newlabel='';newquery='';set_refresh(true); dirty()"><i class="icon-plus"></i></button>
       </form>
     </div>
     <div class="span1">
@@ -48,14 +48,14 @@
   <div class="row-fluid" ng-repeat="q in panel.query">        
     <div class="span3">
       <form style="margin-bottom: 0px">
-        <input type="text" style="width:70%" ng-model="q.label" ng-change="set_refresh(true)">
+        <input type="text" style="width:70%" ng-model="q.label" ng-change="set_refresh(true); dirty()">
       </form>
     </div>
     <div class="span8">
-        <input type="text" style="width:80%" ng-model="q.query" ng-change="set_refresh(true)">
+        <input type="text" style="width:80%" ng-model="q.query" ng-change="set_refresh(true); dirty()">
     </div>
     <div class="span1">
-      <i class="icon-remove pointer" ng-click="remove_query(q)"></i>
+      <i class="icon-remove pointer" ng-click="remove_query(q); dirty()"></i>
     </div>
   </div>
 </div>
