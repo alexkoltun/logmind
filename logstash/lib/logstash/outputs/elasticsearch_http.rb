@@ -49,6 +49,8 @@ class LogStash::Outputs::ElasticSearchHTTP < LogStash::Outputs::Base
 	@http_agent = Net::HTTP.new(@host, @port)
     @queue = []
 
+    # set flush time as now
+    @last_flush_time = Time.now
   end # def register
 
   public
@@ -108,7 +110,10 @@ class LogStash::Outputs::ElasticSearchHTTP < LogStash::Outputs::Base
 
     # Keep trying to flush while the queue is full.
     # This will cause retries in flushing if the flush fails.
-    flush while @queue.size >= @flush_size
+    while ((@last_flush_time - Time.now) > 30) || (@queue.size >= @flush_size)
+      flush
+      @last_flush_time = Time.now
+    end
   end # def receive_bulk
 
   def flush
