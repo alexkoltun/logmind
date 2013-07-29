@@ -12,7 +12,6 @@ execfile("/".join((os.path.dirname(os.path.realpath(sys.argv[0])), "install", "v
 #######################
 
 def stop_services_upgrade():
-    import time
     try:
         success = call(["/command/svcs-d"]) == 0
 
