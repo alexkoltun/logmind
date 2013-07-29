@@ -75,7 +75,7 @@ def __main__() :
     end_time = time.time()
 
     if "-count-time" in sys.argv:
-    print "Process completed in", end_time - start_time, "seconds"
+        print "Process completed in", end_time - start_time, "seconds"
 
 
 __main__()
