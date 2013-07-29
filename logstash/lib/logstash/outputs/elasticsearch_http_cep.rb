@@ -166,18 +166,19 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
   def register
   	@http_agent = Net::HTTP.new(@host, @port)
     @queue = []
+    @events = []
     begin
-      @logger.debug("cep engine: create_esper_engine")
+      @logger.debug('cep engine: create_esper_engine')
       create_esper_engine
-      @logger.debug("cep engine: done create_esper_engine")
+      @logger.debug('cep engine: done create_esper_engine')
 
-      @logger.debug("cep engine: load_rules")
+      @logger.debug('cep engine: load_rules')
       load_rules
-      @logger.debug("cep engine: done load_rules")
+      @logger.debug('cep engine: done load_rules')
 
-      @logger.info("done cep engine register")
+      @logger.info('done cep engine register')
     rescue Exception => e
-      @logger.error("cep engine: EXCEPTION during register", :ex => e, :backtrace => e.backtrace)
+      @logger.error('cep engine: EXCEPTION during register', :ex => e, :backtrace => e.backtrace)
     end
 
     # set flush time as now
@@ -189,11 +190,12 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
 
     @statements = Hash.new
 
-    get_url = "/#{@logmind_index}/#{@rule_type}/_search"
+    #we limit the number of rules to 1000
+    get_url = "/#{@logmind_index}/#{@rule_type}/_search?size=1000"
 
     @logger.info("trying to load rules from", :url => get_url)
 
-    conf_response = @http_agent.get_response(get_url)
+    conf_response = @http_agent.get(get_url)
 
     jsonRes = conf_response.body
     jsonObj = JSON.parse(jsonRes)
@@ -302,12 +304,35 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
     end
   end
 
+  private
+  def create_percolators
+    # we limit the number of percolations to duplicate to 1000
+    percolations_response = @http_agent.get('/_percolator/logmind-perc/_search?size=1000')
+    percolations = JSON.parse(percolations_response.body)
+
+    delete_response = @http_agent.delete("/_percolator/#{@last_index_resolved}")
+    @logger.info('percolator delete response', :last_index_resolved => @last_index_resolved, :response => delete_response)
+
+    if percolations && percolations['hits'] && percolations['hits']['hits']
+      percolations['hits']['hits'].each do |percolation|
+        @http_agent.post("/_percolator/#{@last_index_resolved}/#{percolation['_id']}", JSON.generate(percolation['_source']))
+      end
+    end
+
+  end
+
+
   public
   def receive(event)
     return unless output?(event)
 
     index = event.sprintf(@index)
     type = event.sprintf(@index_type)
+
+    if @last_index_resolved != index
+      @last_index_resolved = index
+      create_percolators
+    end
 
     if @flush_size == 1
       receive_single(event, index, type)
@@ -316,7 +341,7 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
     end #
   end # def receive
 
-  def process_index_result(index_res)
+  def process_index_result(index_res, event)
     @logger.debug('process_index_result', :result => index_res)
     if (index_res["matches"] != nil and index_res["matches"].length > 0)
       #create an esper event for every match
@@ -346,9 +371,9 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
 
       if response.code != "201"
         @logger.error("Error writing to elasticsearch",
-                      :response => response, :response_body => response.body
+                      :response => response, :response_body => response.body)
       else
-        process_index_result JSON.parse(response.body)
+        process_index_result JSON.parse(response.body), event
         success = true
       end
     end
@@ -359,13 +384,16 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
     if !@document_id.nil?
       header["index"]["_id"] = event.sprintf(@document_id)
     end
+
+    @events << event
+
     @queue << [
       header.to_json, event.to_json
     ].join("\n")
 
     # Keep trying to flush while the queue is full.
     # This will cause retries in flushing if the flush fails.
-    while ((@last_flush_time - Time.now) > 30) || (@queue.size >= @flush_size)
+    while ((Time.now - @last_flush_time) > 30) || (@queue.size >= @flush_size)
       flush
       @last_flush_time = Time.now
     end
@@ -384,8 +412,8 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
 		  response = @http_agent.post("/_bulk", @queue.join("\n") + "\n")
       response_obj = JSON.parse(response.body)
       if response_obj && response_obj['items']
-        response['items'].each do |item|
-          process_index_result (item['create'] || item['index'])
+        response_obj['items'].each_with_index do |item, index|
+          process_index_result (item['create'] || item['index']), @events[index]
         end
       end
     rescue EOFError
@@ -414,6 +442,7 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
 
     # Clear the queue on success only.
     @queue.clear
+    @events.clear
   end # def flush
 
   def teardown
