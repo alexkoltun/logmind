@@ -14,7 +14,11 @@ execfile("/".join((os.path.dirname(os.path.realpath(sys.argv[0])), "install", "v
 #######################
 
 def check_prereq():
-    return check_java() and check_ports()
+    if "-force" in sys.argv:
+        print "Skipping prerequisites check. Forcing installation..."
+        return True
+    else:
+        return check_java() and check_ports()
 
 
 def check_java():
@@ -39,25 +43,26 @@ def check_java():
 def check_ports():
     import socket
     try:
-        PORTS_TO_TEST = [80]
+        PORTS_TO_TEST = [80, 514, 6379, 8751]
         print "Making sure required ports are open... (", PORTS_TO_TEST, ")"
-        
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(60)
 
         for port in PORTS_TO_TEST:
             try:
                 # Issue the socket connect on the host:port
+        
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(60)
                 sock.bind(("", port))
                 
-            except Exception,e:
-                    print ShellColors.FAIL + "Port " + str(port) + " is in use - Please make sure it is not in use by any other application. " + ShellColors.ENDC
+            except Exception, e:
+                    print ShellColors.FAIL + "Port " + str(port) + " is not available - Please make sure it is not in use by any other application (" + str(e) + ")." + ShellColors.ENDC
                     return False
                 
             else:
                     print ShellColors.OKGREEN + "Port " + str(port) + " is available" + ShellColors.ENDC
-                    
-            sock.close()
+
+            if sock is not None:        
+                sock.close()
             
         return True
 
