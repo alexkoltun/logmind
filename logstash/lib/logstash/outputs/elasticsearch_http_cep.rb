@@ -1,6 +1,7 @@
 require "logstash/namespace"
 require "logstash/outputs/base"
 require 'net/http'
+require 'thread'
 
 require "java"
 
@@ -42,6 +43,7 @@ class MyUnmatchedListener
     #@logger.info("from esper unmatched: ", :unmatched => event.getProperties.inspect)
   end
 end
+
 class MyListener
   #include com.espertech.esper.client.UpdateListener
   include com.espertech.esper.client.StatementAwareUpdateListener
@@ -51,8 +53,8 @@ class MyListener
     @logger = logger
   end
 
-  def set_input_queue(input_queue)
-    @input_queue = input_queue
+  def set_events_queue(events_queue)
+    @cep_events_queue = events_queue
     @logger.info("input queue was set to listener")
   end
 
@@ -88,7 +90,7 @@ class MyListener
 
     e['rule'] = statement.getName()
 
-    @input_queue.push(e)
+    @cep_events_queue.push(e)
     @logger.info("pushed esper event", :e => e)
   end
 
@@ -167,6 +169,16 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
   	@http_agent = Net::HTTP.new(@host, @port)
     @queue = []
     @events = []
+    @cep_events_queue = Queue.new
+    @cep_events_processing_thread = Thread.new do
+      @logger.info('@cep_events_processing_thread started')
+      loop do
+        event = @cep_events_queue.pop()
+        @logger.debug('@cep_events_processing_thread forwarding event', :event => event)
+        @input_queue.push(event)
+      end
+    end
+
     begin
       @logger.debug('cep engine: create_esper_engine')
       create_esper_engine
@@ -285,7 +297,7 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
           # so they will run in dif esper threads
           listener = MyListener.new
           listener.set_logger(@logger)
-          listener.set_input_queue(@input_queue)
+          listener.set_events_queue(@cep_events_queue)
 
           if (r['notification'] != nil)
             listener.set_notification(r['notification'])
@@ -447,6 +459,8 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
 
   def teardown
     flush while @queue.size > 0
+    sleep(1)
+    @cep_events_processing_thread && @cep_events_processing_thread.kill
   end # def teardown
 
   # THIS IS NOT USED YET. SEE LOGSTASH-592
