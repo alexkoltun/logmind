@@ -69,6 +69,22 @@ def check_ports():
     except Exception, e:
         print "ERROR: ", e
         return False
+
+
+
+
+def show_help():
+    print ShellColors.HEADER + "Logmind Installation Utility" + ShellColors.ENDC
+    print ShellColors.OKBLUE + "Usage: install.py [options]" + ShellColors.ENDC
+    print "Options:"
+    print "     -mode (fresh/upgrade):  Only affects machines with previous installations."
+    print "                             Fresh mode will overwrite current installation, discarding all settings and data."
+    print "                             Upgrade mode will upgrade current installation, keeping all settings and data."
+    print "     -upgrade-only (elasticsearch, openmind, redis, sixthsense):     One or more option. Comma separated."
+    print "                                                                     Upgrade only selected components."
+    print "     -backup:                Backup upgraded components."
+    print "     -time:                  Calculate installation time."
+    print "     -h / -help / --help:    Show this help."
             
 
 
@@ -77,6 +93,10 @@ def check_ports():
 #######################
 
 def __main__() :
+
+    if any(h in sys.argv for h in ["-h", "-help", "--help"]):
+        show_help()
+        return True
 
     start_time = time.time()
 
@@ -112,7 +132,7 @@ def __main__() :
 
     end_time = time.time()
 
-    if "-count-time" in sys.argv:
+    if "-time" in sys.argv:
         print "Process completed in", end_time - start_time, "seconds"
 
 

@@ -96,7 +96,7 @@ def restore_config():
 def copy_files_upgrade():
     try:
         upgrade_modules = sys.argv[sys.argv.index("-upgrade-only") + 1].split(",") if "-upgrade-only" in sys.argv else ["elasticsearch","openmind","sixthsense","redis"]
-        backup_all = "-backup-all" in sys.argv
+        backup_all = "-backup" in sys.argv
         ver_dict = get_versions_dict()
 
         backup_dir = "/".join((LOGMIND_PATH, "backup", "components"))
