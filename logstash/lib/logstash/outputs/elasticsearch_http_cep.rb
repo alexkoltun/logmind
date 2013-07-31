@@ -76,7 +76,7 @@ class MyListener
 
     newEvents.each do |event|
       props.each do |p|
-        e['event-' + p] = event.get(p)
+        e['event_' + p] = event.get(p)
       end
     end
 
@@ -132,6 +132,11 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
   # The document ID for the index. Useful for overwriting existing entries in
   # elasticsearch with the same ID.
   config :document_id, :validate => :string, :default => nil
+
+  config :logmind_index, :validate => :string, :default => "logmind-management"
+
+  config :rule_type, :validate => :string, :default => "cep_rule"
+
 
   private
   def create_esper_engine
