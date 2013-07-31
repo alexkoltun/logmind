@@ -33,19 +33,17 @@ class MyUnmatchedListener
 
   def set_logger(logger)
     @logger = logger
-    @logger.info("esper un logger method")
+    @logger.info("esper set_logger method")
   end
 
   def update(event)
 
     @logger.info("from esper unmatched", :e => event.getEventType())
     @logger.info("from esper unmatched", :e => event.getEventType().getPropertyNames())
-    #@logger.info("from esper unmatched: ", :unmatched => event.getProperties.inspect)
   end
 end
 
 class MyListener
-  #include com.espertech.esper.client.UpdateListener
   include com.espertech.esper.client.StatementAwareUpdateListener
   @logger
 
@@ -67,27 +65,24 @@ class MyListener
   end
   def update(newEvents, oldEvents,statement,epServiceProvider)
 
-    #@logger.info("update with match from rule", :name => statement.getName())
     props = statement.getEventType().getPropertyNames()
     outEvent = {}
 
-    outEvent["events"] = {}
-    newEvents.each do |event|
-      #@logger.info("from esper", :matched => event)
-      props.each do |p|
-        p_val = event.get(p)
-        outEvent["events"][p] = event.get(p)
-      end
-    end
     outEvent["@tags"] = ["cep-event"]
 
     @logger.info("output from esper", :e => outEvent)
 
     e = LogStash::Event.new(outEvent)
-    e['@message'] = "cep rule matched:" << statement.getName()
+
+    newEvents.each do |event|
+      props.each do |p|
+        e['event-' + p] = event.get(p)
+      end
+    end
+
+    e['@message'] = "cep rule matched: " << statement.getName()
     e['notificaiton_data'] = @notificaiton_data
     e['@type'] = @outtype
-
     e['rule'] = statement.getName()
 
     @cep_events_queue.push(e)
@@ -294,7 +289,7 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
           @logger.info("final rule EPL" ,:name => id, :final_epl => compiled_epl)
           statement = @ep_service.getEPAdministrator.createEPL(compiled_epl,id)
           # create a new listener for every query,
-          # so they will run in dif esper threads
+          # so they will run in different esper threads
           listener = MyListener.new
           listener.set_logger(@logger)
           listener.set_events_queue(@cep_events_queue)
@@ -360,9 +355,18 @@ class LogStash::Outputs::ElasticSearchHTTPCEP < LogStash::Outputs::Base
       index_res["matches"].each do |match|
         esperEvent = {}
         esperEvent["qType"] = match
-        event["@fields"].each do |k,v|
+
+        eventHash = event.to_hash
+        eventHash.each do |k,v|
+          if k != '@fields'
+            esperEvent[k.start_with?('@') ? k.slice(1..k.length-1) : k] = v
+          end
+        end
+
+        eventHash["@fields"].each do |k,v|
           esperEvent[k] = v
         end
+
 
         @ep_service.getEPRuntime.sendEvent(esperEvent,"logmind")
         logger.debug("sent the event to esper", :esperEvent => esperEvent)
