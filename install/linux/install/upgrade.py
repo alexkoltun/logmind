@@ -122,6 +122,10 @@ def copy_files_upgrade():
                 shutil.rmtree(dst)
                 shutil.copytree(src, dst)
 
+        # Updating global version file.
+        ver_file = "/".join(("logmind", "version"))
+        shutil.copy(ver_file, LOGMIND_PATH)
+
         return True
 
     except Exception, e:

@@ -11,20 +11,17 @@ execfile("/".join((os.path.dirname(os.path.realpath(sys.argv[0])), "install", "i
 #### M E T H O D S ####
 #######################
 
-def uninstall_previous():
-    if os.path.exists(LOGMIND_PATH):
-        shutil.rmtree(LOGMIND_PATH)
-
-    if os.path.exists("/service"):
-        shutil.rmtree("/service")
-
-    if os.path.exists("/command"):
-        shutil.rmtree("/command")
-    
-
 def copy_files():
     try:
-        uninstall_previous()
+        if os.path.exists(LOGMIND_PATH):
+            shutil.rmtree(LOGMIND_PATH)
+        
+        if os.path.exists("/service"):
+            shutil.rmtree("/service")
+        
+        if os.path.exists("/command"):
+            shutil.rmtree("/command")
+
 
         os.makedirs(LOGMIND_PATH)
         dirs = os.listdir("logmind/")
@@ -33,7 +30,10 @@ def copy_files():
             sys.stdout.flush()
             src = "/".join(("logmind", d))
             dst = "/".join((LOGMIND_PATH, d))
-            shutil.copytree(src, dst)
+            if os.path.isdir(src):
+                shutil.copytree(src, dst)
+            else:
+                shutil.copy(src, dst)
             sys.stdout.write(".")
             sys.stdout.flush()
             
@@ -94,20 +94,21 @@ def prep_links(curdir):
         return False
 
 
-def update_file(file_path, old_string, new_string):
-    f = open(file_path, "rb")
-    f_str = f.read()
-    f.close()
-
-    f_str = f_str.replace(old_string, new_string)
-    f = open(file_path, "wb")
-    f.write(f_str)
-    f.close()
-
-
 def post_install():
 
     try:
+
+        def update_file(file_path, old_string, new_string):
+            f = open(file_path, "rb")
+            f_str = f.read()
+            f.close()
+
+            f_str = f_str.replace(old_string, new_string)
+            f = open(file_path, "wb")
+            f.write(f_str)
+            f.close()
+            
+
         arg_index = -1
         if "--cluster-name" in sys.argv:
             arg_index = sys.argv.index("--cluster-name")

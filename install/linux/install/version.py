@@ -1,7 +1,7 @@
 version = {
-    "GENERAL":"1.0.0",
-    "elasticsearch":"1.0.0",
-    "openmind":"1.0.0",
-    "sixthsense":"1.0.0",
-    "redis":"1.0.0"
+    "GENERAL":"7.2.6",
+    "elasticsearch":"7.2.6",
+    "openmind":"7.2.6",
+    "sixthsense":"7.2.6",
+    "redis":"7.2.6"
     }
