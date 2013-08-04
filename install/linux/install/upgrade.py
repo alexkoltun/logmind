@@ -2,162 +2,162 @@
 
 import os
 import sys
+import shutil
+from subprocess import call, Popen, PIPE
+import time
 
-execfile("/".join((os.path.dirname(os.path.realpath(sys.argv[0])), "install", "install_base.py")))
-execfile("/".join((os.path.dirname(os.path.realpath(sys.argv[0])), "install", "version.py")))
+from common import Common, ShellColors
+from version import Version
+from install_base import InstallBase
 
 
-#######################
-#### M E T H O D S ####
-#######################
+class UpgradeInstall(InstallBase):
 
-def stop_services_upgrade():
-    try:
-        success = call(["/command/svcs-d"]) == 0
+    def stop_services(self):
+        try:
+            success = call(["/command/svcs-d"]) == 0
 
-        if success:
-            is_down = False
-            while not is_down:
-                print "Waiting for services to stop..."
-                time.sleep(5)
-                p = Popen("/command/svstats", stdout=PIPE)
-                out,err = p.communicate()
-                is_down = out.count("down") == 5
+            if success:
+                is_down = False
+                while not is_down:
+                    print "Waiting for services to stop..."
+                    time.sleep(5)
+                    p = Popen("/command/svstats", stdout=PIPE)
+                    out,err = p.communicate()
+                    is_down = out.count("down") == 5
+                
+            else:
+                print "Error while stopping services."
             
-        else:
-            print "Error while stopping services."
+            return success
+
+        except Exception, e:
+            print "ERROR: ", e
+            return False
         
-        return success
 
-    except Exception, e:
-        print "ERROR: ", e
-        return False
-    
+    def start_services(self):
+        try:
+            success = call(["/command/svcs-u"]) == 0
 
-def start_services_upgrade():
-    try:
-        success = call(["/command/svcs-u"]) == 0
+            if not success:
+                print "Error while starting services."
+            
+            return success
 
-        if not success:
-            print "Error while starting services."
+        except Exception, e:
+            print "ERROR: ", e
+            return False
+
         
-        return success
 
-    except Exception, e:
-        print "ERROR: ", e
-        return False
+    def backup_config(self):
+        try:
+            config_dir = "/".join((Common.Paths.LOGMIND_PATH, "backup", "config"))
+            if not os.path.exists(config_dir):
+                os.makedirs(config_dir)
+            else:
+                shutil.rmtree(config_dir)
+                os.makedirs(config_dir)
+            
+            shutil.copy(Common.Paths.ES_CONF_FILE, config_dir)
+            shutil.copy(Common.Paths.OPENMIND_CONF_FILE, config_dir)
+            shutil.copy(Common.Paths.INDEXER_CONF_FILE, config_dir)
+            shutil.copy(Common.Paths.SHIPPER_CONF_FILE, config_dir)
+            shutil.copy(Common.Paths.SHIPPER_EVENTLOG_CONF_FILE, config_dir)
+            shutil.copy(Common.Paths.SHIPPER_SYSLOG_CONF_FILE, config_dir)
 
-    
+            return True
 
-def backup_config():
-    try:
-        config_dir = "/".join((LOGMIND_PATH, "backup", "config"))
-        if not os.path.exists(config_dir):
-            os.makedirs(config_dir)
-        else:
-            shutil.rmtree(config_dir)
-            os.makedirs(config_dir)
-        
-        shutil.copy(es_conf_file, config_dir)
-        shutil.copy(openmind_conf_file, config_dir)
-        shutil.copy(indexer_conf_file, config_dir)
-        shutil.copy(shipper_conf_file, config_dir)
-        shutil.copy(shipper_eventlog_conf_file, config_dir)
-        shutil.copy(shipper_syslog_conf_file, config_dir)
-
-        return True
-
-    except Exception, e:
-        print "ERROR: ", e
-        return False
+        except Exception, e:
+            print "ERROR: ", e
+            return False
 
 
-def restore_config():
+    def restore_config(self):
 
-    try:
-        config_dir = "/".join((LOGMIND_PATH, "backup", "config"))
-        if not os.path.exists(config_dir):
-            os.makedirs(config_dir)
-        
-        shutil.copy("/".join((config_dir, "elasticsearch.yml")), es_conf_file)
-        shutil.copy("/".join((config_dir, "GlobalConfig.rb")), openmind_conf_file)
-        shutil.copy("/".join((config_dir, "logmind-indexer.conf")), indexer_conf_file)
-        shutil.copy("/".join((config_dir, "logmind-shipper.conf")), shipper_conf_file)
-        shutil.copy("/".join((config_dir, "eventlog-filters.conf")), shipper_eventlog_conf_file)
-        shutil.copy("/".join((config_dir, "syslog-endpoint.conf")), shipper_syslog_conf_file)
+        try:
+            config_dir = "/".join((Common.Paths.LOGMIND_PATH, "backup", "config"))
+            if not os.path.exists(config_dir):
+                os.makedirs(config_dir)
+            
+            shutil.copy("/".join((config_dir, "elasticsearch.yml")), Common.Paths.ES_CONF_FILE)
+            shutil.copy("/".join((config_dir, "GlobalConfig.rb")), Common.Paths.OPENMIND_CONF_FILE)
+            shutil.copy("/".join((config_dir, "logmind-indexer.conf")), Common.Paths.INDEXER_CONF_FILE)
+            shutil.copy("/".join((config_dir, "logmind-shipper.conf")), Common.Paths.SHIPPER_CONF_FILE)
+            shutil.copy("/".join((config_dir, "eventlog-filters.conf")), Common.Paths.SHIPPER_EVENTLOG_CONF_FILE)
+            shutil.copy("/".join((config_dir, "syslog-endpoint.conf")), Common.Paths.SHIPPER_SYSLOG_CONF_FILE)
 
-        return True
+            return True
 
-    except Exception, e:
-        print "ERROR: ", e
-        return False
-
-
-def copy_files_upgrade():
-    try:
-        upgrade_modules = sys.argv[sys.argv.index("-upgrade-only") + 1].split(",") if "-upgrade-only" in sys.argv else ["elasticsearch","openmind","sixthsense","redis"]
-        backup_all = "-backup" in sys.argv
-        ver_dict = get_versions_dict()
-
-        backup_dir = "/".join((LOGMIND_PATH, "backup", "components"))
-        if not os.path.exists(backup_dir):
-            os.makedirs(backup_dir)
-        else:
-            shutil.rmtree(backup_dir)
-            os.makedirs(backup_dir)
-
-        for module in upgrade_modules:
-            module = module.strip()
-            print "Upgrading " + module + " from version '" + str(ver_dict[module]) + "' to version '" + str(version[module]) + "'"
-
-            for d in components_dirs_dict[module]:
-                src = "/".join(("logmind", d))
-                dst = "/".join((LOGMIND_PATH, d))
-
-                if backup_all:
-                    print "Creating backup of", d
-                    shutil.copytree(dst, "/".join((backup_dir,d)), ignore=shutil.ignore_patterns("log", "service"))
-
-                print "Upgrading", d
-                shutil.rmtree(dst)
-                shutil.copytree(src, dst)
-
-        # Updating global version file.
-        ver_file = "/".join(("logmind", "version"))
-        shutil.copy(ver_file, LOGMIND_PATH)
-
-        return True
-
-    except Exception, e:
-        print "ERROR: ", e
-        return False
+        except Exception, e:
+            print "ERROR: ", e
+            return False
 
 
-#######################
-#### U P G R A D E ####
-#######################
+    def copy_files(self):
+        try:
+            upgrade_modules = sys.argv[sys.argv.index("-upgrade-only") + 1].split(",") if "-upgrade-only" in sys.argv else ["elasticsearch","openmind","sixthsense","redis"]
+            backup_all = "-backup" in sys.argv
+            ver_dict = Common.get_versions_dict()
 
-print "Installing Logmind to", LOGMIND_PATH
+            backup_dir = "/".join((Common.Paths.LOGMIND_PATH, "backup", "components"))
+            if not os.path.exists(backup_dir):
+                os.makedirs(backup_dir)
+            else:
+                shutil.rmtree(backup_dir)
+                os.makedirs(backup_dir)
 
-print "Stopping services..."
-if stop_services_upgrade():
+            for module in upgrade_modules:
+                module = module.strip()
+                print "Upgrading " + module + " from version '" + str(ver_dict[module]) + "' to version '" + str(Version.VERSION[module]) + "'"
 
-    print "Backing-up config..."
-    if backup_config():
+                for d in Common.Paths.COMPONENTS_DIRS_DICT[module]:
+                    src = "/".join(("logmind", d))
+                    dst = "/".join((Common.Paths.LOGMIND_PATH, d))
 
-        print "Copying files..."
-        if copy_files_upgrade():
+                    if backup_all:
+                        print "Creating backup of", d
+                        shutil.copytree(dst, "/".join((backup_dir,d)), ignore=shutil.ignore_patterns("log", "service"))
 
-            print "Setting permissions..."
-            if set_permissions():
+                    print "Upgrading", d
+                    shutil.rmtree(dst)
+                    shutil.copytree(src, dst)
 
-                if set_attrs():
+            # Updating global version file.
+            ver_file = "/".join(("logmind", "version"))
+            shutil.copy(ver_file, Common.Paths.LOGMIND_PATH)
 
-                    print "Restoring config..."
-                    if restore_config():
+            return True
 
-                            print "Starting services..."
-                            if start_services_upgrade():
-                                print ShellColors.OKGREEN + "Logmind upgraded successfully to version " + version["GENERAL"] + "!" + ShellColors.ENDC
+        except Exception, e:
+            print "ERROR: ", e
+            return False
+
+
+
+    def do_install(self):
+        print "Installing Logmind to", Common.Paths.LOGMIND_PATH
+
+        print "Stopping services..."
+        if self.stop_services():
+
+            print "Backing-up config..."
+            if self.backup_config():
+
+                print "Copying files..."
+                if self.copy_files():
+
+                    print "Setting permissions..."
+                    if self.set_permissions():
+
+                        if self.set_attrs():
+
+                            print "Restoring config..."
+                            if self.restore_config():
+
+                                    print "Starting services..."
+                                    if self.start_services():
+                                        print ShellColors.OKGREEN + "Logmind upgraded successfully to version " + Version.VERSION["GENERAL"] + "!" + ShellColors.ENDC
 
 
