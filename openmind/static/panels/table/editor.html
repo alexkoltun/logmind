@@ -77,6 +77,14 @@
       <select class="input-small" ng-model="panel.overflow" ng-options="f.value as f.key for f in [{key:'scroll',value:'height'},{key:'expand',value:'min-height'}]"></select>
     </div>
   </div>
+
+  <h5>Timestamps</h5>
+  <div class="row-fluid">
+      <div class="span4">
+          <h6>Timestamp format</h6>
+          <input type="text" ng-model="panel.localTimeFormat">
+      </div>
+  </div>
   <!--<div class="row-fluid" ng-show='panel.sortable'>
     <div class="span11"> 
       <h6>A note about sorting</h6>
