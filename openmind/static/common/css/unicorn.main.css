@@ -1686,15 +1686,18 @@ form {
 }
 
 .select-list li:hover {
+    background-color: #a4cbff;
+    color: #fff;
+}
+
+/*
+.select-list li.selected:hover {
     background-color: #EDEDED;
     color: #0d0d0d;
 }
+*/
 
-.select-list .ui-selecting {
-    background: #F5F5F5;
-    color: #0d0d0d;
-}
-.select-list .ui-selected {
+.select-list li.selected {
     background: #77b1dd;
     color: #fff;
 }

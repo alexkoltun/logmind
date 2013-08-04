@@ -39,6 +39,8 @@ angular.module('openmind.table', [])
     pages   : 5,   // Pages available
     offset  : 0,
     sort    : ['@timestamp','desc'],
+    localTimeFields: ['@timestamp'],
+    localTimeFormat: 'yyyy-mm-dd HH:MM:ss.L',
     group   : "default",
     style   : {'font-size': '9pt'},
     overflow: 'height',
@@ -231,7 +233,11 @@ angular.module('openmind.table', [])
       _source   : row._source,
       highlight : row.highlight
     }
-  } 
+  }
+
+  $scope.convert_to_localtime = function(val) {
+      return dateFormat(Date.parse(val), $scope.panel.localTimeFormat, false);
+  }
 
   // Broadcast a list of all fields. Note that receivers of field array 
   // events should be able to receive from multiple sources, merge, dedupe 
