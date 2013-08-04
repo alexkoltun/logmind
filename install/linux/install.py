@@ -4,8 +4,10 @@ import sys
 import os
 import time
 
-execfile("/".join((os.path.dirname(os.path.realpath(sys.argv[0])), "install", "common.py")))
-execfile("/".join((os.path.dirname(os.path.realpath(sys.argv[0])), "install", "version.py")))
+from install.common import Common, ShellColors
+from install.version import Version
+from install.fresh import FreshInstall
+from install.upgrade import UpgradeInstall
 
 
 
@@ -43,10 +45,9 @@ def check_java():
 def check_ports():
     import socket
     try:
-        PORTS_TO_TEST = [80, 514, 6379, 8751]
-        print "Making sure required ports are open... (", PORTS_TO_TEST, ")"
+        print "Making sure required ports are not in use... (", Common.PORTS_TO_TEST, ")"
 
-        for port in PORTS_TO_TEST:
+        for port in Common.PORTS_TO_TEST:
             try:
                 # Issue the socket connect on the host:port
         
@@ -105,14 +106,14 @@ def __main__() :
 
         mode = sys.argv[sys.argv.index("-mode") + 1] if "-mode" in sys.argv else None
 
-        if os.path.exists(LOGMIND_PATH):
-            ver_dict = get_versions_dict()
+        if os.path.exists(Common.Paths.LOGMIND_PATH):
+            ver_dict = Common.get_versions_dict()
             current_version = ver_dict["GENERAL"] if ver_dict["GENERAL"] != 0 else "Unknown"
             while mode is None:
                 print "A previous version of Logmind (", current_version, ") is already installed. Please select an option:"
                 print "1. Overwrite current installation"
-                print "2. Upgrade to version", version["GENERAL"]
-                c = user_input("Please Select (1 or 2): ").strip()
+                print "2. Upgrade to version", Version.VERSION["GENERAL"]
+                c = Common.user_input("Please Select (1 or 2): ").strip()
                 if c == "1":
                     mode = "fresh"
                 elif c == "2":
@@ -120,15 +121,17 @@ def __main__() :
                     
         if mode == None or mode == "fresh":
             print "Running a fresh installation..."
-            execfile("/".join((os.path.dirname(os.path.realpath(sys.argv[0])), "install", "install.py")))
+            installer = FreshInstall()
             
         elif mode == "upgrade":
-            print "Upgrading to version " + version["GENERAL"] + "..."
-            execfile("/".join((os.path.dirname(os.path.realpath(sys.argv[0])), "install", "upgrade.py")))
+            print "Upgrading to version " + Version.VERSION["GENERAL"] + "..."
+            installer = UpgradeInstall()
 
         else:
             print "Unknown mode '" + mode + "'. Installation aborted."
             return False
+
+        installer.do_install()
 
     end_time = time.time()
 

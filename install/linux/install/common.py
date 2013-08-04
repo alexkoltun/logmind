@@ -7,8 +7,81 @@ from subprocess import call, Popen, PIPE
 import time
 
 
+class Common:
+    
+    PORTS_TO_TEST = [80, 514, 6379, 8751]
 
-LOGMIND_PATH = "/usr/local/logmind"
+    class Paths:
+
+        LOGMIND_PATH = "/usr/local/logmind"
+        
+        ES_CONF_FILE = "/".join((LOGMIND_PATH, "elasticsearch", "config", "elasticsearch.yml"))
+        OPENMIND_CONF_FILE = "/".join((LOGMIND_PATH, "openmind", "GlobalConfig.rb"))
+        INDEXER_CONF_FILE = "/".join((LOGMIND_PATH, "sixthsense", "config", "indexer.conf", "logmind-indexer.conf"))   
+        SHIPPER_CONF_FILE = "/".join((LOGMIND_PATH, "sixthsense", "config", "shipper.conf", "logmind-shipper.conf"))   
+        SHIPPER_EVENTLOG_CONF_FILE = "/".join((LOGMIND_PATH, "sixthsense", "config", "shipper.conf", "eventlog-filters.conf"))      
+        SHIPPER_SYSLOG_CONF_FILE = "/".join((LOGMIND_PATH, "sixthsense", "config", "shipper.conf", "syslog-endpoint.conf"))
+
+        COMPONENTS_DIRS_DICT = {
+            "elasticsearch": ["elasticsearch"],
+            "openmind": ["openmind", "rubystack"],
+            "redis": ["redis"],
+            "sixthsense": ["sixthsense"]
+            }
+
+
+    #######################
+    #### M E T H O D S ####
+    #######################
+
+    @staticmethod 
+    def prompt(msg):
+        res = ""
+        while not res.strip().lower() in ["y", "n"]:
+            res = raw_input(msg)
+
+        return res
+
+
+    @staticmethod
+    def user_input(msg):
+        res = ""
+        while not len(res) > 0:
+            res = raw_input(msg)
+
+        return res
+
+
+    @staticmethod
+    def get_versions_dict():
+        d = {}
+        d["GENERAL"] = Common.get_version("GENERAL")
+        d["elasticsearch"] = Common.get_version("elasticsearch")
+        d["openmind"] = Common.get_version("openmind")
+        d["sixthsense"] = Common.get_version("sixthsense")
+        d["redis"] = Common.get_version("redis")
+
+        return d
+
+
+    @staticmethod
+    def get_version(folder):
+        try:
+            if folder == "GENERAL":
+                version_path = "/".join((Common.Paths.LOGMIND_PATH, "version"))
+            else:
+                version_path = "/".join((Common.Paths.LOGMIND_PATH, folder, "config", "version"))
+
+            if os.path.exists(version_path):
+                return open(version_path, "rb").read().strip()
+            else:
+                return 0
+
+        except Exception, e:
+            print "ERROR: ", e
+            return -1
+
+            
 
 
 class ShellColors:
@@ -18,74 +91,3 @@ class ShellColors:
     WARNING = '\033[93m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
-
-
-
-
-es_conf_file = "/".join((LOGMIND_PATH, "elasticsearch", "config", "elasticsearch.yml"))
-openmind_conf_file = "/".join((LOGMIND_PATH, "openmind", "GlobalConfig.rb"))
-indexer_conf_file = "/".join((LOGMIND_PATH, "sixthsense", "config", "indexer.conf", "logmind-indexer.conf"))   
-shipper_conf_file = "/".join((LOGMIND_PATH, "sixthsense", "config", "shipper.conf", "logmind-shipper.conf"))   
-shipper_eventlog_conf_file = "/".join((LOGMIND_PATH, "sixthsense", "config", "shipper.conf", "eventlog-filters.conf"))      
-shipper_syslog_conf_file = "/".join((LOGMIND_PATH, "sixthsense", "config", "shipper.conf", "syslog-endpoint.conf"))
-
-components_dirs_dict = {
-    "elasticsearch": ["elasticsearch"],
-    "openmind": ["openmind", "rubystack"],
-    "redis": ["redis"],
-    "sixthsense": ["sixthsense"]
-    }
-
-
-#######################
-#### M E T H O D S ####
-#######################
-
-def prompt(msg):
-    res = ""
-    while not res.strip().lower() in ["y", "n"]:
-        res = raw_input(msg)
-
-    return res
-
-
-def user_input(msg):
-    res = ""
-    while not len(res) > 0:
-        res = raw_input(msg)
-
-    return res
-
-
-
-
-
-def get_versions_dict():
-    d = {}
-    d["GENERAL"] = get_version("GENERAL")
-    d["elasticsearch"] = get_version("elasticsearch")
-    d["openmind"] = get_version("openmind")
-    d["sixthsense"] = get_version("sixthsense")
-    d["redis"] = get_version("redis")
-
-    return d
-
-
-def get_version(folder):
-    try:
-        if folder == "GENERAL":
-            version_path = "/".join((LOGMIND_PATH, "version"))
-        else:
-            version_path = "/".join((LOGMIND_PATH, folder, "config", "version"))
-
-        if os.path.exists(version_path):
-            return open(version_path, "rb").read().strip()
-        else:
-            return 0
-
-    except Exception, e:
-        print "ERROR: ", e
-        return -1
-
-        
-
