@@ -14,6 +14,14 @@ execfile("/".join((os.path.dirname(os.path.realpath(sys.argv[0])), "install", "v
 #######################
 
 def check_prereq():
+    if "-force" in sys.argv:
+        print "Skipping prerequisites check. Forcing installation..."
+        return True
+    else:
+        return check_java() and check_ports()
+
+
+def check_java():
     try:
         print "Checking for Java...",
         java_ok = os.system("java -version") == 0
@@ -30,7 +38,53 @@ def check_prereq():
     except Exception, e:
         print "ERROR: ", e
         return False
+
+
+def check_ports():
+    import socket
+    try:
+        PORTS_TO_TEST = [80, 514, 6379, 8751]
+        print "Making sure required ports are open... (", PORTS_TO_TEST, ")"
+
+        for port in PORTS_TO_TEST:
+            try:
+                # Issue the socket connect on the host:port
         
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(60)
+                sock.bind(("", port))
+                
+            except Exception, e:
+                    print ShellColors.FAIL + "Port " + str(port) + " is not available - Please make sure it is not in use by any other application (" + str(e) + ")." + ShellColors.ENDC
+                    return False
+                
+            else:
+                    print ShellColors.OKGREEN + "Port " + str(port) + " is available" + ShellColors.ENDC
+
+            if sock is not None:        
+                sock.close()
+            
+        return True
+
+    except Exception, e:
+        print "ERROR: ", e
+        return False
+
+
+
+
+def show_help():
+    print ShellColors.HEADER + "Logmind Installation Utility" + ShellColors.ENDC
+    print ShellColors.OKBLUE + "Usage: install.py [options]" + ShellColors.ENDC
+    print "Options:"
+    print "     -mode (fresh/upgrade):  Only affects machines with previous installations."
+    print "                             Fresh mode will overwrite current installation, discarding all settings and data."
+    print "                             Upgrade mode will upgrade current installation, keeping all settings and data."
+    print "     -upgrade-only (elasticsearch, openmind, redis, sixthsense):     One or more option. Comma separated."
+    print "                                                                     Upgrade only selected components."
+    print "     -backup:                Backup upgraded components."
+    print "     -time:                  Calculate installation time."
+    print "     -h / -help / --help:    Show this help."
             
 
 
@@ -39,6 +93,10 @@ def check_prereq():
 #######################
 
 def __main__() :
+
+    if any(h in sys.argv for h in ["-h", "-help", "--help"]):
+        show_help()
+        return True
 
     start_time = time.time()
 
@@ -74,7 +132,7 @@ def __main__() :
 
     end_time = time.time()
 
-    if "-count-time" in sys.argv:
+    if "-time" in sys.argv:
         print "Process completed in", end_time - start_time, "seconds"
 
 

@@ -361,11 +361,6 @@ angular.module('openmind.controllers', [])
     }
 
 
-    $scope.make_selectable = function() {
-        $( ".select-list" ).selectable();
-    }
-
-
     $scope.user_avail_selected = function(user, group_name) {
         if (user.avail_selected === undefined) {
             user.avail_selected = [];
@@ -374,8 +369,10 @@ angular.module('openmind.controllers', [])
         var index = user.avail_selected.indexOf(group_name);
         if (index > -1) {
             user.avail_selected.splice(index, 1);
+            $("li.select-item[value='" + $scope.get_name(group_name) + "']").removeClass("selected");
         } else {
             user.avail_selected.push(group_name);
+            $("li.select-item[value='" + $scope.get_name(group_name) + "']").addClass("selected");
         }
     }
 
@@ -388,8 +385,10 @@ angular.module('openmind.controllers', [])
         var index = user.current_selected.indexOf(group_name);
         if (index > -1) {
             user.current_selected.splice(index, 1);
+            $("li.select-item[value='" + $scope.get_name(group_name) + "']").removeClass("selected");
         } else {
             user.current_selected.push(group_name);
+            $("li.select-item[value='" + $scope.get_name(group_name) + "']").addClass("selected");
         }
     }
 
