@@ -15,12 +15,19 @@ from install.upgrade import UpgradeInstall
 #### M E T H O D S ####
 #######################
 
-def check_prereq():
+def check_prereq(mode):
     if "-force" in sys.argv:
         print "Skipping prerequisites check. Forcing installation..."
         return True
+    
     else:
-        return check_java() and check_ports()
+        if mode is "fresh":
+            return check_java() and check_ports()
+        elif mode is "upgrade":
+            return check_java()
+        else:
+            return True
+
 
 
 def check_java():
@@ -101,23 +108,27 @@ def __main__() :
 
     start_time = time.time()
 
+    mode = sys.argv[sys.argv.index("-mode") + 1] if "-mode" in sys.argv else None
+
+    if os.path.exists(Common.Paths.LOGMIND_PATH):
+        ver_dict = Common.get_versions_dict()
+        current_version = ver_dict["GENERAL"] if ver_dict["GENERAL"] != 0 else "Unknown"
+        while mode is None:
+            print "A previous version of Logmind (", current_version, ") is already installed. Please select an option:"
+            print "1. Overwrite current installation"
+            print "2. Upgrade to version", Version.VERSION["GENERAL"]
+            c = Common.user_input("Please Select (1 or 2): ").strip()
+            if c == "1":
+                mode = "fresh"
+            elif c == "2":
+                mode = "upgrade"
+
+    
     print "Checking prerequisites..."
-    if check_prereq():
-
-        mode = sys.argv[sys.argv.index("-mode") + 1] if "-mode" in sys.argv else None
-
-        if os.path.exists(Common.Paths.LOGMIND_PATH):
-            ver_dict = Common.get_versions_dict()
-            current_version = ver_dict["GENERAL"] if ver_dict["GENERAL"] != 0 else "Unknown"
-            while mode is None:
-                print "A previous version of Logmind (", current_version, ") is already installed. Please select an option:"
-                print "1. Overwrite current installation"
-                print "2. Upgrade to version", Version.VERSION["GENERAL"]
-                c = Common.user_input("Please Select (1 or 2): ").strip()
-                if c == "1":
-                    mode = "fresh"
-                elif c == "2":
-                    mode = "upgrade"
+    if mode is None:
+        mode = "fresh"
+        
+    if check_prereq(mode):
                     
         if mode == None or mode == "fresh":
             print "Running a fresh installation..."
@@ -132,6 +143,7 @@ def __main__() :
             return False
 
         installer.do_install()
+        
 
     end_time = time.time()
 
