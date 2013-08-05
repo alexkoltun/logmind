@@ -51,27 +51,6 @@ class FreshInstall(InstallBase):
             print "ERROR: ", e
             return False
 
-
-    def inst_daemon(self, curdir):
-
-        try:
-            os.chdir("/".join((Common.Paths.LOGMIND_PATH, "daemontools-0.76")))
-
-            ret_upgrade = call(["package/upgrade"])
-            ret_run = call(["package/run"])
-            success = ret_upgrade == ret_run== 0
-
-            os.chdir(curdir)
-
-            if not success:
-                print "Error while installing services."
-            
-            return success
-
-        except Exception, e:
-            print "ERROR: ", e
-            return False
-
         
 
     def prep_links(self, curdir):
@@ -133,29 +112,7 @@ class FreshInstall(InstallBase):
         except Exception, e:
             print "ERROR: ", e
             return False
-
-
-    def start_services(self):
-
-        try:
-            p = Popen(["uname", "-a"], stdout=PIPE)
-            out, err = p.communicate()
-            if "Ubuntu" in out or "CentOS-6" in out or ".el6." in out:
-                print "Upstart: starting services..."
-                ret_start = call(["/sbin/start", "daemontools"])
-
-                success = ret_start == 0
-                if not success:
-                    print "Error starting upstart services."
-
-                return success
-            
-
-            return True
-
-        except Exception, e:
-            print "ERROR: ", e
-            return False
+        
 
 
     def do_install(self):
