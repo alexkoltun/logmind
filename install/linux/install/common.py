@@ -23,7 +23,7 @@ class Common:
         SHIPPER_SYSLOG_CONF_FILE = "/".join((LOGMIND_PATH, "sixthsense", "config", "shipper.conf", "syslog-endpoint.conf"))
 
         COMPONENTS_DIRS_DICT = {
-            "elasticsearch": ["elasticsearch"],
+            "elasticsearch": ["elasticsearch/bin", "elasticsearch/config", "elasticsearch/lib", "elasticsearch/plugins"],
             "openmind": ["openmind", "rubystack"],
             "redis": ["redis"],
             "sixthsense": ["sixthsense"]

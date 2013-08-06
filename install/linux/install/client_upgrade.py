@@ -11,8 +11,8 @@ from version import Version
 from install_base import InstallBase
 
 
-class UpgradeInstall(InstallBase):
-
+class ClientUpgradeInstall(InstallBase):
+    
     def backup_config(self):
         try:
             config_dir = "/".join((Common.Paths.LOGMIND_PATH, "backup", "config"))
@@ -21,10 +21,7 @@ class UpgradeInstall(InstallBase):
             else:
                 shutil.rmtree(config_dir)
                 os.makedirs(config_dir)
-            
-            shutil.copy(Common.Paths.ES_CONF_FILE, config_dir)
-            shutil.copy(Common.Paths.OPENMIND_CONF_FILE, config_dir)
-            shutil.copy(Common.Paths.INDEXER_CONF_FILE, config_dir)
+
             shutil.copy(Common.Paths.SHIPPER_CONF_FILE, config_dir)
             shutil.copy(Common.Paths.SHIPPER_EVENTLOG_CONF_FILE, config_dir)
             shutil.copy(Common.Paths.SHIPPER_SYSLOG_CONF_FILE, config_dir)
@@ -43,9 +40,6 @@ class UpgradeInstall(InstallBase):
             if not os.path.exists(config_dir):
                 os.makedirs(config_dir)
             
-            shutil.copy("/".join((config_dir, "elasticsearch.yml")), Common.Paths.ES_CONF_FILE)
-            shutil.copy("/".join((config_dir, "GlobalConfig.rb")), Common.Paths.OPENMIND_CONF_FILE)
-            shutil.copy("/".join((config_dir, "logmind-indexer.conf")), Common.Paths.INDEXER_CONF_FILE)
             shutil.copy("/".join((config_dir, "logmind-shipper.conf")), Common.Paths.SHIPPER_CONF_FILE)
             shutil.copy("/".join((config_dir, "eventlog-filters.conf")), Common.Paths.SHIPPER_EVENTLOG_CONF_FILE)
             shutil.copy("/".join((config_dir, "syslog-endpoint.conf")), Common.Paths.SHIPPER_SYSLOG_CONF_FILE)
@@ -58,7 +52,7 @@ class UpgradeInstall(InstallBase):
 
 
     def get_upgrade_modules_list(self):
-        return sys.argv[sys.argv.index("-upgrade-only") + 1].split(",") if "-upgrade-only" in sys.argv else ["elasticsearch","openmind","sixthsense","redis"]
+        return ["sixthsense"]
 
 
 
@@ -75,7 +69,7 @@ class UpgradeInstall(InstallBase):
                 if self.copy_files_upgrade():
 
                     print "Setting permissions..."
-                    if self.set_permissions():
+                    if self.set_permissions_client():
 
                         if self.set_attrs():
 
