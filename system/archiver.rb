@@ -3,7 +3,13 @@ require 'json'
 require 'net/http'
 require 'logger'
 require 'time'
+require 'fileutils'
+require 'net/http'
 require 'pp'
+
+module GlobalConfig
+  LOCAL_INDICES_DIR = ENV['LOGMIND_ES_INDICES_DIR'] ||  '/var/lib/elasticsearch/AlexKoltunDevLinux/nodes/0/indices'
+end
 
 class IndexMatcher
   def initialize(pattern, older_than)
@@ -23,7 +29,7 @@ class IndexMatcher
   def match(index)
     index.match(@pattern) do |match|
       index_date = Time.strptime(match[1], @time_format)
-      @older_than - index_date < 0
+      return index_date < @older_than
     end
   end
 end
@@ -31,38 +37,95 @@ end
 class Archiver
   def initialize
     @log = Logger.new(STDOUT)
-    @log.level = Logger::WARN
+    @log.level = Logger::DEBUG
     @http_client = Net::HTTP.new('localhost', 9200)
   end
 
   def run
 
+
     action_map = [
         {
             :pattern => 'logstash-wd-%{+YYYY}',
-            :size_min => 2048,
+            :size_min => 1024*1024,
             :size_max => nil,
-            :older_than => 60*60*24*400, # seven days
+            :older_than => 60*60*24*7, # seven days
             :action => 'RELOCATE',
-            :params => ['/tmp/new_data']
+            :params => { :target => '/tmp'}
         }
     ]
 
-    matcher = IndexMatcher.new(action_map[0][:pattern], Time.now - action_map[0][:older_than])
+    # load action map from elasticsearch
 
+
+    # get stats for all indices
     stats_raw_respone = @http_client.get('/*/_stats/')
     stats_response = JSON.parse(stats_raw_respone.body)
 
-    if stats_response['ok']
-      (indices = stats_response['indices']) && indices.each do |k,v|
-        if matcher.match(k)
-          print "Matched: #{k}\n"
+    # walk over indices stats and see if archiving operation is needed for them
+    action_map.each do |item|
+      matcher = nil
+      item[:older_than] && matcher = IndexMatcher.new(item[:pattern], Time.now - item[:older_than])
+
+      if stats_response['ok']
+        (indices = stats_response['indices']) && indices.each do |k,v|
+          if (matcher == nil || matcher.match(k)) && (item[:size_min] == nil || v['primaries']['store']['size_in_bytes'] > item[:size_min]) && (item[:size_max] == nil || v['primaries']['store']['size_in_bytes'] < item[:size_max])
+            perform_action item, k
+          end
         end
+      else
+        @log.error { 'Unable to get stats from the server, response: ' + stats_raw_respone.body }
       end
-    else
-      @log.error { 'Unable to get stats from the server: ' + stats_raw_respone.body }
+    end
+  end
+
+  def perform_action(item, index)
+    case item[:action]
+      when 'DELETE'
+        delete_raw_response = @http_client.delete('/' + index)
+        delete_response = JSON.parse(delete_raw_response.body)
+
+        return delete_response['ok']
+      when 'ARCHIVE'
+# 1. close the index
+        close_raw_response = @http_client.post('/' + index + '/_close', '')
+        close_response = JSON.parse(close_raw_response.body)
+        if close_response['ok']
+# 1. run archiving shell script
+          return FileUtils.exec(item[:params][:archiving_script]) == 0
+        end
+      when 'RELOCATE'
+        @log.info { 'Relocating index: ' + index + ', target: ' + item[:params][:target] }
+# 1. close the index
+        close_raw_response = @http_client.post('/' + index + '/_close', '')
+        close_response = JSON.parse(close_raw_response.body)
+
+        if close_response['ok']
+# 2. copy the existing index data to the new location
+          index_dir = GlobalConfig::LOCAL_INDICES_DIR + '/' + index
+          index_target_dir = item[:params][:target] + '/' + index
+          FileUtils.copy_entry index_dir, index_target_dir
+          ## recovery: reopen the index
+# 3. unlink the old index data 'link', optionally remove the files as well
+          FileUtils.remove_entry index_dir
+          ## recovery: reopen the index
+# 4. create a symbolic link that points to a new location
+          FileUtils.symlink index_target_dir, index_dir
+          ## recovery: copy back and open
+# 5. open the index
+          open_raw_response = @http_client.post('/' + index + '/_open', '')
+          open_response = JSON.parse(open_raw_response.body)
+          ## recovery: manual only???
+
+          if open_response['ok']
+            return true
+          end
+        end
     end
 
+    pp item, index
+
+    return false
   end
 end
 
