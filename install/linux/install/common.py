@@ -26,7 +26,7 @@ class Common:
             "elasticsearch": ["elasticsearch/bin", "elasticsearch/config", "elasticsearch/lib", "elasticsearch/plugins"],
             "openmind": ["openmind", "rubystack"],
             "redis": ["redis"],
-            "sixthsense": ["sixthsense"]
+            "sixthsense": ["sixthsense/cep", "sixthsense/config", "sixthsense/indexer", "sixthsense/patterns", "sixthsense/shipper", "sixthsense/samples", "sixthsense/logstash.jar", "sixthsense/sixthsense.sh"]
             }
 
 
