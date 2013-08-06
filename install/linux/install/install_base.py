@@ -5,6 +5,7 @@ from subprocess import call, Popen, PIPE
 import time
 
 from common import Common
+from version import Version
 
 
 class InstallBase:
