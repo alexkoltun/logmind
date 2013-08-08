@@ -4,6 +4,7 @@ import os
 import sys
 import shutil
 from subprocess import call, Popen, PIPE
+import random
 
 from common import Common, ShellColors
 from install_base import InstallBase
@@ -24,11 +25,11 @@ class FreshInstall(InstallBase):
 
 
             os.makedirs(Common.Paths.LOGMIND_PATH)
-            dirs = os.listdir("logmind/")
+            dirs = os.listdir("/".join((os.path.dirname(sys.argv[0]), "logmind/")))
             for d in dirs:
                 sys.stdout.write(".")
                 sys.stdout.flush()
-                src = "/".join(("logmind", d))
+                src = "/".join((os.path.dirname(sys.argv[0]), "logmind", d))
                 dst = "/".join((Common.Paths.LOGMIND_PATH, d))
                 if os.path.isdir(src):
                     shutil.copytree(src, dst)
@@ -39,7 +40,7 @@ class FreshInstall(InstallBase):
                 
             sys.stdout.write("..........")
             sys.stdout.flush()
-            shutil.copytree("daemontools-0.76", "/".join((Common.Paths.LOGMIND_PATH, "daemontools-0.76")))
+            shutil.copytree("/".join((os.path.dirname(sys.argv[0]), "daemontools-0.76")), "/".join((Common.Paths.LOGMIND_PATH, "daemontools-0.76")))
             sys.stdout.write(".")
             sys.stdout.flush()
 
@@ -94,8 +95,13 @@ class FreshInstall(InstallBase):
                 arg_index = sys.argv.index("--cluster-name")
             if arg_index > -1 and len(sys.argv) > arg_index + 1:
                 cluster_name = sys.argv[arg_index + 1]
+            elif 'LOGMIND_CLUSTER_NAME' in os.environ:
+                cluster_name = os.environ['LOGMIND_CLUSTER_NAME']
             else:
-                cluster_name = Common.user_input("Please enter unique Logmind installation name (ElasticSearch Cluster name): ")
+                cluster_name = "Logmind-"
+                for i in xrange(8):
+                    cluster_name += chr(random.randint(65, 90))
+                #cluster_name = Common.user_input("Please enter unique Logmind installation name (ElasticSearch Cluster name): ")
                 
             print "Using cluster name: ", cluster_name
             

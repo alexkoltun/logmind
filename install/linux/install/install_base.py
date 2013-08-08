@@ -187,11 +187,30 @@ class InstallBase:
 
                     if backup_all:
                         print "Creating backup of", d
-                        shutil.copytree(dst, "/".join((backup_dir,d)), ignore=shutil.ignore_patterns("log", "service"))
+                        #shutil.copytree(dst, "/".join((backup_dir,d)), ignore=shutil.ignore_patterns("log", "service"))
+                        if os.path.isdir(dst):
+                            for sub in os.listdir(dst):
+                                print "backing up:", sub
+                                if not sub in ["log", "logs", "service"]:
+                                    sub_src = "/".join((dst, sub))
+                                    sub_dst = "/".join((backup_dir, d ,sub))
+                                    if not os.path.exists("/".join((backup_dir, d))):
+                                        os.makedirs("/".join((backup_dir, d)))
+                                    if os.path.isdir(sub_src):
+                                        shutil.copytree(sub_src, sub_dst)
+                                    else:
+                                        shutil.copy(sub_src, sub_dst)
+                        else:
+                            shutil.copy(dst, "/".join((backup_dir,d)))
 
                     print "Upgrading", d
-                    shutil.rmtree(dst)
-                    shutil.copytree(src, dst)
+                    if os.path.isdir(dst):
+                        shutil.rmtree(dst)
+                        shutil.copytree(src, dst)
+                    else:
+                        os.remove(dst)
+                        shutil.copy(src, dst)
+                        
 
             # Updating global version file.
             ver_file = "/".join(("logmind", "version"))

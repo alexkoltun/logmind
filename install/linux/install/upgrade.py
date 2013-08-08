@@ -58,7 +58,12 @@ class UpgradeInstall(InstallBase):
 
 
     def get_upgrade_modules_list(self):
-        return sys.argv[sys.argv.index("-upgrade-only") + 1].split(",") if "-upgrade-only" in sys.argv else ["elasticsearch","openmind","sixthsense","redis"]
+        #return sys.argv[sys.argv.index("-upgrade-only") + 1].split(",") if "-upgrade-only" in sys.argv else ["elasticsearch","openmind","sixthsense","redis"]
+        if "-upgrade-only" in sys.argv:
+            return sys.argv[sys.argv.index("-upgrade-only") + 1].split(",")
+        else:
+            return ["elasticsearch","openmind","sixthsense","redis"]
+
 
 
 
