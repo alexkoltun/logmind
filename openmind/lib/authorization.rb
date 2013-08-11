@@ -340,5 +340,11 @@ class Authorization
 
     groups_query.results
   end
+
+  def get_policies
+    policies_query = Tire.search('authorization/policy')
+
+    policies_query.results
+  end
 end
 

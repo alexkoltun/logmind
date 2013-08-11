@@ -666,6 +666,9 @@ def auth_api_get(method)
   elsif method == "get_groups"
     JSON.generate(auth.get_groups)
 
+  elsif method == "get_policies"
+    JSON.generate(auth.get_policies)
+
   end
 
 end

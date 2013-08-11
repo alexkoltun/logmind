@@ -162,7 +162,8 @@ angular.module('openmind.controllers', [])
 
     $scope.adminData = {
         usersList: [],
-        groupsList: []
+        groupsList: [],
+        policiesList: []
     }
 
     var _d = {
@@ -183,6 +184,10 @@ angular.module('openmind.controllers', [])
 
         $http.get('/authapi/get/get_groups').success(function(result) {
             $scope.adminData.groupsList = result;
+        });
+
+        $http.get('/authapi/get/get_policies').success(function(result) {
+            $scope.adminData.policiesList = result;
         });
     }
 
@@ -273,21 +278,6 @@ angular.module('openmind.controllers', [])
 
         var modal = $modal({
             template: 'partials/admin/addgroup.html',
-            show: true,
-            persist: true,
-            backdrop: 'static',
-            scope: modal_scope
-        });
-    }
-
-
-    $scope.show_edit_group_modal = function(group) {
-        var modal_scope = $scope;
-        modal_scope.group = group;
-        //modal_scope.user.allgroups = $scope.get_all_group_names(user.groups);
-
-        var modal = $modal({
-            template: 'partials/admin/editgroup.html',
             show: true,
             persist: true,
             backdrop: 'static',
