@@ -69,7 +69,7 @@ class Archiver
     actions_raw_respone = @http_client.get('/logmind-management/archive-action/_search?size=1000')
     actions_response = JSON.parse(actions_raw_respone.body)
 
-    if(actions_response['ok'])
+    if(actions_response['hits'])
       action_map = actions_response['hits']['hits']
     else
       @log.error { 'Unable ro get actions from elasticsearch, response: ' + actions_raw_respone.body }
@@ -93,8 +93,8 @@ class Archiver
 
       if stats_response['ok']
         (indices = stats_response['indices']) && indices.each do |k,v|
-          if (matcher == nil || matcher.match(k)) && (item[:size_min] == nil || v['primaries']['store']['size_in_bytes'] > item[:size_min]) && (item[:size_max] == nil || v['primaries']['store']['size_in_bytes'] < item[:size_max])
-            perform_action item, k
+          if (matcher == nil || matcher.match(k)) && (item['size_min'] == nil || v['primaries']['store']['size_in_bytes'] > item['size_min']) && (item['size_max'] == nil || v['primaries']['store']['size_in_bytes'] < item['size_max'])
+            perform_action item['_source'], k
           end
         end
       else
@@ -104,7 +104,7 @@ class Archiver
   end
 
   def perform_action(item, index)
-    case item[:action]
+    case item['action']
       when 'DELETE'
         delete_raw_response = @http_client.delete('/' + index)
         delete_response = JSON.parse(delete_raw_response.body)
