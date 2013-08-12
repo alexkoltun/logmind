@@ -1,49 +1,50 @@
 
-      <div ng-controller="AdminCtrl" ng-cloak class="content span10" id=main>
+      <div ng-cloak class="content span10" id=main bs-tabs>
+        <div ng-controller="AdminCtrl" data-title="Users">
        <h4>Users</h4>
        <table class="table table-striped table-bordered table-condensed table-hover">
        <thead>
         <tr>
-         <th width="200px">Username</th>
-         <th width="100px">Admin</th>
-         <th>Tags</th>
+         <th width="300px">Username</th>
+         <th>Groups</th>
         </tr>
        </thead>
-       <tbody ng-repeat='user in adminData.usersList'>
-        <tr>
+       <tbody>
+        <tr ng-repeat='user in adminData.usersList'>
          <!--td><a href="#" <i ng-click="remove_user(user.name)" class="dark-icon icon-remove"></i></a>&nbsp;&nbsp;<a href="#" bs-modal="'partials/admin/edituser.html'"><i class="dark-icon icon-edit"></i> {{user.name}}</a></td-->
          <td><a href="#" <i ng-click="remove_user(user.name)" class="dark-icon icon-remove"></i></a>&nbsp;&nbsp;<a href="#" ng-click="show_edit_user_modal(user)"><i class="dark-icon icon-edit"></i> {{user.name}}</a></td>
-         <td><label class="checkbox"><input type="checkbox" disabled></label></td>
-         <td>No Tags</td>
+         <td>
+           <span ng-repeat="group in user.groups">{{get_name(group)}}{{{true: '', false: ', '}[$last]}}</span>
+         </td>
         </tr>
        </tbody>
        </table>
        <button id="adduser" class="btn btn-primary btn-small" ng-click="show_add_user_modal()"><i class="icon icon-tag"></i> New User</button>
+        </div>
 
-       <h4 style="margin-top: 40px;">Groups</h4>
+       <div ng-controller="AdminCtrl" data-title="Groups">
+       <h4>Groups</h4>
        <table class="table table-striped table-bordered table-condensed table-hover">
        <thead>
         <tr>
-         <th width="200px">Group</th>
-         <th width="100px">Admin</th>
-         <th>Tags</th>
+         <th width="300px">Group</th>
         </tr>
        </thead>
        <tbody ng-repeat='group in adminData.groupsList'>
          <tr>
           <td><a href="#" <i ng-click="remove_group(group.name)" class="dark-icon icon-remove"></i></a>&nbsp;&nbsp; {{group.name}}</td>
-          <td><label class="checkbox"><input type="checkbox" disabled></label></td>
-          <td>No Tags</td>
          </tr>
         </tbody>
        </table>
       <button id="addgroup" class="btn btn-primary btn-small" ng-click="show_add_group_modal()"><i class="icon icon-tags"></i> New Group</button>
+      </div>
 
-      <h4 style="margin-top: 40px;">Policies</h4>
+      <div ng-controller="AdminCtrl" data-title="Policies">
+      <h4>Policies</h4>
       <table class="table table-striped table-bordered table-condensed table-hover">
         <thead>
         <tr>
-          <th width="200px">Policy</th>
+          <th width="300px">Policy</th>
           <th>Who</th>
           <th>What</th>
           <th>On</th>
@@ -53,14 +54,30 @@
         <tbody ng-repeat='policy in adminData.policiesList'>
         <tr>
           <td><a href="#" <i ng-click="remove_policy(policy.name)" class="dark-icon icon-remove"></i></a>&nbsp;&nbsp;<a href="#" ng-click="show_edit_policy_modal(group)"><i class="dark-icon icon-edit"></i> {{policy.name}}</a></td>
-          <td>{{policy.who}}</td>
-          <td>{{policy.what}}</td>
-          <td>{{policy.on}}</td>
+          <td>
+            <span ng-repeat="w in policy.who">{{w}}{{{true: '', false: ', '}[$last]}}</span>
+          </td>
+          <td>
+            <span ng-repeat="w in policy.what">{{w}}{{{true: '', false: ', '}[$last]}}</span>
+          </td>
+          <td>
+            <span ng-repeat="o in policy.on">{{o}}{{{true: '', false: ', '}[$last]}}</span>
+          </td>
           <td>No Tags</td>
         </tr>
         </tbody>
       </table>
+
+      <h7><ul>
+        <li>Who List: Contains user names and group names. Group names are started with '@'.</li>
+      </ul></h7>
+
+      <br /><br />
+
       <button id="addpolicy" class="btn btn-primary btn-small" ng-click="show_add_policy_modal()"><i class="icon icon-book"></i> New Policy</button>
+      </div>
+
+
       </div>
 
       <script>

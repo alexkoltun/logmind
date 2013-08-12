@@ -1834,3 +1834,7 @@ form {
     background-position: 0px 0px;
     width: 20px;
 }
+
+.nav-tabs .active a, .nav-tabs .active a:hover {
+    background-color: #ddd;
+}

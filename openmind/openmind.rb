@@ -709,6 +709,10 @@ def auth_api_post(method)
   elsif method == "remove_group"
     auth.remove_group data['group_name']
 
+
+  elsif method == "remove_policy"
+    auth.remove_policy data['policy_name']
+
   end
 
 end
@@ -720,7 +724,7 @@ get '/admin' do
   locals[:is_admin] = true
   locals[:show_back] = true
 
-  locals[:header_title] = "Administration"
+  locals[:header_title] = "User Administration"
   locals[:internal_content] = true
   locals[:current_content] = "admin"
   locals[:pathtobase] = ""
