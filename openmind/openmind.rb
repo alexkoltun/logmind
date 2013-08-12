@@ -710,6 +710,16 @@ def auth_api_post(method)
     auth.remove_group data['group_name']
 
 
+  elsif method == "save_policy"
+
+    if data['mode'] == "add"
+      auth.save_policy data['policy_name'], data['policy_who'], data['policy_what'], data['policy_on'], []
+
+    elsif data['mode'] == "edit"
+      #auth.set_groups data['user_name'], data['groups']
+    end
+
+
   elsif method == "remove_policy"
     auth.remove_policy data['policy_name']
 

@@ -163,7 +163,9 @@ angular.module('openmind.controllers', [])
     $scope.adminData = {
         usersList: [],
         groupsList: [],
-        policiesList: []
+        policiesList: [],
+
+        availableActions: ["view_data", "edit_data", "index_read", "index_write", "search", "frontend_ui_view", "*"]
     }
 
     var _d = {
@@ -381,6 +383,225 @@ angular.module('openmind.controllers', [])
             $("li.select-item[value='" + $scope.get_name(group_name) + "']").addClass("selected");
         }
     }
+
+
+    $scope.remove_policy = function(policy) {
+        var is_remove = confirm("Remove policy '" + policy + "' and all references?");
+        if (is_remove) {
+            $http.post('/authapi/post/remove_policy', {policy_name: policy}).success(function(result) {
+                alert("Policy Removed!");
+                $scope.init();
+            });
+        }
+    }
+
+
+    $scope.show_add_policy_modal = function() {
+        var modal_scope = $scope;
+        modal_scope.policy = {who: [], what: [], on: [],
+            allwho: $scope.get_all_who_names([]), allwhat: $scope.get_all_what_names([])};
+
+        var modal = $modal({
+            template: 'partials/admin/addpolicy.html',
+            show: true,
+            persist: true,
+            backdrop: 'static',
+            scope: modal_scope
+        });
+    }
+
+
+    $scope.show_edit_policy_modal = function(policy) {
+        var modal_scope = $scope;
+        modal_scope.policy = policy;
+        modal_scope.policy.allwho = $scope.get_all_who_names(policy.who);
+        modal_scope.policy.allwhat = $scope.get_all_what_names(policy.what);
+
+        var modal = $modal({
+            template: 'partials/admin/editpolicy.html',
+            show: true,
+            persist: true,
+            backdrop: 'static',
+            scope: modal_scope
+        });
+    }
+
+
+    $scope.get_all_who_names = function(current_who) {
+        var who_names = [];
+
+        for (var i = 0; i < $scope.adminData.groupsList.length; i++) {
+            var group = "@" + $scope.adminData.groupsList[i].name;
+            if ($.inArray(group, current_who) == -1) {
+                who_names.push(group);
+            }
+        }
+
+        for (var i = 0; i < $scope.adminData.usersList.length; i++) {
+            var user = $scope.adminData.usersList[i].name;
+            if ($.inArray(user, current_who) == -1) {
+                who_names.push(user);
+            }
+        }
+
+        return who_names;
+    }
+
+    $scope.get_all_what_names = function(current_what) {
+        var what_names = [];
+
+        for (var i = 0; i < $scope.adminData.availableActions.length; i++) {
+            var action = $scope.adminData.availableActions[i];
+            if ($.inArray(action, current_what) == -1) {
+                what_names.push(action);
+            }
+        }
+
+        return what_names;
+    }
+
+
+    $scope.list_selected = function(list, item) {
+        if (list === undefined) {
+            list = [];
+        }
+
+        var index = list.indexOf(item);
+        if (index > -1) {
+            list.splice(index, 1);
+            $("li.select-item[value='" + item + "']").removeClass("selected");
+        } else {
+            list.push(item);
+            $("li.select-item[value='" + item + "']").addClass("selected");
+        }
+    }
+
+
+    $scope.pol_avail_who_selected = function(policy, who) {
+        if (policy.avail_who_selected === undefined) {
+            policy.avail_who_selected = [];
+        }
+
+        $scope.list_selected(policy.avail_who_selected, who);
+    }
+
+
+    $scope.pol_current_who_selected = function(policy, who) {
+        if (policy.current_who_selected === undefined) {
+            policy.current_who_selected = [];
+        }
+
+        $scope.list_selected(policy.current_who_selected, who);
+    }
+
+
+    $scope.pol_avail_what_selected = function(policy, who) {
+        if (policy.avail_what_selected === undefined) {
+            policy.avail_what_selected = [];
+        }
+
+        $scope.list_selected(policy.avail_what_selected, who);
+    }
+
+
+    $scope.pol_current_what_selected = function(policy, who) {
+        if (policy.current_what_selected === undefined) {
+            policy.current_what_selected = [];
+        }
+
+        $scope.list_selected(policy.current_what_selected, who);
+    }
+
+
+    $scope.remove_from_list = function(list, item) {
+        var index = -1;
+        for (var i = 0; i < list.length; i++) {
+            if (list[i] === item) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index > -1) {
+            list.splice(index, 1);
+        }
+    }
+
+
+    $scope.move_policy_who_right = function(policy) {
+        for (var i = 0; i < policy.avail_who_selected.length; i++) {
+            policy.who.push(policy.avail_who_selected[i]);
+            $scope.remove_from_policy_allwho(policy, policy.avail_who_selected[i]);
+        }
+
+        policy.avail_who_selected = [];
+    }
+
+    $scope.remove_from_policy_allwho = function(policy, who) {
+        $scope.remove_from_list(policy.allwho, who);
+    }
+
+    $scope.move_policy_who_left = function(policy) {
+        for (var i = 0; i < policy.current_who_selected.length; i++) {
+            policy.allwho.push(policy.current_who_selected[i]);
+            $scope.remove_from_policy_who(policy, policy.current_who_selected[i]);
+        }
+
+        policy.current_who_selected = [];
+    }
+
+    $scope.remove_from_policy_who = function(policy, who) {
+        $scope.remove_from_list(policy.who, who);
+    }
+
+
+    $scope.move_policy_what_right = function(policy) {
+        for (var i = 0; i < policy.avail_what_selected.length; i++) {
+            policy.what.push(policy.avail_what_selected[i]);
+            $scope.remove_from_policy_allwhat(policy, policy.avail_what_selected[i]);
+        }
+
+        policy.avail_what_selected = [];
+    }
+
+    $scope.remove_from_policy_allwhat = function(policy, what) {
+        $scope.remove_from_list(policy.allwhat, what);
+    }
+
+    $scope.move_policy_what_left = function(policy) {
+        for (var i = 0; i < policy.current_what_selected.length; i++) {
+            policy.allwhat.push(policy.current_what_selected[i]);
+            $scope.remove_from_policy_what(policy, policy.current_what_selected[i]);
+        }
+
+        policy.current_what_selected = [];
+    }
+
+    $scope.remove_from_policy_what = function(policy, what) {
+        $scope.remove_from_list(policy.what, what);
+    }
+
+
+    $scope.add_on = function(policy, on) {
+        policy.on.push(on);
+        policy.newon = "";
+    }
+
+    $scope.remove_on = function(policy, on) {
+        $scope.remove_from_list(policy.on, on);
+    }
+
+
+    $scope.save_policy = function(mode, policy) {
+
+        $http.post('/authapi/post/save_policy', {mode: mode, policy_name: policy.name, policy_who: policy.who, policy_what: policy.what, policy_on: policy.on}).success(function(result) {
+            alert("Save Successful!");
+            if (mode == "add") {
+                $scope.init();
+            }
+        });
+    }
+
 
 
     $scope.init();
