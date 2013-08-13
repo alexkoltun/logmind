@@ -54,10 +54,9 @@
         <thead>
         <tr>
           <th width="300px">Policy</th>
-          <th>Who</th>
-          <th>What</th>
-          <th>On</th>
-          <th>Tags</th>
+          <th>Identities</th>
+          <th>Actions</th>
+          <th>Objects</th>
         </tr>
         </thead>
         <tbody ng-repeat='policy in adminData.policiesList'>
@@ -72,13 +71,13 @@
           <td>
             <span ng-repeat="o in policy.on">{{o}}{{{true: '', false: ', '}[$last]}}</span>
           </td>
-          <td>No Tags</td>
         </tr>
         </tbody>
       </table>
 
       <h7><ul>
-        <li>Who List: Contains user names and group names. Group names are started with '@'.</li>
+        <li>Identities List: Contains user names and group names. Group names are preceeded with '@'.</li>
+        <li>Objects List: Contains specific items (for example, index name) and tags (preceeded with '#').</li>
       </ul></h7>
 
       <br /><br />

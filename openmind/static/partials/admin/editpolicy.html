@@ -6,8 +6,8 @@
 
     <h4>Policy Settings</h4>
 
-    <h5>Who</h5>
-    <h7>Select policy groups and users. Group names are started with '@'.</h7>
+    <h5>Identities</h5>
+    <span style="font-size: 12px;">Select policy groups and users. Group names are preceeded with '@'.</span>
     <table class="table table-striped table-bordered table-condensed" style="width: 67%; max-width: 600px; min-height: 200px; min-width: 400px;">
         <thead>
         <tr>
@@ -38,8 +38,7 @@
         </tr>
     </table>
 
-    <h5>What</h5>
-    <h7>Select policy actions.</h7>
+    <h5>Actions</h5>
     <table class="table table-striped table-bordered table-condensed" style="width: 67%; max-width: 600px; min-height: 200px; min-width: 400px;">
         <thead>
         <tr>
@@ -70,7 +69,8 @@
         </tr>
     </table>
 
-    <h5>On</h5>
+    <h5>Objects</h5>
+    <span style="font-size: 12px;">Type specific item names (for example, index name) or tag names (preceeded with '#')</span>
     <table class="table table-striped table-bordered table-condensed table-hover">
         <thead>
         <tr>
@@ -84,11 +84,11 @@
         </tbody>
     </table>
     <form name='onform'>
-        <input type="text" ng-model="policy.newon" id="onName" name="onName" required placeholder='Add New ON' ng-minlength="3" ng-maxlength="15" title="3 to 15 characters" />
+        <input type="text" ng-model="policy.newon" id="onName" name="onName" required placeholder='Add New Object' ng-minlength="3" ng-maxlength="15" title="3 to 15 characters" />
         <button class="btn btn-info" style="margin-bottom: 10px;" ng-click="add_on(policy, policy.newon)" ng-show="onform.onName.$dirty && !(onform.onName.$error.minlength) && !(onform.onName.$error.required)"><i class="icon icon-plus"></i></button>
         <br />
-        <span class="errormsg" ng-show="onform.onName.$dirty && onform.onName.$error.minlength">ON Name is too short</span>
-        <span class="errormsg" ng-show="onform.onName.$dirty && onform.onName.$error.required">ON Name required.</span>
+        <span class="errormsg" ng-show="onform.onName.$dirty && onform.onName.$error.minlength">Object Name is too short</span>
+        <span class="errormsg" ng-show="onform.onName.$dirty && onform.onName.$error.required">Object Name required.</span>
     </form>
   
 </div>
