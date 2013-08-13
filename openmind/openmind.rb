@@ -798,7 +798,9 @@ def auth_api_post(method)
       auth.save_policy data['policy_name'], data['policy_who'], data['policy_what'], data['policy_on'], []
 
     elsif data['mode'] == "edit"
-      #auth.set_groups data['user_name'], data['groups']
+      auth.remove_policy data['policy_name']
+      auth.refresh
+      auth.save_policy data['policy_name'], data['policy_who'], data['policy_what'], data['policy_on'], []
     end
 
 

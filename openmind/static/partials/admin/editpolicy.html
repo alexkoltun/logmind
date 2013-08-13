@@ -1,16 +1,10 @@
 <div class="modal-header">
   <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-  <h3>Add Policy</h3>
+  <h3>Edit Policy - {{policy.name}}</h3>
 </div>
 <div class="modal-body">
 
     <h4>Policy Settings</h4>
-
-    <form name='form'>
-        <input type="text" ng-model="policy.name" name="pName" required placeholder='Policy Name' ng-minlength="3" ng-maxlength="15" title="3 to 15 characters" />
-        <span class="errormsg" ng-show="form.pName.$dirty && form.pName.$error.minlength">Policy Name is too short</span>
-        <span class="errormsg" ng-show="form.pName.$dirty && form.pName.$error.required">Policy Name required.</span><br /><br />
-    </form>
 
     <h5>Identities</h5>
     <span style="font-size: 12px;">Select policy groups and users. Group names are preceeded with '@'.</span>
@@ -99,5 +93,5 @@
   
 </div>
 <div class="modal-footer">
-  <button type="button" class="btn btn-success" ng-show="(form.pName.$dirty) && (policy.name != null) && (policy.name.length > 2)" ng-click="save_policy('add', policy);dismiss()">Save</button><button type="button" class="btn" ng-click="dismiss()">Cancel</button>
+  <button type="button" class="btn btn-success" ng-click="save_policy('edit', policy);dismiss()">Save</button><button type="button" class="btn" ng-click="dismiss()">Cancel</button>
 </div>

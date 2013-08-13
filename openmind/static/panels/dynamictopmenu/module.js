@@ -67,7 +67,7 @@ angular.module('openmind.dynamictopmenu', [])
                 }
             ]
         },
-        {
+        /*{
             id: "top-messages",
             title: "Messages <span class='label label-important'>5</span>",
             type: "container",
@@ -110,7 +110,7 @@ angular.module('openmind.dynamictopmenu', [])
             link: "/",
             icon: "icon-cog",
             tags: ["admin"]
-        },
+        },*/
         {
             id: "top-logout",
             title: "Logout",

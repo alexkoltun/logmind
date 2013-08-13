@@ -54,15 +54,14 @@
         <thead>
         <tr>
           <th width="300px">Policy</th>
-          <th>Who</th>
-          <th>What</th>
-          <th>On</th>
-          <th>Tags</th>
+          <th>Identities</th>
+          <th>Actions</th>
+          <th>Objects</th>
         </tr>
         </thead>
         <tbody ng-repeat='policy in adminData.policiesList'>
         <tr>
-          <td><a href="#" <i ng-click="remove_policy(policy.name)" class="dark-icon icon-remove"></i></a>&nbsp;&nbsp;<a href="#" ng-click="show_edit_policy_modal(group)"><i class="dark-icon icon-edit"></i> {{policy.name}}</a></td>
+          <td><a href="#" <i ng-click="remove_policy(policy.name)" class="dark-icon icon-remove"></i></a>&nbsp;&nbsp;<a href="#" ng-click="show_edit_policy_modal(policy)"><i class="dark-icon icon-edit"></i> {{policy.name}}</a></td>
           <td>
             <span ng-repeat="w in policy.who">{{w}}{{{true: '', false: ', '}[$last]}}</span>
           </td>
@@ -72,13 +71,13 @@
           <td>
             <span ng-repeat="o in policy.on">{{o}}{{{true: '', false: ', '}[$last]}}</span>
           </td>
-          <td>No Tags</td>
         </tr>
         </tbody>
       </table>
 
       <h7><ul>
-        <li>Who List: Contains user names and group names. Group names are started with '@'.</li>
+        <li>Identities List: Contains user names and group names. Group names are preceeded with '@'.</li>
+        <li>Objects List: Contains specific items (for example, index name) and tags (preceeded with '#').</li>
       </ul></h7>
 
       <br /><br />
