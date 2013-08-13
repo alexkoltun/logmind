@@ -322,6 +322,77 @@ def search_action(data, index, type)
   halt 403, JSON.generate({'error' => 'not_authorized'})
 end
 
+def export_action(data, index, type)
+  # check if we are allowed to read the index
+  if @user.allowed?('index_read', index)
+
+    # get the user scope
+    # get the items we have a view data permissions to union the items we have any permissions to
+    view_scope = (@user.get_scope('view_data') || []) | (@user.get_scope('*') || [])
+
+    security_filter = nil
+
+    # if we have access to everything then no need to filter
+    unless view_scope.include?('*')
+      normalized_scope = view_scope.map { |item| item.slice(1..item.length) if item.start_with?('#') }.reject { |r| r == nil }
+      # build the filter
+      security_filter = { 'or' => [{ 'terms' => { '@tags' => normalized_scope } }, { 'terms' => { 'tags' => normalized_scope } } ]}
+    end
+
+    filtered_query = nil
+
+    if security_filter
+      filtered_query = {'query' => {
+          'filtered' => {
+              'query' => ((data && data['query']) || { 'match_all' => {} }),
+              'filter' => security_filter
+          }
+      }
+      }
+    else
+      filtered_query = {
+          'query' => ((data && data['query']) || { 'match_all' => {} })
+      }
+    end
+
+    if data && data['size']
+      filtered_query['size'] = data['size']
+    end
+
+    c = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + index + ((type == '_any') ? '' : ('/' + type)) + '/_search?search_type=scan&scroll=5m&size=1000', JSON.generate(filtered_query)) do |curl|
+      curl.headers['Accept'] = 'application/json, text/javascript, */*'
+      curl.headers['Content-Type'] = 'application/json'
+    end
+
+    scan_result = JSON.parse(c.body_str)
+    if scan_result['_scroll_id']
+      scroll_id = scan_result['_scroll_id']
+      return stream do |out|
+        begin
+          c = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/_search/scroll?scroll=5m&scroll_id=' + CGI.escape(scroll_id)) do |curl|
+            curl.headers['Accept'] = 'application/json, text/javascript, */*'
+            curl.headers['Content-Type'] = 'application/json'
+          end
+
+          scan_result = JSON.parse(c.body_str)
+
+          scroll_id = scan_result['_scroll_id']
+
+          scan_result['hits']['hits'].each do |item|
+            out << CSV.generate_line(item['_source'].values)
+          end
+
+        end until scan_result['hits']['hits'].length == 0
+      end
+    else
+      raise 'Unable to get index from the store'
+    end
+  end
+
+  halt 403, JSON.generate({'error' => 'not_authorized'})
+end
+
+
 def save_action(data, index, type, id)
   # check if we are allowed to write the index
   if @user.allowed?('index_write', index)
@@ -437,6 +508,17 @@ post '/api/idx/delete/:index/:type/:id' do
 
   delete_action get_request_json, index, type, id
 end
+
+# export to csv
+get '/api/idx/export/:index/?:type?' do
+  index = params[:index]
+  type = params[:type] || '_any'
+
+  api_action_security! 'export', index, type
+
+  export_action get_request_json, index, type
+end
+
 
 #
 # end index API
