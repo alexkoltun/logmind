@@ -1835,6 +1835,10 @@ form {
     width: 20px;
 }
 
+.icon-empty-circle{
+    background-position:0 -169px;
+}
+
 .nav-tabs .active a, .nav-tabs .active a:hover {
     background-color: #ddd;
 }
@@ -1866,4 +1870,12 @@ form {
 .splash-box img {
     position: relative;
     top: 8px;
+}
+
+.table-panel-head .icon-hand-right, .table-panel-head .icon-hand-left {
+    visibility: hidden;
+}
+
+.table-panel-head:hover .icon-hand-right, .table-panel-head:hover .icon-hand-left {
+    visibility: visible;
 }
