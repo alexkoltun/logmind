@@ -1838,3 +1838,32 @@ form {
 .nav-tabs .active a, .nav-tabs .active a:hover {
     background-color: #ddd;
 }
+
+.splash {
+    background-color: skyblue;
+    opacity: 0.95;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    bottom: 0px;
+    right: 0px;
+    z-index: 17000;
+}
+
+.splash-box {
+
+    width: 250px;
+    height: 108px;
+
+    position: absolute;
+    display: table-cell;
+    top: 30%;
+    margin-top: -84px;
+    margin-left: -145px;
+    left: 50%;
+}
+
+.splash-box img {
+    position: relative;
+    top: 8px;
+}
