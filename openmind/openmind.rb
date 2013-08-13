@@ -723,6 +723,10 @@ def auth_api_post(method)
   elsif method == "remove_policy"
     auth.remove_policy data['policy_name']
 
+
+  elsif method == "refresh"
+    auth.refresh
+
   end
 
 end

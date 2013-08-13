@@ -2,6 +2,9 @@
       <div ng-cloak class="content span10" id=main bs-tabs>
         <div ng-controller="AdminCtrl" data-title="Users">
        <h4>Users</h4>
+          <div class="alerts">
+            <div class="alert fade" ng-repeat="alert in alerts" bs-alert="alert"></div>
+          </div>
        <table class="table table-striped table-bordered table-condensed table-hover">
        <thead>
         <tr>
@@ -24,6 +27,9 @@
 
        <div ng-controller="AdminCtrl" data-title="Groups">
        <h4>Groups</h4>
+         <div class="alerts">
+           <div class="alert fade" ng-repeat="alert in alerts" bs-alert="alert"></div>
+         </div>
        <table class="table table-striped table-bordered table-condensed table-hover">
        <thead>
         <tr>
@@ -41,6 +47,9 @@
 
       <div ng-controller="AdminCtrl" data-title="Policies">
       <h4>Policies</h4>
+        <div class="alerts">
+          <div class="alert fade" ng-repeat="alert in alerts" bs-alert="alert"></div>
+        </div>
       <table class="table table-striped table-bordered table-condensed table-hover">
         <thead>
         <tr>

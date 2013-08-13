@@ -346,5 +346,12 @@ class Authorization
 
     policies_query.results
   end
+
+  def refresh
+    Tire.index 'authorization' do
+      refresh
+    end
+  end
+
 end
 

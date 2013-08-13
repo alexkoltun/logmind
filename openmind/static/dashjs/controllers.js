@@ -168,6 +168,13 @@ angular.module('openmind.controllers', [])
         availableActions: ["view_data", "edit_data", "index_read", "index_write", "search", "frontend_ui_view", "*"]
     }
 
+    $scope.alerts = [];
+
+    $scope.set_alert = function(alert) {
+        $scope.alerts = [];
+        $scope.alerts.push(alert);
+    }
+
     var _d = {
         title: "Admin",
         collapse: false,
@@ -180,16 +187,18 @@ angular.module('openmind.controllers', [])
 
     $scope.init = function() {
 
-        $http.get('/authapi/get/get_users').success(function(result) {
-            $scope.adminData.usersList = result;
-        });
+        $http.post('/authapi/post/refresh', {}).success(function(res) {
+            $http.get('/authapi/get/get_users').success(function(result) {
+                $scope.adminData.usersList = result;
+            });
 
-        $http.get('/authapi/get/get_groups').success(function(result) {
-            $scope.adminData.groupsList = result;
-        });
+            $http.get('/authapi/get/get_groups').success(function(result) {
+                $scope.adminData.groupsList = result;
+            });
 
-        $http.get('/authapi/get/get_policies').success(function(result) {
-            $scope.adminData.policiesList = result;
+            $http.get('/authapi/get/get_policies').success(function(result) {
+                $scope.adminData.policiesList = result;
+            });
         });
     }
 
@@ -197,7 +206,7 @@ angular.module('openmind.controllers', [])
     $scope.save_user = function(mode, user, is_new_pass, new_pass) {
 
         $http.post('/authapi/post/save_user', {mode: mode, user_name: user, is_new_pass: is_new_pass, new_pass: new_pass, groups: $scope.user.groups}).success(function(result) {
-            alert("Save Successful!");
+            $scope.set_alert({type: "success", title: "User Saved Successfuly!", content: ""});
             if (mode == "add") {
                 $scope.init();
             }
@@ -208,7 +217,7 @@ angular.module('openmind.controllers', [])
         var is_remove = confirm("Remove user '" + user + "'?");
         if (is_remove) {
             $http.post('/authapi/post/remove_user', {user_name: user}).success(function(result) {
-                alert("User Removed!");
+                $scope.set_alert({type: "success", title: "User Removed!", content: ""});
                 $scope.init();
             });
         }
@@ -218,7 +227,7 @@ angular.module('openmind.controllers', [])
     $scope.save_group = function(mode, group) {
 
         $http.post('/authapi/post/save_group', {mode: mode, group_name: group}).success(function(result) {
-            alert("Save Successful!");
+    $scope.set_alert({type: "success", title: "Group Saved Successful!", content: ""});
             if (mode == "add") {
                 $scope.init();
             }
@@ -229,7 +238,7 @@ angular.module('openmind.controllers', [])
         var is_remove = confirm("Remove group '" + group + "' and all references?");
         if (is_remove) {
             $http.post('/authapi/post/remove_group', {group_name: group}).success(function(result) {
-                alert("Group Removed!");
+                $scope.set_alert({type: "success", title: "Group Removed!", content: ""});
                 $scope.init();
             });
         }
@@ -389,7 +398,7 @@ angular.module('openmind.controllers', [])
         var is_remove = confirm("Remove policy '" + policy + "' and all references?");
         if (is_remove) {
             $http.post('/authapi/post/remove_policy', {policy_name: policy}).success(function(result) {
-                alert("Policy Removed!");
+                $scope.set_alert({type: "success", title: "Policy Removed!", content: ""});
                 $scope.init();
             });
         }
@@ -595,7 +604,7 @@ angular.module('openmind.controllers', [])
     $scope.save_policy = function(mode, policy) {
 
         $http.post('/authapi/post/save_policy', {mode: mode, policy_name: policy.name, policy_who: policy.who, policy_what: policy.what, policy_on: policy.on}).success(function(result) {
-            alert("Save Successful!");
+            $scope.set_alert({type: "success", title: "Policy Saved Successful!", content: ""});
             if (mode == "add") {
                 $scope.init();
             }
