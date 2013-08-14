@@ -399,7 +399,7 @@ def export_action(data, index, type, fields)
               value = (f.split('.').inject(item['_source']) { |hash, key| hash && hash[key] })
               values << (value.kind_of?(Array) && value.join(',') || value)
             end
-            if values && values.count(nil) <
+            if values && values.count(nil) < values.length
               out << CSV.generate_line(values)
             end
           end
@@ -532,7 +532,7 @@ post '/api/idx/delete/:index/:type/:id' do
 end
 
 # export to csv
-get '/api/idx/export/:index/?:type?' do
+post '/api/idx/export/:index/?:type?' do
   index = params[:index]
   type = params[:type] || '_any'
 
