@@ -182,7 +182,7 @@ class InstallBase:
                 print "Upgrading " + module + " from version '" + str(ver_dict[module]) + "' to version '" + str(Version.VERSION[module]) + "'"
 
                 for d in Common.Paths.COMPONENTS_DIRS_DICT[module]:
-                    src = "/".join(("logmind", d))
+                    src = "/".join((os.path.dirname(sys.argv[0]), "logmind", d))
                     dst = "/".join((Common.Paths.LOGMIND_PATH, d))
 
                     if backup_all:
@@ -213,7 +213,7 @@ class InstallBase:
                         
 
             # Updating global version file.
-            ver_file = "/".join(("logmind", "version"))
+            ver_file = "/".join((os.path.dirname(sys.argv[0]), "logmind", "version"))
             shutil.copy(ver_file, Common.Paths.LOGMIND_PATH)
 
             return True
