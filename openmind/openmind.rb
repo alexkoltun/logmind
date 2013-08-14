@@ -322,7 +322,8 @@ def search_action(data, index, type)
   halt 403, JSON.generate({'error' => 'not_authorized'})
 end
 
-def export_action(data, index, type)
+def export_action(data, index, type, fields)
+
   # check if we are allowed to read the index
   if @user.allowed?('index_read', index)
 
@@ -342,12 +343,12 @@ def export_action(data, index, type)
     filtered_query = nil
 
     if security_filter
-      filtered_query = {'query' => {
-          'filtered' => {
-              'query' => ((data && data['query']) || { 'match_all' => {} }),
-              'filter' => security_filter
-          }
-      }
+        filtered_query = {'query' => {
+            'filtered' => {
+                'query' => ((data && data['query']) || { 'match_all' => {} }),
+                'filter' => security_filter
+            }
+        }
       }
     else
       filtered_query = {
@@ -359,6 +360,13 @@ def export_action(data, index, type)
       filtered_query['size'] = data['size']
     end
 
+    fields_list = fields && fields.split(',')
+
+    if !fields_list
+      raise 'Field list is empty, unable to export'
+    end
+
+
     c = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + index + ((type == '_any') ? '' : ('/' + type)) + '/_search?search_type=scan&scroll=5m&size=1000', JSON.generate(filtered_query)) do |curl|
       curl.headers['Accept'] = 'application/json, text/javascript, */*'
       curl.headers['Content-Type'] = 'application/json'
@@ -367,7 +375,13 @@ def export_action(data, index, type)
     scan_result = JSON.parse(c.body_str)
     if scan_result['_scroll_id']
       scroll_id = scan_result['_scroll_id']
+
+      content_type 'text/csv'
+      headers['Content-Disposition'] = 'attachment;filename=logmind_export_' + DateTime.now.to_s + '.csv'
+
       return stream do |out|
+
+        out << CSV.generate_line(fields_list)
         begin
           c = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/_search/scroll?scroll=5m&scroll_id=' + CGI.escape(scroll_id)) do |curl|
             curl.headers['Accept'] = 'application/json, text/javascript, */*'
@@ -379,7 +393,15 @@ def export_action(data, index, type)
           scroll_id = scan_result['_scroll_id']
 
           scan_result['hits']['hits'].each do |item|
-            out << CSV.generate_line(item['_source'].values)
+
+            values = []
+            fields_list.each do |f|
+              value = (f.split('.').inject(item['_source']) { |hash, key| hash && hash[key] })
+              values << (value.kind_of?(Array) && value.join(',') || value)
+            end
+            if values && values.count(nil) <
+              out << CSV.generate_line(values)
+            end
           end
 
         end until scan_result['hits']['hits'].length == 0
@@ -516,7 +538,7 @@ get '/api/idx/export/:index/?:type?' do
 
   api_action_security! 'export', index, type
 
-  export_action get_request_json, index, type
+  export_action get_request_json, index, type, params['fields']
 end
 
 
