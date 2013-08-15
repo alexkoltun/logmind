@@ -138,6 +138,12 @@ def __main__() :
         else:
             current_version = "Unknown"
 
+        if "-rpm" in sys.argv:
+            mode = "upgrade"
+            print ShellColors.WARNING + "Another version of Logmind (", current_version, ") is already installed."
+            print "Automatically Upgrading to version", Version.VERSION["GENERAL"], "(backup will be created)" + ShellColors.ENDC
+
+
         while mode is None:
             print "A previous version of Logmind (", current_version, ") is already installed. Please select an option:"
             print "1. Overwrite current installation"
