@@ -60,7 +60,7 @@ class ClientUpgradeInstall(InstallBase):
         print "Installing Logmind to", Common.Paths.LOGMIND_PATH
 
         print "Stopping services..."
-        if self.stop_services_upgrade():
+        if self.stop_services_upgrade(True):
 
             print "Backing-up config..."
             if self.backup_config():

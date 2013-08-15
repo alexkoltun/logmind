@@ -126,7 +126,7 @@ class InstallBase:
 
 
 
-    def stop_services_upgrade(self):
+    def stop_services_upgrade(self, is_client):
         try:
             success = call(["/command/svcs-d"]) == 0
 
@@ -135,9 +135,14 @@ class InstallBase:
                 while not is_down:
                     print "Waiting for services to stop..."
                     time.sleep(5)
-                    p = Popen("/command/svstats", stdout=PIPE)
-                    out,err = p.communicate()
-                    is_down = out.count("down") == 5
+                    if is_client:
+                        p = Popen(["/command/svstat", "/service/logmind-shipper"], stdout=PIPE)
+                        out,err = p.communicate()
+                        is_down = out.count("down") == 1
+                    else:
+                        p = Popen("/command/svstats", stdout=PIPE)
+                        out,err = p.communicate()
+                        is_down = out.count("down") == 5
                 
             else:
                 print "Error while stopping services."
