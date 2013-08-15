@@ -167,7 +167,7 @@ class InstallBase:
     def copy_files_upgrade(self):
         try:
             upgrade_modules = self.get_upgrade_modules_list()
-            backup_all = "-backup" in sys.argv
+            backup_all = "-backup" in sys.argv or "-rpm" in sys.argv
             ver_dict = Common.get_versions_dict()
 
             backup_dir = "/".join((Common.Paths.LOGMIND_PATH, "backup", "components"))

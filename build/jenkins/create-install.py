@@ -4,7 +4,7 @@ import sys
 dir_name = sys.argv[1]
 install_type = sys.argv[2] # server, server-upgrade, client, client-upgrade
 f = open("/logmind/build/build/jenkins/install" + install_type + ".sh", "wb")
-f.writelines(["#!/bin/sh", "\n", "/".join(("", dir_name, "install")) + " "])
+f.writelines(["#!/bin/sh", "\n", "/".join(("", dir_name, "install")) + " -rpm "])
 
 if install_type == "server":
 	f.write("-type server")
