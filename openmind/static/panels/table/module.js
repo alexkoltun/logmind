@@ -124,6 +124,42 @@ angular.module('openmind.table', [])
     eventBus.broadcast($scope.$id,$scope.panel.group,'query',[$scope.panel.query]);
   }
 
+  $scope.export_data = function() {
+
+      var request = $scope.ejs.Request().indices($scope.index[0])
+          .query(ejs.FilteredQuery(
+              ejs.QueryStringQuery($scope.panel.query || '*'),
+              ejs.RangeFilter($scope.time.field)
+                  .from($scope.time.from)
+                  .to($scope.time.to)
+          )
+      );
+
+      export_data = request.getExportRequestData($scope.panel.fields);
+
+      var iframe_html = '<iframe id="logmind_export_iframe" height="0" width="0" border="0" style="width: 0; height: 0; border: none;"></iframe>';
+      //  build html page
+      if($('#logmind_export_iframe').length == 0) {
+        $('body').append(iframe_html);
+      }
+      else {
+        $('#logmind_export_iframe').replaceWith(iframe_html)
+      }
+
+      var frame = document.getElementById('logmind_export_iframe');
+      var doc = frame.contentDocument;
+      var page;
+      page = "<html><body onload='document.forms[0].submit()'>";
+      page += "<form method='post' action='" + export_data.url + "'><input type='hidden' name='data' value='" + encodeURIComponent(export_data.data) + "'></form>";
+      page += "</body></html>";
+      // now write out the new contents
+      if (doc == undefined || doc == null)
+          doc = frame.contentWindow.document;
+      doc.open();
+      doc.write(page);
+      doc.close();
+  }
+
   $scope.get_data = function(segment,query_id) {
     $scope.panel.error =  false;
 

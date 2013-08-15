@@ -1052,6 +1052,17 @@
                 }
 
                 return ejs.client.post(getRestPath('search'), queryData, successcb, errorcb);
+            },
+
+            getExportRequestData: function (fields) {
+                var queryData = JSON.stringify(query);
+
+                // make sure the user has set a client
+                if (ejs.client == null) {
+                    throw new Error("No Client Set");
+                }
+
+                return { url: getRestPath('export') + '?fields=' + encodeURIComponent(fields.join(',')), data: queryData };
             }
         };
     };

@@ -5,6 +5,7 @@
   </span>
 
   <div style="{{panel.overflow}}:{{panel.height || row.height}};overflow-y:auto;overflow-x:auto">
+    <div><button class="btn btn-dash-menu" ng-click="export_data()"><i class='icon-share-alt pointer'></i>&nbsp;&nbsp;Export to CSV</button></div>
     <div class="row-fluid" ng-show="panel.paging">
       <div class="span1 offset1" style="text-align:right">
         <i ng-click="panel.offset = 0" ng-show="panel.offset > 0" class='dark-icon icon-circle-arrow-left pointer'></i>

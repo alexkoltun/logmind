@@ -538,7 +538,7 @@ post '/api/idx/export/:index/?:type?' do
 
   api_action_security! 'export', index, type
 
-  export_action get_request_json, index, type, params['fields']
+  export_action JSON.parse(CGI.unescape(params['data'])) , index, type, params['fields']
 end
 
 
