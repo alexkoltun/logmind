@@ -6,7 +6,7 @@
   <h4>Dashboard Control</h4>
   <div class="row-fluid">
     <div class="span8">
-      <label class="small">Title</label><input type="text" class="input-large" ng-model='dashboards.title'></input>
+      <label class="small">Title</label><input type="text" class="input-large" ng-model='dashboards.title' ng-change="dirty()"></input>
     </div>
     <div class="span1"> 
       <label class="small"> Editable </label><input type="checkbox" ng-model="dashboards.editable" ng-checked="dashboards.editable" />

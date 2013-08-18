@@ -311,6 +311,13 @@ def search_action(data, index, type)
       filtered_query['sort'] = data['sort']
     end
 
+    if data['refresh']
+      rc = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + index + '/_refresh') do |curl|
+        curl.headers['Accept'] = 'application/json, text/javascript, */*'
+        curl.headers['Content-Type'] = 'application/json'
+      end
+    end
+
     c = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + index + ((type == '_any') ? '' : ('/' + type)) + '/_search', JSON.generate(filtered_query)) do |curl|
       curl.headers['Accept'] = 'application/json, text/javascript, */*'
       curl.headers['Content-Type'] = 'application/json'

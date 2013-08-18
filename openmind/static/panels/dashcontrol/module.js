@@ -184,6 +184,9 @@ angular.module('openmind.dashcontrol', [])
   }
 
   $scope.elasticsearch_save = function(type, title) {
+
+    $("#splash").show();
+
     // Clone object so we can modify it without influencing the existing obejct
     if($scope.panel.hide_control) {
       $scope.panel.hide = true;
@@ -214,6 +217,8 @@ angular.module('openmind.dashcontrol', [])
       $scope.elasticsearch.title = '';
       if(type === 'temp')
         $scope.share_link($scope.dashboards.title,'temp',result._id)
+
+      eventBus.broadcast($scope.$id,'ALL','menu_refresh');
     })
 
     $scope.panel.hide = false;
@@ -224,10 +229,15 @@ angular.module('openmind.dashcontrol', [])
   }
 
   $scope.elasticsearch_delete = function(dashboard) {
+
+    $("#splash").show();
+
     var result = $scope.ejs.Document($scope.panel.elasticsearch_saveto,'dashboard',dashboard._id).doDelete();
     result.then(function(result) {
       $scope.alert('Dashboard Deleted','','success',5000)
       $scope.elasticsearch.dashboards = _.without($scope.elasticsearch.dashboards,dashboard)
+
+      eventBus.broadcast($scope.$id,'ALL','menu_refresh');
     })
   }
 

@@ -1039,16 +1039,26 @@
              Executes the search.
 
              @member ejs.Request
+             @param {Boolean} refresh A boolean value that indicates whether or not to automatically refresh the index.
              @param {Function} successcb A callback function that handles the search response.
              @param {Function} errorcb A callback function that handles errors.
              @returns {Object} Returns a client specific object.
              */
-            doSearch: function (successcb, errorcb) {
+            doSearch: function (refresh, successcb, errorcb) {
+
+                if (refresh != null) {
+                    query.refresh = refresh;
+                }
+
                 var queryData = JSON.stringify(query);
 
                 // make sure the user has set a client
                 if (ejs.client == null) {
                     throw new Error("No Client Set");
+                }
+
+                if (refresh != null) {
+                    params.refresh = refresh;
                 }
 
                 return ejs.client.post(getRestPath('search'), queryData, successcb, errorcb);
