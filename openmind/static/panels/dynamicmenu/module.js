@@ -162,6 +162,8 @@ angular.module('openmind.dynamicmenu', [])
         // Loading dynamic data.
         $.each($scope._menu, function() {
             $scope.load_dynamic_data(this);
+
+            $("#splash").fadeOut();
         });
     });
   }

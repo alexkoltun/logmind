@@ -30,7 +30,7 @@ def __main__():
                     for item in os.listdir(build_platform_path):
                         item_path = "/".join((build_platform_path, item))
                         print "Moving", item_path, "to", component_path
-                        shutil.move(item_path, component_path)
+                        shutil.move(item_path, "/".join((component_path, item)))
                     # Remove platform dir
                     print "Removing", platform_path
                     shutil.rmtree(platform_path)

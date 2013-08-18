@@ -322,6 +322,99 @@ def search_action(data, index, type)
   halt 403, JSON.generate({'error' => 'not_authorized'})
 end
 
+def export_action(data, index, type, fields)
+
+  # check if we are allowed to read the index
+  if @user.allowed?('index_read', index)
+
+    # get the user scope
+    # get the items we have a view data permissions to union the items we have any permissions to
+    view_scope = (@user.get_scope('view_data') || []) | (@user.get_scope('*') || [])
+
+    security_filter = nil
+
+    # if we have access to everything then no need to filter
+    unless view_scope.include?('*')
+      normalized_scope = view_scope.map { |item| item.slice(1..item.length) if item.start_with?('#') }.reject { |r| r == nil }
+      # build the filter
+      security_filter = { 'or' => [{ 'terms' => { '@tags' => normalized_scope } }, { 'terms' => { 'tags' => normalized_scope } } ]}
+    end
+
+    filtered_query = nil
+
+    if security_filter
+        filtered_query = {'query' => {
+            'filtered' => {
+                'query' => ((data && data['query']) || { 'match_all' => {} }),
+                'filter' => security_filter
+            }
+        }
+      }
+    else
+      filtered_query = {
+          'query' => ((data && data['query']) || { 'match_all' => {} })
+      }
+    end
+
+    if data && data['size']
+      filtered_query['size'] = data['size']
+    end
+
+    fields_list = fields && fields.split(',')
+
+    if !fields_list
+      raise 'Field list is empty, unable to export'
+    end
+
+
+    c = Curl::Easy.http_post('http://' + GlobalConfig::Elasticsearch + '/' + index + ((type == '_any') ? '' : ('/' + type)) + '/_search?search_type=scan&scroll=5m&size=1000', JSON.generate(filtered_query)) do |curl|
+      curl.headers['Accept'] = 'application/json, text/javascript, */*'
+      curl.headers['Content-Type'] = 'application/json'
+    end
+
+    scan_result = JSON.parse(c.body_str)
+    if scan_result['_scroll_id']
+      scroll_id = scan_result['_scroll_id']
+
+      content_type 'text/csv'
+      headers['Content-Disposition'] = 'attachment;filename=logmind_export_' + DateTime.now.to_s + '.csv'
+
+      return stream do |out|
+
+        out << CSV.generate_line(fields_list)
+        begin
+          c = Curl::Easy.http_get('http://' + GlobalConfig::Elasticsearch + '/_search/scroll?scroll=5m&scroll_id=' + CGI.escape(scroll_id)) do |curl|
+            curl.headers['Accept'] = 'application/json, text/javascript, */*'
+            curl.headers['Content-Type'] = 'application/json'
+          end
+
+          scan_result = JSON.parse(c.body_str)
+
+          scroll_id = scan_result['_scroll_id']
+
+          scan_result['hits']['hits'].each do |item|
+
+            values = []
+            fields_list.each do |f|
+              value = (f.split('.').inject(item['_source']) { |hash, key| hash && hash[key] })
+              values << (value.kind_of?(Array) && value.join(',') || value)
+            end
+            if values && values.count(nil) < values.length
+              out << CSV.generate_line(values)
+            end
+          end
+
+        end until scan_result['hits']['hits'].length == 0
+      end
+    else
+      raise 'Unable to get index from the store'
+    end
+  end
+
+  halt 403, JSON.generate({'error' => 'not_authorized'})
+end
+
+
 def save_action(data, index, type, id)
   # check if we are allowed to write the index
   if @user.allowed?('index_write', index)
@@ -437,6 +530,17 @@ post '/api/idx/delete/:index/:type/:id' do
 
   delete_action get_request_json, index, type, id
 end
+
+# export to csv
+post '/api/idx/export/:index/?:type?' do
+  index = params[:index]
+  type = params[:type] || '_any'
+
+  api_action_security! 'export', index, type
+
+  export_action JSON.parse(CGI.unescape(params['data'])) , index, type, params['fields']
+end
+
 
 #
 # end index API
@@ -666,6 +770,9 @@ def auth_api_get(method)
   elsif method == "get_groups"
     JSON.generate(auth.get_groups)
 
+  elsif method == "get_policies"
+    JSON.generate(auth.get_policies)
+
   end
 
 end
@@ -706,6 +813,26 @@ def auth_api_post(method)
   elsif method == "remove_group"
     auth.remove_group data['group_name']
 
+
+  elsif method == "save_policy"
+
+    if data['mode'] == "add"
+      auth.save_policy data['policy_name'], data['policy_who'], data['policy_what'], data['policy_on'], []
+
+    elsif data['mode'] == "edit"
+      auth.remove_policy data['policy_name']
+      auth.refresh
+      auth.save_policy data['policy_name'], data['policy_who'], data['policy_what'], data['policy_on'], []
+    end
+
+
+  elsif method == "remove_policy"
+    auth.remove_policy data['policy_name']
+
+
+  elsif method == "refresh"
+    auth.refresh
+
   end
 
 end
@@ -717,7 +844,7 @@ get '/admin' do
   locals[:is_admin] = true
   locals[:show_back] = true
 
-  locals[:header_title] = "Administration"
+  locals[:header_title] = "User Administration"
   locals[:internal_content] = true
   locals[:current_content] = "admin"
   locals[:pathtobase] = ""

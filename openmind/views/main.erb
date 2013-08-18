@@ -42,6 +42,12 @@
 </head>
 <body>
 
+<div id="splash" class="splash login-page">
+  <div class="splash-box">
+    <h1><img src='../../common/img/logo.png'></h1>
+    <h4 style="margin-left: 12px; margin-top: 18px;">Loading... Please Wait...</h4>
+  </div>
+</div>
 
 <div id="header" data-spy="affix" data-offset-top="77">
   <h1><a href="/">Logmind Dashboard</a></h1>
@@ -49,7 +55,7 @@
   <span style="display: none;" class="dashtitle" ng-include="'panels/dashcontrol/module.html'">
   </span>
 
-  <span style="position: absolute; right: 10px; top: 50px; font-size: 8px; color: #999;">Version 7.2.6</span>
+  <span style="position: absolute; right: 10px; top: 50px; font-size: 8px; color: #999;">Version [LOGMIND_VERSION]</span>
 
   <div id="user-nav" class="navbar navbar-inverse" ng-include="'panels/dynamictopmenu/module.html'">
   </div>

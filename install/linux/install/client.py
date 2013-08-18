@@ -29,7 +29,7 @@ class ClientInstall(InstallBase):
             sys.stdout.write("..")
             sys.stdout.flush()
             
-            src = "/".join(("logmind", client_dir_name))
+            src = "/".join((os.path.dirname(sys.argv[0]), "logmind", client_dir_name))
             dst = "/".join((Common.Paths.LOGMIND_PATH, client_dir_name))
             shutil.copytree(src, dst)
             
@@ -38,7 +38,7 @@ class ClientInstall(InstallBase):
                 
             sys.stdout.write("..")
             sys.stdout.flush()
-            shutil.copytree("daemontools-0.76", "/".join((Common.Paths.LOGMIND_PATH, "daemontools-0.76")))
+            shutil.copytree("/".join((os.path.dirname(sys.argv[0]), "daemontools-0.76")), "/".join((Common.Paths.LOGMIND_PATH, "daemontools-0.76")))
             sys.stdout.write("........")
             sys.stdout.flush()
 

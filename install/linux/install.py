@@ -109,19 +109,41 @@ def show_help():
 
 def __main__() :
 
-    if any(h in sys.argv for h in ["-h", "-help", "--help"]):
+    #if any(h in sys.argv for h in ["-h", "-help", "--help"]):
+    if "-h" in sys.argv or "-help" in sys.argv or "--help" in sys.argv:
         show_help()
         return True
 
     start_time = time.time()
 
-    mode = sys.argv[sys.argv.index("-mode") + 1] if "-mode" in sys.argv else None
-    install_type = sys.argv[sys.argv.index("-type") + 1] if "-type" in sys.argv else "server"
+    #mode = sys.argv[sys.argv.index("-mode") + 1] if "-mode" in sys.argv else None
+    if "-mode" in sys.argv:
+        mode = sys.argv[sys.argv.index("-mode") + 1]
+    else:
+        mode = None
+
+    #install_type = sys.argv[sys.argv.index("-type") + 1] if "-type" in sys.argv else "server"
+    if "-type" in sys.argv:
+        install_type = sys.argv[sys.argv.index("-type") + 1]
+    else:
+        install_type = "server"
+
 
 
     if os.path.exists(Common.Paths.LOGMIND_PATH):
         ver_dict = Common.get_versions_dict()
-        current_version = ver_dict["GENERAL"] if ver_dict["GENERAL"] != 0 else "Unknown"
+        #current_version = ver_dict["GENERAL"] if ver_dict["GENERAL"] != 0 else "Unknown"
+        if ver_dict["GENERAL"] != 0:
+            current_version = ver_dict["GENERAL"]
+        else:
+            current_version = "Unknown"
+
+        if "-rpm" in sys.argv:
+            mode = "upgrade"
+            print ShellColors.WARNING + "Another version of Logmind (", current_version, ") is already installed."
+            print "Automatically Upgrading to version", Version.VERSION["GENERAL"], "(backup will be created)" + ShellColors.ENDC
+
+
         while mode is None:
             print "A previous version of Logmind (", current_version, ") is already installed. Please select an option:"
             print "1. Overwrite current installation"

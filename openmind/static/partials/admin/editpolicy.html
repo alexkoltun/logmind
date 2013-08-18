@@ -1,0 +1,97 @@
+<div class="modal-header">
+  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+  <h3>Edit Policy - {{policy.name}}</h3>
+</div>
+<div class="modal-body">
+
+    <h4>Policy Settings</h4>
+
+    <h5>Identities</h5>
+    <span style="font-size: 12px;">Select policy groups and users. Group names are preceeded with '@'.</span>
+    <table class="table table-striped table-bordered table-condensed" style="width: 67%; max-width: 600px; min-height: 200px; min-width: 400px;">
+        <thead>
+        <tr>
+            <th>Available Groups & Users</th>
+            <th></th>
+            <th>Current Groups & Users</th>
+        </tr>
+        </thead>
+        <tr>
+            <td style="width: 48%">
+                <div class="select-list-div">
+                    <ol class="select-list" id="newpol_avail_who">
+                        <li ng-click="pol_avail_who_selected(policy, who)" ng-repeat="who in policy.allwho" class="select-item" value="{{who}}">{{who}}</li>
+                    </ol>
+                </div>
+            </td>
+            <td style="width: 4%; valign: middle;">
+                <button type="button" ng-click="move_policy_who_right(policy)" style="margin: auto;" id="newpol_btn-tag-move-right" class="btn btn-info"><i class="icon-circle-arrow-right"></i></button><br />
+                <button type="button" ng-click="move_policy_who_left(policy)" id="newpol_btn-tag-move-left" class="btn btn-info"><i class="icon-circle-arrow-left"></i></button>
+            </td>
+            <td style="width: 48%">
+                <div class="select-list-div">
+                    <ol class="select-list" id="newpol_curr_who" name="newpol_curr_who[]">
+                        <li ng-click="pol_current_who_selected(policy, who)" ng-repeat="who in policy.who" class="select-item" value="{{who}}">{{who}}</li>
+                    </ol>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <h5>Actions</h5>
+    <table class="table table-striped table-bordered table-condensed" style="width: 67%; max-width: 600px; min-height: 200px; min-width: 400px;">
+        <thead>
+        <tr>
+            <th>Available Actions</th>
+            <th></th>
+            <th>Current Actions</th>
+        </tr>
+        </thead>
+        <tr>
+            <td style="width: 48%">
+                <div class="select-list-div">
+                    <ol class="select-list" id="newpol_avail_what">
+                        <li ng-click="pol_avail_what_selected(policy, what)" ng-repeat="what in policy.allwhat" class="select-item" value="{{what}}">{{what}}</li>
+                    </ol>
+                </div>
+            </td>
+            <td style="width: 4%; valign: middle;">
+                <button type="button" ng-click="move_policy_what_right(policy)" style="margin: auto;" id="newpol_what_btn-tag-move-right" class="btn btn-info"><i class="icon-circle-arrow-right"></i></button><br />
+                <button type="button" ng-click="move_policy_what_left(policy)" id="newpol_what_btn-tag-move-left" class="btn btn-info"><i class="icon-circle-arrow-left"></i></button>
+            </td>
+            <td style="width: 48%">
+                <div class="select-list-div">
+                    <ol class="select-list" id="newpol_curr_what" name="newpol_curr_what[]">
+                        <li ng-click="pol_current_what_selected(policy, what)" ng-repeat="what in policy.what" class="select-item" value="{{what}}">{{what}}</li>
+                    </ol>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <h5>Objects</h5>
+    <span style="font-size: 12px;">Type specific item names (for example, index name) or tag names (preceeded with '#')</span>
+    <table class="table table-striped table-bordered table-condensed table-hover">
+        <thead>
+        <tr>
+            <th width="300px">Item</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat='o in policy.on'>
+            <td><a href="#" <i ng-click="remove_on(policy, o)" class="dark-icon icon-remove"></i></a>&nbsp;&nbsp; {{o}}</td>
+        </tr>
+        </tbody>
+    </table>
+    <form name='onform'>
+        <input type="text" ng-model="policy.newon" id="onName" name="onName" required placeholder='Add New Object' ng-minlength="3" ng-maxlength="15" title="3 to 15 characters" />
+        <button class="btn btn-info" style="margin-bottom: 10px;" ng-click="add_on(policy, policy.newon)" ng-show="onform.onName.$dirty && !(onform.onName.$error.minlength) && !(onform.onName.$error.required)"><i class="icon icon-plus"></i></button>
+        <br />
+        <span class="errormsg" ng-show="onform.onName.$dirty && onform.onName.$error.minlength">Object Name is too short</span>
+        <span class="errormsg" ng-show="onform.onName.$dirty && onform.onName.$error.required">Object Name required.</span>
+    </form>
+  
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-success" ng-click="save_policy('edit', policy);dismiss()">Save</button><button type="button" class="btn" ng-click="dismiss()">Cancel</button>
+</div>

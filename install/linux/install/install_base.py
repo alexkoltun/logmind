@@ -2,8 +2,10 @@ import os
 import sys
 import shutil
 from subprocess import call, Popen, PIPE
+import time
 
 from common import Common
+from version import Version
 
 
 class InstallBase:
@@ -124,7 +126,7 @@ class InstallBase:
 
 
 
-    def stop_services_upgrade(self):
+    def stop_services_upgrade(self, is_client):
         try:
             success = call(["/command/svcs-d"]) == 0
 
@@ -133,9 +135,14 @@ class InstallBase:
                 while not is_down:
                     print "Waiting for services to stop..."
                     time.sleep(5)
-                    p = Popen("/command/svstats", stdout=PIPE)
-                    out,err = p.communicate()
-                    is_down = out.count("down") == 5
+                    if is_client:
+                        p = Popen(["/command/svstat", "/service/logmind-shipper"], stdout=PIPE)
+                        out,err = p.communicate()
+                        is_down = out.count("down") == 1
+                    else:
+                        p = Popen("/command/svstats", stdout=PIPE)
+                        out,err = p.communicate()
+                        is_down = out.count("down") == 5
                 
             else:
                 print "Error while stopping services."
@@ -165,7 +172,7 @@ class InstallBase:
     def copy_files_upgrade(self):
         try:
             upgrade_modules = self.get_upgrade_modules_list()
-            backup_all = "-backup" in sys.argv
+            backup_all = "-backup" in sys.argv or "-rpm" in sys.argv
             ver_dict = Common.get_versions_dict()
 
             backup_dir = "/".join((Common.Paths.LOGMIND_PATH, "backup", "components"))
@@ -180,19 +187,38 @@ class InstallBase:
                 print "Upgrading " + module + " from version '" + str(ver_dict[module]) + "' to version '" + str(Version.VERSION[module]) + "'"
 
                 for d in Common.Paths.COMPONENTS_DIRS_DICT[module]:
-                    src = "/".join(("logmind", d))
+                    src = "/".join((os.path.dirname(sys.argv[0]), "logmind", d))
                     dst = "/".join((Common.Paths.LOGMIND_PATH, d))
 
                     if backup_all:
                         print "Creating backup of", d
-                        shutil.copytree(dst, "/".join((backup_dir,d)), ignore=shutil.ignore_patterns("log", "service"))
+                        #shutil.copytree(dst, "/".join((backup_dir,d)), ignore=shutil.ignore_patterns("log", "service"))
+                        if os.path.isdir(dst):
+                            for sub in os.listdir(dst):
+                                print "backing up:", sub
+                                if not sub in ["log", "logs", "service"]:
+                                    sub_src = "/".join((dst, sub))
+                                    sub_dst = "/".join((backup_dir, d ,sub))
+                                    if not os.path.exists("/".join((backup_dir, d))):
+                                        os.makedirs("/".join((backup_dir, d)))
+                                    if os.path.isdir(sub_src):
+                                        shutil.copytree(sub_src, sub_dst)
+                                    else:
+                                        shutil.copy(sub_src, sub_dst)
+                        else:
+                            shutil.copy(dst, "/".join((backup_dir,d)))
 
                     print "Upgrading", d
-                    shutil.rmtree(dst)
-                    shutil.copytree(src, dst)
+                    if os.path.isdir(dst):
+                        shutil.rmtree(dst)
+                        shutil.copytree(src, dst)
+                    else:
+                        os.remove(dst)
+                        shutil.copy(src, dst)
+                        
 
             # Updating global version file.
-            ver_file = "/".join(("logmind", "version"))
+            ver_file = "/".join((os.path.dirname(sys.argv[0]), "logmind", "version"))
             shutil.copy(ver_file, Common.Paths.LOGMIND_PATH)
 
             return True
