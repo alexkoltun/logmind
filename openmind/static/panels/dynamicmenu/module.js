@@ -128,7 +128,7 @@ angular.module('openmind.dynamicmenu', [])
 
       } else if (item.type === "dynamic") {
           var res = $scope.ejs.Request().indices(item.es_index).types(item.es_type).query(
-              $scope.ejs.QueryStringQuery(item.es_query)).doSearch();
+              $scope.ejs.QueryStringQuery(item.es_query)).doSearch(true);
 
           res.then(function(res) {
               if(_.isUndefined(res.hits)) {
@@ -140,6 +140,14 @@ angular.module('openmind.dynamicmenu', [])
   }
 
   $scope.init = function() {
+
+    eventBus.register($scope, 'menu_refresh', function() {
+        $.each($scope._menu, function() {
+            $scope.load_dynamic_data(this);
+
+            $("#splash").fadeOut();
+        });
+    });
 
     $scope.ejs.Document("logmind-management", "openmind-menu", "default").doGet(function(a) {
         if (!a.exists) {

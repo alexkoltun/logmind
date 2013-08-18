@@ -4,7 +4,7 @@
   <div ng-show='panel.new.new'>
       <form class="input-append">
           <input class='input-medium' placeholder='Title' type="text" ng-model="new_dashboard_title"/>
-          <button class="btn btn-info" ng-click="new_dashboard(new_dashboard_title); dismiss()"><i class="icon-ok"></i></button>
+          <button class="btn btn-info" ng-click="new_dashboard(new_dashboard_title); dirty(); dismiss()"><i class="icon-ok"></i></button>
       </form>
   </div>
 </div>
