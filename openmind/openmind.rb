@@ -863,7 +863,7 @@ post '/upload-data' do
 
   csv = CSV.new(params['myfile'][:tempfile].read, { :headers => :first_row, :col_sep => ',', :row_sep => :auto })
 
-  s = TCPSocket.new '192.168.1.20', 8752
+  s = TCPSocket.new 'localhost', 8752
 
   csv.each do |item|
     hash = {}
