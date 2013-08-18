@@ -9,6 +9,7 @@ require 'tzinfo'
 require 'grok-pure'
 require 'find'
 require 'curl'
+require 'securerandom'
 
 $LOAD_PATH << '.'
 $LOAD_PATH << './lib'
@@ -868,20 +869,70 @@ end
 post '/upload-data' do
   api_action_security! 'adminupload'
 
-  csv = CSV.new(params['myfile'][:tempfile].read, { :headers => :first_row, :col_sep => ',', :row_sep => :auto })
+  unless params['item_id']
 
-  s = TCPSocket.new 'localhost', 8752
+    unique_id = SecureRandom.uuid
 
-  csv.each do |item|
-    hash = {}
-    item.each do |kv|
-      hash[kv[0]] = kv[1]
+    csv = CSV.new(params['myfile'][:tempfile].read, { :headers => :first_row, :col_sep => ',', :row_sep => :auto })
+
+    File.open("/tmp/#{unique_id}.openmind", 'w') do |file|
+      csv.each do |item|
+        hash = {}
+        item.each do |kv|
+          hash[kv[0]] = kv[1]
+        end
+        file.puts JSON.generate hash
+      end
     end
-    s.puts JSON.generate hash
+
+    haml :prepare_type_fields, :locals => { :headers => csv.headers, :unique_id => unique_id }
+  else
+
+    unique_id = params['item_id']
+    type_name = params['type_name']
+
+    field_types = {}
+    params['field_types'] && params['field_types'].split(',').each do |item|
+      arr = item.split(':')
+      field_types[arr[0]] = arr[1]
+    end
+
+    props = {}
+
+    field_types.each do |k,v|
+      props[k] = { 'index' => 'not_analyzed', 'type' => v }
+    end
+
+    mappings =  {
+        'template' => 'logstash-*',
+        'mappings' => {
+            type_name => {
+                'properties' => props
+            }
+        }
+    }
+
+    c = Curl::Easy.http_put('http://' + GlobalConfig::Elasticsearch + '/_all/' + type_name + '/_mapping', JSON.generate(mappings['mappings'])) do |curl|
+      curl.headers['Accept'] = 'application/json, text/javascript, */*'
+      curl.headers['Content-Type'] = 'application/json'
+    end
+
+    response = JSON.parse(c.body_str)
+
+    if response['ok']
+      s = TCPSocket.new 'localhost', 8752  # for tests replace with: File.open('/tmp/test1', 'w')
+
+      File.open("/tmp/#{unique_id}.openmind", 'r').each do |line|
+        obj = JSON.parse(line)
+        obj['internal_type'] = type_name
+        s.puts JSON.generate(obj)
+      end
+
+      s.close
+
+      return "The data was successfully sent to logmind"
+    else
+      return 'Unable to create mapping, response: ' + c.body_str
+    end
   end
-
-  s.close
-
-  return "The file was successfully uploaded!"
-
 end
