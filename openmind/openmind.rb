@@ -227,7 +227,7 @@ def get_view_scope
   (@user.get_scope('view_data') || []) | (@user.get_scope('*') || [])
 end
 
-def api_action_security!(method, action, index)
+def api_action_security!(action, index = nil, type = nil)
   if @user
     if @user.allowed?(action, nil)
       return true
@@ -850,4 +850,31 @@ get '/admin' do
   locals[:pathtobase] = ""
 
   erb :main, :locals => locals
+end
+
+
+get '/upload-data' do
+  api_action_security! 'adminupload'
+  haml :adminupload
+end
+
+post '/upload-data' do
+  api_action_security! 'adminupload'
+
+  csv = CSV.new(params['myfile'][:tempfile].read, { :headers => :first_row, :col_sep => ',', :row_sep => :auto })
+
+  s = TCPSocket.new '192.168.1.20', 8752
+
+  csv.each do |item|
+    hash = {}
+    item.each do |kv|
+      hash[kv[0]] = kv[1]
+    end
+    s.puts JSON.generate hash
+  end
+
+  s.close
+
+  return "The file was successfully uploaded!"
+
 end
