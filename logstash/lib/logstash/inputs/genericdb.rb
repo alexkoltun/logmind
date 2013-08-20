@@ -17,6 +17,7 @@ class LogStash::Inputs::GenericDb < LogStash::Inputs::Base
   
   config :polling_interval, :validate => :number, :default => 60
   config :anchor_fld_name, :validate => :string, :default => "id"
+  config :anchor_fld_type, :validate => :string, :default => "int"
   config :anchor_default_val, :validate => :string, :default => "0"
   config :exec_statement, :validate => :string
   
@@ -76,8 +77,8 @@ class LogStash::Inputs::GenericDb < LogStash::Inputs::Base
 		initCon
 		
 		# prepare statement with anchor fld
-		@logger.info("query", :sql => sql);
-		result = select(sql, @last_anchor)
+		@logger.info("query", :sql => exec_statement);
+		result = select(exec_statement, @last_anchor)
 		
 		if (!result.nil? and result.size > 0)
 			@logger.info("details", :resSize => result.size);
@@ -125,7 +126,11 @@ class LogStash::Inputs::GenericDb < LogStash::Inputs::Base
   
   def select(sql, anchor)
     stmt = @connection.prepareStatement(sql)
-	stmt.setString(1, anchor)
+	if anchor_fld_type == "int"
+		stmt.setInt(1, Integer(anchor))
+	else
+		stmt.setString(1, anchor)
+	end
     resultSet = stmt.executeQuery()
 
     meta = resultSet.getMetaData
