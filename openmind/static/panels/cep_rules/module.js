@@ -118,7 +118,7 @@ angular.module('openmind.cep_rules', [])
 
         //  $scope.populate_modal(request)
 
-        var results = request.doSearch();
+        var results = request.doSearch(true);
 
         // Populate scope when we have results
         results.then(function(results) {
@@ -208,7 +208,7 @@ angular.module('openmind.cep_rules', [])
       var request = $http.post('/api/cep/delete/',rule._source);
       var id = request.then(function(result) {
           $scope.alert('Rule Deleted','This rule has been deleted!','success',5000);
-          $scope.getData();
+          $scope.get_data();
       })
       return false;
   }

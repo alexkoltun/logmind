@@ -135,7 +135,8 @@ angular.module('openmind.cep_editor', [])
           toSaveQs.push(
               {
                   query: $scope.panel.current_rule.raw_queries[i].query,
-                  id: $scope.get_id($scope.panel.current_rule.raw_queries[i])
+                  id: $scope.panel.current_rule.raw_queries[i].id
+                  //id: $scope.get_id($scope.panel.current_rule.raw_queries[i])
               });
         }
 
