@@ -21,6 +21,7 @@ angular.module('openmind.unitable', [])
     overflow: 'height',
     fields  : [],
     fieldSettings : { '@timestamp' : { displayName: 'Timestamp', cellTemplate: '', headerTemplate: '' } },
+    dataSettings : { method: 'direct', index: 'lastevents', type: 'last-event' },
     highlight : [],
     sortable: true,
     header  : true,
@@ -34,7 +35,12 @@ angular.module('openmind.unitable', [])
     $scope.set_listeners($scope.panel.group)
 
     // Now that we're all setup, request the time from our group
-    eventBus.broadcast($scope.$id,$scope.panel.group,"get_time")
+    if ($scope.panel.dataSettings && $scope.panel.dataSettings.method == 'dashboard') {
+        eventBus.broadcast($scope.$id,$scope.panel.group,"get_time")
+    }
+      else {
+        $scope.get_data();
+    }
   }
 
   $scope.set_listeners = function(group) {
@@ -136,48 +142,75 @@ angular.module('openmind.unitable', [])
       doc.close();
   }
 
-  $scope.get_data = function(segment,query_id) {
-    $scope.panel.error =  false;
+  $scope.get_data = function() {
 
-    // Make sure we have everything for the request to complete
-    if(_.isUndefined($scope.index) || _.isUndefined($scope.time))
-      return
-    
+    var dataProviders = {
+        dashboard: {
+            get_data: function(scope) {
+                // Make sure we have everything for the request to complete
+                if(_.isUndefined($scope.index) || _.isUndefined($scope.time))
+                    return null;
+
+                var _segment = scope.segment = 0;
+
+                var request = scope.ejs.Request().indices(scope.index[_segment])
+                    .query(ejs.FilteredQuery(
+                        ejs.QueryStringQuery(scope.panel.query || '*'),
+                        ejs.RangeFilter(scope.time.field)
+                            .from(scope.time.from)
+                            .to(scope.time.to)
+                    )
+                    )
+                    .highlight(
+                        ejs.Highlight(scope.panel.highlight)
+                            .fragmentSize(2147483647) // Max size of a 32bit unsigned int
+                            .preTags('@start-highlight@')
+                            .postTags('@end-highlight@')
+                    )
+                    .size(scope.panel.size*scope.panel.pages)
+                    .sort(scope.panel.sort[0],scope.panel.sort[1]);
+
+                scope.populate_modal(request)
+
+                return request.doSearch()
+            }
+        },
+        direct: {
+            get_data: function(scope) {
+                var request = scope.ejs.Request().indices(scope.panel.dataSettings.index)
+                    .types(scope.panel.dataSettings.type)
+                    .query(
+                        ejs.QueryStringQuery(scope.panel.query || '*')
+                    )
+                    .highlight(
+                        ejs.Highlight(scope.panel.highlight)
+                            .fragmentSize(2147483647) // Max size of a 32bit unsigned int
+                            .preTags('@start-highlight@')
+                            .postTags('@end-highlight@')
+                    )
+                    .size(scope.panel.size*scope.panel.pages)
+                    .sort(scope.panel.sort[0],scope.panel.sort[1]);
+
+                scope.populate_modal(request)
+
+                return request.doSearch()
+            }
+        }
+    };
+
+    $scope.panel.error =  false;
     $scope.panel.loading = true;
 
-    var _segment = _.isUndefined(segment) ? 0 : segment
-    $scope.segment = _segment;
 
-    var request = $scope.ejs.Request().indices($scope.index[_segment])
-      .query(ejs.FilteredQuery(
-        ejs.QueryStringQuery($scope.panel.query || '*'),
-        ejs.RangeFilter($scope.time.field)
-          .from($scope.time.from)
-          .to($scope.time.to)
-        )
-      )
-      .highlight(
-        ejs.Highlight($scope.panel.highlight)
-        .fragmentSize(2147483647) // Max size of a 32bit unsigned int
-        .preTags('@start-highlight@')
-        .postTags('@end-highlight@')
-      )
-      .size($scope.panel.size*$scope.panel.pages)
-      .sort($scope.panel.sort[0],$scope.panel.sort[1]);
-
-    $scope.populate_modal(request)
-
-    var results = request.doSearch()
+    var results = dataProviders[$scope.panel.dataSettings && $scope.panel.dataSettings.method || 'dashboard'].get_data($scope);
 
     // Populate scope when we have results
     results.then(function(results) {
       $scope.panel.loading = false;
 
-      if(_segment === 0) {
-        $scope.hits = 0;
-        $scope.data = [];
-        query_id = $scope.query_id = new Date().getTime()
-      }
+      $scope.hits = 0;
+      $scope.data = [];
+      query_id = $scope.query_id = new Date().getTime()
 
       // Check for error and abort if found
       if(!(_.isUndefined(results.error))) {
@@ -219,13 +252,13 @@ angular.module('openmind.unitable', [])
       // If we're not sorting in reverse chrono order, query every index for
       // size*pages results
       // Otherwise, only get size*pages results then stop querying
-      if(
-          ($scope.data.length < $scope.panel.size*$scope.panel.pages || 
-            !(($scope.panel.sort[0] === $scope.time.field) && $scope.panel.sort[1] === 'desc')) && 
-          _segment+1 < $scope.index.length
-      ) {
-        $scope.get_data(_segment+1,$scope.query_id)
-      }
+//      if(
+//          ($scope.data.length < $scope.panel.size*$scope.panel.pages ||
+//            !(($scope.panel.sort[0] === $scope.time.field) && $scope.panel.sort[1] === 'desc')) &&
+//          _segment+1 < $scope.index.length
+//      ) {
+//        $scope.get_data(_segment+1,$scope.query_id)
+//      }
 
     });
   }
